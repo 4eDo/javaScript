@@ -1,0 +1,32 @@
+html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  canvas {
+    border: 1px solid white;
+  }
+#settings{display: block; }
+table, tr, td{
+  color: white;
+  border: 1px solid #80808080;
+  width: 100%;
+	border-collapse:collapse;
+	border-spacing:0;
+  padding: 5px;
+}
+.goBtn{
+    width: 10vh;
+    height: 10vh;
+    font-size: 30px;
+    padding: 5px;
+    display: block;
+    box-sizing: content-box;
+}
