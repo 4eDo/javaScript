@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas width="400" height="400" id="game"></canvas>
+  <div id="settings">
+    <table>
+    <tr>
+        <td>Ширина поля</td>
+        <td><input type="range" min="10" max="40" value="25" step="1" id="canvasW" ></td>
+    </tr>
+    <tr>
+        <td>Высота поля</td>
+        <td><input type="range" min="10" max="40" value="25" step="1" id="canvasH" ></td>
+    </tr>
+    <tr>
+        <td>Скорость змейки</td>
+        <td><input type="range" min="30" max="57" value="50" id="snakeSpeed" step="0.5"></td>
+    </tr>
+    <tr
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Эффект от яблока завершится через:</td>
+        <td><input type="number" value="0" id="snakeColorTimer" readonly></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Укусили себя за хвост:</td>
+        <td><input type="number" value="0" id="tailCount" readonly></td>
+    </tr>
+    <tr>
+        <td>Съедено яблок за раунд</td>
+        <td><input type="number" value="0" id="applesCount" readonly></td>
+    </tr>
+    <tr>
+        <td>Текущая длина</td>
+        <td><input type="number" value="4" id="currLen" readonly></td>
+    </tr>
+    <tr>
+        <td>Максимальная длина</td>
+        <td><input type="number" value="0" id="maxLen" readonly></td>
+    </tr>
+    <tr>
+        <td>Старт</td>
+        <td><input type="button" id="start" value="Начать игру"></td>
+    </tr>
+    <tr>
+        <td>Стоп</td>
+        <td><input type="button" id="stop" value="Остановить игру"></td>
+    </tr>
+</table>
+  </div>
+<div id="keyboard"><table><tbody>
+    <tr>
+        <td></td>
+        <td><input class="goBtn" id="goUp" type="button" value="&#9650;"></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><input class="goBtn" id="goLeft" type="button" value="&#9668;"></td>
+        <td></td>
+        <td><input class="goBtn" id="goRight" type="button" value="&#9658;"></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input class="goBtn" id="goDown" type="button" value="&#9660;"></td>
+        <td></td>
+    </tr></tbody>
+</table></div>
+</body>
+</html>	
