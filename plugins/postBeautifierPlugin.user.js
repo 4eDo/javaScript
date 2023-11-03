@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.4
+// @version      0.5
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -64,17 +64,17 @@ var casesBtns = document.getElementsByClassName('cases_4eDo');
 var redlineBtns = document.getElementsByClassName('redline_4eDo');
 var spacesBtns = document.getElementsByClassName('spaces_4eDo');
 
-casesBtns.foreach(btn => {
+casesBtns.forEach(btn => {
 	btn.addEventListener('click', function () {
         toCamelCase(btn.getAttribute("pid"));
     });
 });
-redlineBtns.foreach(btn => {
+redlineBtns.forEach(btn => {
 	btn.addEventListener('click', function () {
         addRedLine(btn.getAttribute("pid"));
     });
 });
-spacesBtns.foreach(btn => {
+spacesBtns.forEach(btn => {
 	btn.addEventListener('click', function () {
         addSpaceBefore(btn.getAttribute("pid"));
     });
