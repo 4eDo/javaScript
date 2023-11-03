@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.3
+// @version      0.4
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -40,7 +40,6 @@ const style = `
 		display: inline-block;
 	}
 </style>
-<script async src="https://4edo.github.io/javaScript/plugins/postBeautifierPlugin.js"></script>
 `;
 const span = '<span class="redLine_4eDo"></span>';
 const panel = `
@@ -124,3 +123,5 @@ function addSpaceBefore(pid) {
 		element.prepend(newSpan);
 	});
 }
+
+console.log("~ init postBeautifierPlugin ~");
