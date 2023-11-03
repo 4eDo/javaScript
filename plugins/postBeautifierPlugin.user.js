@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.7
+// @version      0.9
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -45,8 +45,8 @@ const span = '<span class="redLine_4eDo"></span>';
 const panel = `
 	<div class="beutifier_4eDo">
 		<span class="btn_4eDo cases_4eDo" title="Начинать предложения с заглавной буквы." pid="{{pid}}">Aa</span>
-		<span class="btn_4eDo redline_4eDo" title="Красная строка." pid="{{pid}}> &#8594;A</span>
-		<span class="btn_4eDo spaces_4eDo" title="Отбивка абзацев пустой строкой." pid="{{pid}}>&#8627;A</span>
+		<span class="btn_4eDo redline_4eDo" title="Красная строка." pid="{{pid}}"> &#8594;A</span>
+		<span class="btn_4eDo spaces_4eDo" title="Отбивка абзацев пустой строкой." pid="{{pid}}">&#8627;A</span>
 	</div>
 `;
 $('body').append(style);
