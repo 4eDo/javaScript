@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.11
+// @version      0.12
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -64,25 +64,31 @@ var casesBtns = document.getElementsByClassName('cases_4eDo');
 var redlineBtns = document.getElementsByClassName('redline_4eDo');
 var spacesBtns = document.getElementsByClassName('spaces_4eDo');
 
-
-for (var i = 0; i < casesBtns.length; i++){
-    casesBtns[i].addEventListener('click', function () {
-	    console.log(casesBtns[i]);
-        toCamelCase(casesBtns[i].getAttribute("pid"));
+elements.forEach(element => {
+	let pid = element.firstElementChild.id;
+	let newDiv = document.createElement('div');
+    newDiv.setAttribute('id', pid+"_4eDo");
+	element.prepend(newDiv);
+	newDiv.innerHTML = panel.replaceAll("{{pid}}", pid);
+});
+casesBtns.forEach(element => {
+	element.addEventListener('click', function () {
+	    console.log(element);
+        toCamelCase(element.getAttribute("pid"));
     });
-}
-for (var i = 0; i < redlineBtns.length; i++){
-    redlineBtns[i].addEventListener('click', function () {
-	    console.log(redlineBtns[i]);
-        addRedLine(redlineBtns[i].getAttribute("pid"));
+});
+redlineBtns.forEach(element => {
+	element.addEventListener('click', function () {
+	    console.log(element);
+        addRedLine(element.getAttribute("pid"));
     });
-}
-for (var i = 0; i < spacesBtns.length; i++){
-    spacesBtns[i].addEventListener('click', function () {
-	    console.log(spacesBtns[i]);
-        addSpaceBefore(spacesBtns[i].getAttribute("pid"));
+});
+spacesBtns.forEach(element => {
+	element.addEventListener('click', function () {
+	    console.log(element);
+        addSpaceBefore(element.getAttribute("pid"));
     });
-}
+});
 
 function toCamelCase(pid) {
 	let postContent = document.getElementById(pid);
