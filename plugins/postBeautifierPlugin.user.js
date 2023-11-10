@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.14
+// @version      0.15
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
-// @match        http://alluvio.ru/* https://alluvio.ru/*
+// @match        *://alluvio.ru/*
 // ==/UserScript==
 $(function() {
 const style = `
