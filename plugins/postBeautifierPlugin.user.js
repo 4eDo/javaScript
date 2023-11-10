@@ -102,6 +102,7 @@ function toCamelCase(pid) {
 	key = key.replace(/\? (.)/g, match => "? " + match[2].toUpperCase());
 	key = key.replace(/! (.)/g, match => "! " + match[2].toUpperCase());
 	key = key.replace(/<br>(.)/g, match => "<br>" + match[4].toUpperCase());
+	key = key.replace(/<p>(.)/g, match => "<p>" + match[3].toUpperCase());
 	key = key.replace(/<br>— <strong>(.)/g, match => "<br>— <strong>" + match[14].toUpperCase());
 	key = key.replace(/<br>— <em class="bbuline">(.)/g, match => '<br>— <em class="bbuline">' + match[26].toUpperCase());
 	key = key.replace(/<br>— (.)/g, match => "<br>— " + match[6].toUpperCase());
