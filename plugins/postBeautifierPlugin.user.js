@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.15
+// @version      0.16
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -97,7 +97,7 @@ function toCamelCase(pid) {
 	key = key.replace(/<span class="redLine_4eDo"><\/span>— <strong>(.)/g, match => '<span class="redLine_4eDo"></span>— <strong>' + match[44].toUpperCase());
 	key = key.replace(/<span class="redLine_4eDo"><\/span>— <em class="bbuline">(.)/g, match => '<span class="redLine_4eDo"></span>— <em class="bbuline">' + match[56].toUpperCase());
 	key = key.replace(/<span class="redLine_4eDo"><\/span>— (.)/g, match => '<span class="redLine_4eDo"></span>— ' + match[36].toUpperCase());
-	key = key.replace(/<span style="display:inline-block;margin:0px 10px;"><\/span> (.)/g, match => '<span class="redLine_4eDo"></span>— ' + match[59].toUpperCase()); 
+	key = key.replace(/<span style="display:inline-block;margin:0px 10px;"><\/span> (.)/g, match => '<span style="display:inline-block;margin:0px 10px;"></span> ' + match[60].toUpperCase()); 
 	key = key.replace(/\. (.)/g, match => ". " + match[2].toUpperCase());
 	key = key.replace(/\? (.)/g, match => "? " + match[2].toUpperCase());
 	key = key.replace(/! (.)/g, match => "! " + match[2].toUpperCase());
