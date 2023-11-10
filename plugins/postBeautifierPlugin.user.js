@@ -127,8 +127,8 @@ function addRedLine(pid) {
 function addSpaceBefore(pid) {
 	let postContent = document.getElementById(pid);
 	let key = postContent.innerHTML;
-	key = key.replace(/<br><br>/g, "<br>");
-	key = key.replace(/<br>/g, "<br><br>");
+	key = key.replaceAll(/<br><br>/g, "<br>");
+	key = key.replaceAll(/<br>/g, "<br><br>");
 	postContent.innerHTML = key;
 	
 	let ps = document.querySelectorAll("#"+ pid + " p");
