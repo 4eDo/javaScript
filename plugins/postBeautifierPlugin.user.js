@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.17
+// @version      0.18
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -134,7 +134,7 @@ function toCamelCase(pid) {
 	let key = postContent.innerHTML;
 	let savedLinks = [];
 	let linksIterator = 0;
-	key = key.replaceAll(saveLinks, match => {savedLinks[linksIterator] = match; linksIterator++; return "{{".concat(linksIterator, "}}");});
+	key = key.replaceAll(saveLinks, match => { linksIterator++; savedLinks[linksIterator] = match; return "{{".concat(linksIterator, "}}");});
 
 	
 	var pattern = /((<br>)|(<p>)|(\?|\.|!)) ?—? ?((<span style="display:inline-block;margin:0px 10px;"><\/span>)|(<\/?strong>)|(<\/?em( class="bbuline")?>))? ?—? ?((<span style="display:inline-block;margin:0px 10px;"><\/span>)|(<\/?strong>)|(<em\/?( class="bbuline")?>))? ?[a-zA-Zа-яёА-ЯЁ]|(<\/?strong>) ?[a-zA-Zа-яёА-ЯЁ]/g;
@@ -148,7 +148,9 @@ function toCamelCase(pid) {
 		});
 	}
 	
-	for(let i = 0; i < savedLinks.length; i++) {
+	console.log(key);
+	console.log(savedLinks);
+	for(let i = 0; i <= savedLinks.length; i++) {
 		key = key.replace("{{" + i + "}}", savedLinks[i]);
 	}
 
