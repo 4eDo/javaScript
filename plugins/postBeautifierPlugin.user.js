@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.18
+// @version      0.19
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -103,9 +103,47 @@ document.getElementById("saveBtn_4eDo").addEventListener('click', function () {
 document.getElementById("closeBtn_4eDo").addEventListener('click', function () {
 	closeMe4eDo();
 });
+
+function setNamesForPlugin(names) {
+
+	$.ajax({
+		url: '/api.php',
+		method: 'post',
+		dataType: 'json',
+		data: {
+			token: ForumAPITicket,
+			method: "storage.set",
+			key: "namesForUppercase_4eDo",
+			value: names
+		},
+		async: false,
+		success: function(data){
+			// console.log(data);
+		}
+	});
+}
+
+function getNamesForPlugin() {
+	let names;
+	$.ajax({
+		url: '/api.php',
+		method: 'get',
+		dataType: 'json',
+		data: {
+			method: "storage.get",
+			key: "namesForUppercase_4eDo"
+		},
+		async: false,
+		success: function(data){
+			names = data.response.storage.data.namesForUppercase_4eDo;
+		}
+	});
+	return names;
+}
+
 function addNamesToCaseList(){
 	$('#panel_4eDo').show();
-	var names = localStorage.getItem("names4eDo");
+	var names = getNamesForPlugin();
 	$("#names_4eDo").val(names ? names : "");
 	$('#saveBtn_4eDo').show();
 	$('#savedText_4eDo').hide();
@@ -118,7 +156,7 @@ function saveNamesInCaseList(){
 	let namesArr = names.split(' ');
 		namesArr.sort();
 		names = namesArr.join(' ');
-	localStorage.setItem("names4eDo", names);
+	setNamesForPlugin(names);
 	$('#savedText_4eDo').show();
 	$('#closeBtn_4eDo').show();
 }
@@ -140,16 +178,14 @@ function toCamelCase(pid) {
 	var pattern = /((<br>)|(<p>)|(\?|\.|!)) ?—? ?((<span style="display:inline-block;margin:0px 10px;"><\/span>)|(<\/?strong>)|(<\/?em( class="bbuline")?>))? ?—? ?((<span style="display:inline-block;margin:0px 10px;"><\/span>)|(<\/?strong>)|(<em\/?( class="bbuline")?>))? ?[a-zA-Zа-яёА-ЯЁ]|(<\/?strong>) ?[a-zA-Zа-яёА-ЯЁ]/g;
 	key = key.replaceAll(pattern, match =>  match.substring(0, match.length - 1) + match.at(-1).toUpperCase());
 	
-	var namesStr = localStorage.getItem("names4eDo");
+	var namesStr = getNamesForPlugin();
 	if(namesStr) {
 		let names = namesStr.split(' ');
 		names.forEach(name => {
-			key = key.replaceAll(name.toLowerCase(), match => match.charAt(0).toUpperCase() + match.slice(1));
+			key = key.replaceAll(" " + name.toLowerCase(), match => " " + match.charAt(1).toUpperCase() + match.slice(2));
 		});
 	}
 	
-	console.log(key);
-	console.log(savedLinks);
 	for(let i = 0; i <= savedLinks.length; i++) {
 		key = key.replace("{{" + i + "}}", savedLinks[i]);
 	}
