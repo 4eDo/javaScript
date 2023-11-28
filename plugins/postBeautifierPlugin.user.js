@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.19
+// @version      0.20
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -181,9 +181,9 @@ function toCamelCase(pid) {
 	var namesStr = getNamesForPlugin();
 	if(namesStr) {
 		let names = namesStr.split(' ');
-		names.forEach(name => {
-			key = key.replaceAll(" " + name.toLowerCase(), match => " " + match.charAt(1).toUpperCase() + match.slice(2));
-		});
+		let regexp = new RegExp("[ ->]" + "(" + names.join("|") + ")", "gi");
+		console.log(regexp);
+		key = key.replaceAll(regexp, match => match.charAt(0) + match.charAt(1).toUpperCase() + match.slice(2).toLowerCase());
 	}
 	
 	for(let i = 0; i <= savedLinks.length; i++) {
