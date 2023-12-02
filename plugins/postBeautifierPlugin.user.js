@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.20
+// @version      0.21
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -10,7 +10,7 @@ $(function() {
 const style = `
 <style>
 	.beutifier_4eDo {
-		background-color: #40404030;
+		background-color: #1c1c1c70;
 		float: right;
 		border: 1px solid #00000040;
 		border-radius: 2px;
@@ -23,6 +23,10 @@ const style = `
 	.btn_4eDo{
 		width: 21px;
 		display: inline-block;
+		color: #f0f0f070;
+		font-family: monospace;
+		font-size: 14px;
+ 		font-weight: 600;
 		height: 20px;
 		background-color: #40404030;
 		border: 1px solid #00000040;
