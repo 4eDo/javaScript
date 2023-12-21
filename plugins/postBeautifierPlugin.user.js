@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.21
+// @version      0.22
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -128,7 +128,7 @@ function setNamesForPlugin(names) {
 }
 
 function getNamesForPlugin() {
-	let names;
+	let names = "";
 	$.ajax({
 		url: '/api.php',
 		method: 'get',
@@ -214,7 +214,7 @@ function addSpaceBefore(pid) {
 	let postContent = document.getElementById(pid);
 	let key = postContent.innerHTML;
 	key = key.replaceAll(/(<span style="display:inline-block;margin:0px 10px;"><\/span><br>)+/g, "<br>");
-	key = key.replaceAll(/(<br>)+/g, "");
+	key = key.replaceAll(/(<br>)+/g, "<br>");
 	postContent.innerHTML = key;
 	
 	let ps = document.querySelectorAll("#"+ pid + " p");
