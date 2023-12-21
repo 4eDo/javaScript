@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         КРАСИВЫЕ ПОСТЫ
-// @version      0.22
+// @version      0.23
 // @description  Скрипт для добавления в посты заглавных букв, красных строк и отбивки абзацев
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -214,7 +214,8 @@ function addSpaceBefore(pid) {
 	let postContent = document.getElementById(pid);
 	let key = postContent.innerHTML;
 	key = key.replaceAll(/(<span style="display:inline-block;margin:0px 10px;"><\/span><br>)+/g, "<br>");
-	key = key.replaceAll(/(<br>)+/g, "<br>");
+	key = key.replaceAll(/(<br>)+/g, "<br><br>");
+	key = key.replaceAll(/(<p>)(<br>)*/g, "<p>");
 	postContent.innerHTML = key;
 	
 	let ps = document.querySelectorAll("#"+ pid + " p");
