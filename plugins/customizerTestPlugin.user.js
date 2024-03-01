@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.3
+// @version      0.04
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -94,7 +94,5 @@ $(function() {
 	}
 
 console.log("~ init customizerPlugin ~");
-
-});
 
 });
