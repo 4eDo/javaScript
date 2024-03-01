@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.1
+// @version      0.2
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -30,7 +30,7 @@ $(function() {
 		<td><textarea id="{{pid}}_subscription_4eDo" style="width: 390px; height: 90px;">{{subscription}}</textarea></td>
 	  </tr>
 	</table>
-	<button name="button" onclick="look_4eDo('{{pid}}', {{uid}})">ПРИМЕРИТЬ</button>
+	<button name="button" id="{{pid}}_look_4eDo">ПРИМЕРИТЬ</button>
 	<div id="{{pid}}_style_4eDo"></div>
 	`;
 	initAll_4eDo();
@@ -56,6 +56,10 @@ $(function() {
 			.replaceAll("{{uid}}", element.dataset.userId ? element.dataset.userId : "");
 			temp += sign ? sign.outerHTML  : "";
 			document.querySelector("#" + pid + "-content").innerHTML = temp;
+			
+			document.querySelector("#" + pid + "-content > dl").addEventListener('click', function () {
+				look_4eDo(pid, uid);
+			});
 		});
 	}
 
