@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.04
+// @version      0.05
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -52,13 +52,12 @@ $(function() {
 			.replaceAll("{{avatar}}", avatar ? avatar.src : "")
 			.replaceAll("{{emoji}}", emoji ? emoji.src : "")
 			.replaceAll("{{lz}}", lz ? lz.innerHTML  : "")
-			.replaceAll("{{subscription}}", sign ? signContent.innerHTML  : "")
-			.replaceAll("{{uid}}", element.dataset.userId ? element.dataset.userId : "");
+			.replaceAll("{{subscription}}", sign ? signContent.innerHTML  : "");
 			temp += sign ? sign.outerHTML  : "";
 			document.querySelector("#" + pid + "-content").innerHTML = temp;
 			
 			document.querySelector("#" + pid + "_look_4eDo").addEventListener('click', function () {
-				look_4eDo(pid, uid);
+				look_4eDo(pid, element.dataset.userId);
 			});
 		});
 	}
