@@ -41,11 +41,11 @@
 		"human":["как"],
 		"isCanon":true,
 		"isSyllable":false,
-		"syllables":["аг"],
+		"syllables":["ах"],
 		"meaning":""
 	},
 	{
-		"wookiee":"йо агааха",
+		"wookiee":"йо-агааха",
 		"variant":[],
 		"human":["головная боль", "мигрень", "проблема"],
 		"isCanon":true,
@@ -63,7 +63,7 @@
 		"meaning":""
 	},
 	{
-		"wookiee":"ох хаа",
+		"wookiee":"ох-хаа",
 		"variant":[],
 		"human":["хорошо", "ладно", "договорились", "да"],
 		"isCanon":true,
@@ -108,7 +108,7 @@
 		"meaning":"Вопросительный суффикс"
 	},
 	{
-		"wookiee":"а уу ааа",
+		"wookiee":"а-уу-ааа",
 		"variant":[],
 		"human":["почему"],
 		"isCanon":true,
@@ -135,7 +135,7 @@
 		"meaning":""
 	},
 	{
-		"wookiee":"ар о",
+		"wookiee":"ар-о",
 		"variant":[],
 		"human":["благодарю вас", "благодарствую", "спасибо", "признателен"],
 		"isCanon":true,
@@ -304,6 +304,33 @@
 		"isSyllable":true,
 		"syllables":[],
 		"meaning":""
+	},
+	{
+		"wookiee":"ра-ра",
+		"variant":[],
+		"human":["рассказывай", "как ты", "как дела"],
+		"isCanon":true,
+		"isSyllable":false,
+		"syllables":[],
+		"meaning":"Не столько вопрос, сколько призыв поведать о важном (и не очень), что случилось в последнее время."
+	},
+	{
+		"wookiee":"арах-ах-вуф",
+		"variant":[],
+		"human":["кофе"],
+		"isCanon":true,
+		"isSyllable":false,
+		"syllables":[],
+		"meaning":"Кофе не столь известен народу вуки, поэтому для описания используется несколько слов."
+	},
+	{
+		"wookiee":"ррух",
+		"variant":[],
+		"human":["какой по варианту", "который из"],
+		"isCanon":true,
+		"isSyllable":false,
+		"syllables":[],
+		"meaning":"Одно слово, подразумевающее интерес к тому, какой именно вариант чего-либо предпочтителен, причём перечисление вариантов не обязательно."
 	},
 	{
 		"wookiee":"",
