@@ -1,317 +1,576 @@
 [
 	{
-		"wookiee":"уйов",
-		"variant":[],
-		"human":["пока", "прощай", "до свидания"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а",
+		"variant": [],
+		"human": [
+			"один",
+			"первый",
+			"1"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Числительное 1"
 	},
 	{
-		"wookiee":"хааг",
-		"variant":[],
-		"human":["дверь", "дверной проём", "люк", "вход"],
-		"isCanon":true,
-		"isSyllable":false,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-а",
+		"variant": [],
+		"human": [
+			"два",
+			"второй",
+			"2"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а"
+		],
+		"meaning": "Числительное 2, буквально один и один."
 	},
 	{
-		"wookiee":"уйаа",
-		"variant":[],
-		"human":["привет", "приветствую", "здравствуй"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-мууаа-йург",
+		"variant": [],
+		"human": [
+			"восемь",
+			"восьмой",
+			"8"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а",
+			"йорг",
+			"муаарга"
+		],
+		"meaning": "Числительное 8, буквально один и семь"
 	},
 	{
-		"wookiee":"ауа",
-		"variant":[],
-		"human":["иди", "пошли", "пойдём"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-оо-а",
+		"variant": [],
+		"human": [
+			"три",
+			"третий",
+			"3"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а",
+			"оо"
+		],
+		"meaning": "Числительное 3, буквально один, между, и один"
 	},
 	{
-		"wookiee":"йааг",
-		"variant":[],
-		"human":["как"],
-		"isCanon":true,
-		"syllables":["ах"],
-		"meaning":""
+		"wookiee": "а-оо-му",
+		"variant": [],
+		"human": [
+			"девять",
+			"девятый",
+			"последний",
+			"9"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а",
+			"оо",
+			"му"
+		],
+		"meaning": "Числительное 9, буквально один, все между, до конца. Девять - последнее число десятичной системы, десять - это уже как бы другой разряд (см. описание 'йорг')"
 	},
 	{
-		"wookiee":"йо-агааха",
-		"variant":[],
-		"human":["головная боль", "мигрень", "проблема"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-оо-му-йаарг",
+		"variant": [],
+		"human": [
+			"десять",
+			"десятый",
+			"10"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а",
+			"йаарг",
+			"оо",
+			"му"
+		],
+		"meaning": "Числительное 10, буквально первый десяток после девяти."
 	},
 	{
-		"wookiee":"муауа",
-		"variant":[],
-		"human":["нет"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-уйоорг",
+		"variant": [],
+		"human": [
+			"пять",
+			"пятый",
+			"5"
+		],
+		"isCanon": true,
+		"syllables": [
+			"а",
+			"йорг"
+		],
+		"meaning": "Числительное 5, буквально один и четыре."
 	},
 	{
-		"wookiee":"ох-хаа",
-		"variant":[],
-		"human":["хорошо", "ладно", "договорились", "да"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "а-уу-ааа",
+		"variant": [],
+		"human": [
+			"почему"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ууах",
-		"variant":[],
-		"human":["что"],
-		"isCanon":true,
-		"syllables":["ах"],
-		"meaning":""
+		"wookiee": "ар-о",
+		"variant": [],
+		"human": [
+			"благодарю вас",
+			"благодарствую",
+			"спасибо",
+			"признателен"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"хуаах",
-		"variant":[],
-		"human":["когда"],
-		"isCanon":true,
-		"syllables":["ах"],
-		"meaning":""
+		"wookiee": "арах-ах-вуф",
+		"variant": [],
+		"human": [
+			"кофе"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Кофе не столь известен народу вуки, поэтому для описания используется несколько слов."
 	},
 	{
-		"wookiee":"муаах",
-		"variant":[],
-		"human":["кто"],
-		"isCanon":true,
-		"syllables":["ах"],
-		"meaning":""
+		"wookiee": "ауа",
+		"variant": [],
+		"human": [
+			"иди",
+			"пошли",
+			"пойдём"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ах",
-		"variant":["аг", "аа"],
-		"human":[],
-		"isCanon":false,
-		"syllables":[],
-		"meaning":"Вопросительный суффикс"
+		"wookiee": "ах",
+		"variant": [
+			"аг",
+			"аа"
+		],
+		"human": [],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": "Вопросительный суффикс"
 	},
 	{
-		"wookiee":"а-уу-ааа",
-		"variant":[],
-		"human":["почему"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ва",
+		"variant": [],
+		"human": [
+			"ты",
+			"твой"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Указание на собеседника, маркер притяжательности. При переводе может опускаться."
 	},
 	{
-		"wookiee":"ума",
-		"variant":[],
-		"human":["да", "ага", "хорошо"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ваа",
+		"variant": [],
+		"human": [
+			"я",
+			"мой"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Указание на себя, маркер притяжательности. При переводе может опускаться."
 	},
 	{
-		"wookiee":"хррнн",
-		"variant":[],
-		"human":["правильно", "верно", "точно"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "йааг",
+		"variant": [],
+		"human": [
+			"как"
+		],
+		"isCanon": true,
+		"syllables": [
+			"ах"
+		],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ар-о",
-		"variant":[],
-		"human":["благодарю вас", "благодарствую", "спасибо", "признателен"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "йаарг",
+		"variant": [],
+		"human": [
+			"десяток",
+			"комплект",
+			"полный набор"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"курасаа",
-		"variant":[],
-		"human":["Корусант"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "йо-агааха",
+		"variant": [],
+		"human": [
+			"головная боль",
+			"мигрень",
+			"проблема"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"оид",
-		"variant":[],
-		"human":["дроид"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "йорг",
+		"variant": [
+			"йург",
+			"уйоорг"
+		],
+		"human": [
+			"палец",
+			"единица",
+			"элемент"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": "Предположительно означает одну единицу чего либо. Вероятно, система исчисления у вуки также построена на пальцах, и потому это слово часто встречается в числительных. Причём ноль идёт по умолчанию и входит в систему счисления, но не озвучивается. И нет нулевого пальца, так как ноль - ничто."
 	},
 	{
-		"wookiee":"йуринал",
-		"variant":[],
-		"human":["журнал", "каталог"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "йуринал",
+		"variant": [],
+		"human": [
+			"журнал",
+			"каталог"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"муаарга",
-		"variant":["мууаа"],
-		"human":["мир", "порядок"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Второй вариант ближе к порядку."
+		"wookiee": "курасаа",
+		"variant": [],
+		"human": [
+			"Корусант"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"а",
-		"variant":[],
-		"human":["один", "первый", "1"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Числительное 1"
+		"wookiee": "му",
+		"variant": [],
+		"human": [
+			"последний",
+			"конец",
+			"конечный",
+			"заключительный",
+			"финальный",
+			"крайний"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"а-а",
-		"variant":[],
-		"human":["два", "второй", "2"],
-		"isCanon":true,
-		"syllables":["а"],
-		"meaning":"Числительное 2, буквально один и один."
+		"wookiee": "муа",
+		"variant": [],
+		"human": [
+			"купить",
+			"приобрести",
+			"добыть",
+			"достать"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"а-оо-а",
-		"variant":[],
-		"human":["три", "третий", "3"],
-		"isCanon":true,
-		"syllables":["а", "оо"],
-		"meaning":"Числительное 3, буквально один, между, и один"
+		"wookiee": "муаа",
+		"variant": [],
+		"human": [
+			"купить немного",
+			"приобрести немного",
+			"добыть немного",
+			"достать немного"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"уйоорг",
-		"variant":[],
-		"human":["четыре", "четвёртый", "4"],
-		"isCanon":true,
-		"syllables":["йорг"],
-		"meaning":"Числительное 4"
+		"wookiee": "мумуа",
+		"variant": [],
+		"human": [
+			"выпивка",
+			"пойло",
+			"алкоголь"
+		],
+		"isCanon": false,
+		"syllables": [
+			"му",
+			"муа"
+		],
+		"meaning": "Буквально 'последняя покупка'. Вуки не считали, что покупать алкоголь правильно. Его должны или изготавливать сами, или приносить в дар, почти как символ дружбы, симпатии, хорошего расположения. Если тебе приходится это покупать, то ты никчёмен. Впрочем, смысл со временем подзабылся - миры под иными светилами иначе относятся к выпивке."
 	},
 	{
-		"wookiee":"а-уйоорг",
-		"variant":[],
-		"human":["пять", "пятый", "5"],
-		"isCanon":true,
-		"syllables":["а", "йорг"],
-		"meaning":"Числительное 5, буквально один и четыре."
+		"wookiee": "муаарга",
+		"variant": [
+			"мууаа"
+		],
+		"human": [
+			"мир",
+			"порядок"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Второй вариант ближе к порядку."
 	},
 	{
-		"wookiee":"у-йург",
-		"variant":[],
-		"human":["шесть", "шестой", "6"],
-		"isCanon":true,
-		"syllables":["йорг"],
-		"meaning":"Числительное 6, т.е. следующий после пяти"
+		"wookiee": "муаах",
+		"variant": [],
+		"human": [
+			"кто"
+		],
+		"isCanon": true,
+		"syllables": [
+			"ах"
+		],
+		"meaning": ""
 	},
 	{
-		"wookiee":"мууаа-йург",
-		"variant":[],
-		"human":["семь", "седьмой", "7"],
-		"isCanon":true,
-		"syllables":["йорг", "муаарга"],
-		"meaning":"Числительное 7, буквально дальше по порядку"
+		"wookiee": "муауа",
+		"variant": [],
+		"human": [
+			"нет"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"а-мууаа-йург",
-		"variant":[],
-		"human":["восемь", "восьмой", "8"],
-		"isCanon":true,
-		"syllables":["а", "йорг", "муаарга"],
-		"meaning":"Числительное 8, буквально один и семь"
+		"wookiee": "мууаа-йург",
+		"variant": [],
+		"human": [
+			"семь",
+			"седьмой",
+			"7"
+		],
+		"isCanon": true,
+		"syllables": [
+			"йорг",
+			"муаарга"
+		],
+		"meaning": "Числительное 7, буквально дальше по порядку"
 	},
 	{
-		"wookiee":"а-оо-му",
-		"variant":[],
-		"human":["девять", "девятый", "последний", "9"],
-		"isCanon":true,
-		"syllables":["а", "оо", "му"],
-		"meaning":"Числительное 9, буквально один, все между, до конца. Девять - последнее число десятичной системы, десять - это уже как бы другой разряд (см. описание 'йорг')"
+		"wookiee": "оид",
+		"variant": [],
+		"human": [
+			"дроид"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"а-оо-му-йаарг",
-		"variant":[],
-		"human":["десять", "десятый", "10"],
-		"isCanon":true,
-		"syllables":["а", "йаарг", "оо", "му"],
-		"meaning":"Числительное 10, буквально первый десяток после девяти."
+		"wookiee": "оо",
+		"variant": [],
+		"human": [
+			"между",
+			"от и до"
+		],
+		"isCanon": false,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"йорг",
-		"variant":["йург", "уйоорг"],
-		"human":["палец", "единица", "элемент"],
-		"isCanon":false,
-		"syllables":[],
-		"meaning":"Предположительно означает одну единицу чего либо. Вероятно, система исчисления у вуки также построена на пальцах, и потому это слово часто встречается в числительных. Причём ноль идёт по умолчанию и входит в систему счисления, но не озвучивается. И нет нулевого пальца, так как ноль - ничто."
+		"wookiee": "ох-хаа",
+		"variant": [],
+		"human": [
+			"хорошо",
+			"ладно",
+			"договорились",
+			"да"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"йаарг",
-		"variant":[],
-		"human":["десяток", "комплект", "полный набор"],
-		"isCanon":false,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ра-ра",
+		"variant": [],
+		"human": [
+			"рассказывай",
+			"как ты",
+			"как дела"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": "Не столько вопрос, сколько призыв поведать о важном (и не очень), что случилось в последнее время."
 	},
 	{
-		"wookiee":"оо",
-		"variant":[],
-		"human":["между", "от и до"],
-		"isCanon":false,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ррооах",
+		"variant": [],
+		"human": [
+			"голошахматы",
+			"дежарик",
+			"играть в дежарик"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"му",
-		"variant":[],
-		"human":["последний", "конец", "конечный", "заключительный", "финальный", "крайний"],
-		"isCanon":false,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ррух",
+		"variant": [],
+		"human": [
+			"какой по варианту",
+			"который из"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Одно слово, подразумевающее интерес к тому, какой именно вариант чего-либо предпочтителен, причём перечисление вариантов не обязательно."
 	},
 	{
-		"wookiee":"ра-ра",
-		"variant":[],
-		"human":["рассказывай", "как ты", "как дела"],
-		"isCanon":true,
-		"isSyllable":false,
-		"syllables":[],
-		"meaning":"Не столько вопрос, сколько призыв поведать о важном (и не очень), что случилось в последнее время."
+		"wookiee": "у-йург",
+		"variant": [],
+		"human": [
+			"шесть",
+			"шестой",
+			"6"
+		],
+		"isCanon": true,
+		"syllables": [
+			"йорг"
+		],
+		"meaning": "Числительное 6, т.е. следующий после пяти"
 	},
 	{
-		"wookiee":"арах-ах-вуф",
-		"variant":[],
-		"human":["кофе"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Кофе не столь известен народу вуки, поэтому для описания используется несколько слов."
+		"wookiee": "у-ууах",
+		"variant": [],
+		"human": [
+			"как насчёт",
+			"что насчёт",
+			"предлагаю"
+		],
+		"isCanon": true,
+		"syllables": [
+			"у",
+			"ууах"
+		],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ррух",
-		"variant":[],
-		"human":["какой по варианту", "который из"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Одно слово, подразумевающее интерес к тому, какой именно вариант чего-либо предпочтителен, причём перечисление вариантов не обязательно."
+		"wookiee": "уйаа",
+		"variant": [],
+		"human": [
+			"привет",
+			"приветствую",
+			"здравствуй"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ва",
-		"variant":[],
-		"human":["ты", "твой"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Указание на собеседника, маркер притяжательности. При переводе может опускаться."
+		"wookiee": "уйов",
+		"variant": [],
+		"human": [
+			"пока",
+			"прощай",
+			"до свидания"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
 	},
 	{
-		"wookiee":"ваа",
-		"variant":[],
-		"human":["я", "мой"],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":"Указание на себя, маркер притяжательности. При переводе может опускаться."
+		"wookiee": "уйоорг",
+		"variant": [],
+		"human": [
+			"четыре",
+			"четвёртый",
+			"4"
+		],
+		"isCanon": true,
+		"syllables": [
+			"йорг"
+		],
+		"meaning": "Числительное 4"
+	},
+	{
+		"wookiee": "ума",
+		"variant": [],
+		"human": [
+			"да",
+			"ага",
+			"хорошо"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "ууах",
+		"variant": [],
+		"human": [
+			"что"
+		],
+		"isCanon": true,
+		"syllables": [
+			"ах"
+		],
+		"meaning": ""
+	},
+	{
+		"wookiee": "хааг",
+		"variant": [],
+		"human": [
+			"дверь",
+			"дверной проём",
+			"люк",
+			"вход"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "хррнн",
+		"variant": [],
+		"human": [
+			"правильно",
+			"верно",
+			"точно"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "хуа",
+		"variant": [],
+		"human": [
+			"могу",
+			"имею возможность",
+			"способен"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "хуаах",
+		"variant": [],
+		"human": [
+			"когда"
+		],
+		"isCanon": true,
+		"syllables": [
+			"ах"
+		],
+		"meaning": "В данном случае 'хуа' не является несуущим смысл слогом. На шириивуке оно произносится с иной интонацией,. которую, впрочем, человеческое ухо различить не можнет."
 	},
 	{
 		"wookiee":"",
