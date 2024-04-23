@@ -129,6 +129,18 @@
 		"meaning": ""
 	},
 	{
+		"wookiee": "арр",
+		"variant": [],
+		"human": [
+			"чувство",
+			"ощущение",
+			"настроение"
+		],
+		"isCanon": true,
+		"syllables": ["ар"],
+		"meaning": ""
+	},
+	{
 		"wookiee": "ар-о",
 		"variant": ["ар о"],
 		"human": [
@@ -138,7 +150,7 @@
 			"признателен"
 		],
 		"isCanon": true,
-		"syllables": [],
+		"syllables": ["ар"],
 		"meaning": ""
 	},
 	{
@@ -190,7 +202,7 @@
 	},
 	{
 		"wookiee": "ваа",
-		"variant": ["ра"],
+		"variant": ["ар", "ра"],
 		"human": [
 			"я",
 			"мой"
@@ -212,6 +224,16 @@
 		"meaning": "Чаще упоминается как предлог"
 	},
 	{
+		"wookiee": "вуо",
+		"variant": [],
+		"human": [
+			"[Не несущее конкретного смысла слово, влияющее на контекст]"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Это слово подразумевавет, что на поставленный вопрос или утверждение ожидается положительный (и только) ответ."
+	},
+	{
 		"wookiee": "вууах",
 		"variant": [
 			"ву-ууах", 
@@ -229,6 +251,22 @@
 			"ву"
 		],
 		"meaning": ""
+	},
+	{
+		"wookiee": "вухи",
+		"variant": [
+			"вук",
+			"вух",
+			"вуки", 
+			"вукхи"
+		],
+		"human": [
+			"вуки",
+			"соплеменник"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Самоназвание вуки"
 	},
 	{
 		"wookiee": "гваах",
@@ -446,6 +484,18 @@
 		"meaning": "Числительное 7, буквально дальше по порядку"
 	},
 	{
+		"wookiee": "нн",
+		"variant": ["нхн"],
+		"human": [
+			"новый",
+			"обновлённый",
+			"свежий"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
 		"wookiee": "оид",
 		"variant": [],
 		"human": [
@@ -476,7 +526,7 @@
 			"да"
 		],
 		"isCanon": true,
-		"syllables": [],
+		"syllables": ["хаа"],
 		"meaning": ""
 	},
 	{
@@ -502,6 +552,47 @@
 			"до встречи",
 			"до скорого",
 			"бывай"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "рарр",
+		"variant": [],
+		"human": [
+			"республика"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "роо",
+		"variant": [],
+		"human": [
+			"грядущее",
+			"будущее",
+			"то, что будет",
+			"предсказанное",
+			"итог",
+			"результат"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "рооарр",
+		"variant": [],
+		"human": [
+			"плохое предчувствие",
+			"дурное предчувствие",
+			"опасение",
+			"опасаюсь"
 		],
 		"isCanon": true,
 		"isSyllable": false,
@@ -637,6 +728,22 @@
 		"meaning": ""
 	},
 	{
+		"wookiee": "хаа",
+		"variant": ["хва"],
+		"human": [
+			"хорошо",
+			"отлично",
+			"замечательно",
+			"добро",
+			"нравиться",
+			"нравится"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": "Положительное отношение к чему либо"
+	},
+	{
 		"wookiee": "хааг",
 		"variant": [],
 		"human": [
@@ -644,6 +751,19 @@
 			"дверной проём",
 			"люк",
 			"вход"
+		],
+		"isCanon": true,
+		"isSyllable": false,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "хва-хва",
+		"variant": [],
+		"human": [
+			"хороший",
+			"очень хороший",
+			"красивый"
 		],
 		"isCanon": true,
 		"isSyllable": false,
@@ -661,6 +781,18 @@
 		"isCanon": true,
 		"syllables": [],
 		"meaning": ""
+	},
+	{
+		"wookiee": "хнн-роур-йроонн",
+		"variant": ["хнн-роур йроонн"],
+		"human": [
+			"да здравствует",
+			"виват",
+			"ура [чему-то]"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": "Общий рык приветствия, выражающий радость, относящуюся к чему-то, к какому-то событию."
 	},
 	{
 		"wookiee": "хуа",
@@ -687,11 +819,25 @@
 		"meaning": "В данном случае 'хуа' не является несуущим смысл слогом. На шириивуке оно произносится с иной интонацией,. которую, впрочем, человеческое ухо различить не можнет."
 	},
 	{
-		"wookiee":"",
-		"variant":[],
-		"human":[],
-		"isCanon":true,
-		"syllables":[],
-		"meaning":""
+		"wookiee": "ширии",
+		"variant": [],
+		"human": [
+			"говор",
+			"речь",
+			"язык"
+		],
+		"isCanon": true,
+		"syllables": [],
+		"meaning": ""
+	},
+	{
+		"wookiee": "шириивук",
+		"variant": [],
+		"human": [
+			"язык вуки"
+		],
+		"isCanon": true,
+		"syllables": ["ширии", "вук"],
+		"meaning": ""
 	}
 ]
