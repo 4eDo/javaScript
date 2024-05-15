@@ -6,6 +6,10 @@ var tasks;
 var doneList;
 var bars;
 
+const clone = `<span class="material-symbols-outlined" title="СПЁРТЫХ КЛОНОВ">
+settings_accessibility
+</span>`;
+
 async function loadAll() {
 	const responseT = await fetch(tasksSrc);
 	tasks = await responseT.json();
@@ -37,7 +41,7 @@ function initBarsList() {
 	const BAR_TEMPLATE = `<div class="pbar">
 	<div><span class="name"></span></div>
 	<div class="descr">descr</div>
-	<div class="status"><span class="currProgress">0</span> из <span class="needProgress">0</span></div>
+	<div class="status">${clone}<span class="currProgress">0</span> из <span class="needProgress">0</span> </div>
 	<div class="barRow"></div>
 	<div class="scrollRow"></div>
 </div>`;
@@ -68,7 +72,7 @@ function initTasksList() {
 	const TASK_TEMPLATE = `<div class="task">
 	<div class="tName"></div>
 	<div class="tDescr"></div>
-	<div><b>Награда:</b> <span class="tPoints"></span></div>
+	<div><b>Награда:</b> <span class="tPoints"></span>${clone}</div>
 	<div><b>Выполнено:</b> <span class="tStat">0</span> раз(а).</div>
 </div>`;
 	var taskList = document.querySelector("#taskList");
@@ -96,7 +100,7 @@ function initDoneList() {
 	<div class="doneItem">
 		<div class="taskName"></div>
 		<div class="date"></div>	
-		<div><b>Награда:</b> <span class="getPoints"></span></div>	
+		<div><b>Награда:</b> <span class="getPoints"></span>${clone}</div>	
 	</div>
 	`;
 	for (let i = 0; i < doneList.length; i++) {
