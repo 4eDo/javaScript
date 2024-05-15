@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Список целей на эту жизнь</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<div class="container">
+		<div class="list-column" id="barsDiv"></div>
+
+		<div class="tabs-column">
+			<div class="tabs">
+				<button class="tab" onclick="showTab('taskList')">Список заданий</button>
+				<button class="tab" onclick="showTab('doneTList')">Уже выполнено</button>
+				<button class="tab" onclick="showTab('getJson')">Забрать код</button>
+			</div>
+
+			<div class="tab-content" id="taskList"></div>
+
+			<div class="tab-content" id="doneTList" style="display: none;"></div>
+
+			<div class="tab-content" id="getJson" style="display: none;">
+				<p>Выполнена задача: <select id="selTask"></select></p>
+				<p>Для цели: <select id="selBar"></select></p>
+				<button onclick="copyCode()">Забрать код</button>
+				<textarea id="resultCode" readonly></textarea>
+
+			</div>
+		</div>
+	</div>
+
+	<script src="script.js"></script>
+</body>
+
+</html>
