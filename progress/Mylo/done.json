@@ -48,5 +48,10 @@
 		"taskCode": "episode",
 		"date": "2024-05-19 21:05",
 		"forBar": "00"
+	},
+	{
+		"taskCode": "nazgul",
+		"date": "2024-05-19 21:50",
+		"forBar": "00"
 	}
 ]
