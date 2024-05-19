@@ -63,5 +63,10 @@
 		"taskCode": "nazgul",
 		"date": "2024-05-19 22:03",
 		"forBar": "00"
+	},
+	{
+		"taskCode": "walk",
+		"date": "2024-05-19 23:25",
+		"forBar": "00"
 	}
 ]
