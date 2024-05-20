@@ -98,9 +98,9 @@
 		"done": 0
 	}
 	{
-		"id": "oth-XX",
+		"id": "oth",
 		"ruName": "Прочее",
-		"description": "Вместо ХХ размер награды.",
+		"description": "В конце кода добавить размер награды (othXX).",
 		"points": "0",
 		"done": 0
 	}
