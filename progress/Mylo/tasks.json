@@ -97,4 +97,11 @@
 		"points": "500",
 		"done": 0
 	}
+	{
+		"id": "oth-XX",
+		"ruName": "Прочее",
+		"description": "Вместо ХХ размер награды.",
+		"points": "0",
+		"done": 0
+	}
 ]
