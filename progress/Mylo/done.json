@@ -68,5 +68,15 @@
 		"taskCode": "walk",
 		"date": "2024-05-19 23:25",
 		"forBar": "00"
+	},
+	{
+		"taskCode": "oth1",
+		"date": "2024-05-19 23:25",
+		"forBar": "01"
+	},
+	{
+		"taskCode": "oth-1",
+		"date": "2024-05-19 23:25",
+		"forBar": "02"
 	}
 ]
