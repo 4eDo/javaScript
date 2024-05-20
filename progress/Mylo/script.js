@@ -1,6 +1,6 @@
 var tasksSrc = "https://4edo.github.io/javaScript/progress/Mylo/tasks.json";
 var barsSrc = "https://4edo.github.io/javaScript/progress/Mylo/bars.json";
-var doneSrc = "https://4edo.github.io/javaScript/progress/Mylo/done.json";
+var doneSrc = "https://4edo.github.io/javaScript/progress/Mylo/done.json?v=1";
 
 var tasks;
 var doneList;
