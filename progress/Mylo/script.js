@@ -125,7 +125,7 @@ function initDoneList() {
 			document.querySelector("#" + doneId + " .date").innerHTML =
 				doneList[i]["date"];
 			document.querySelector("#" + doneId + " .getPoints").innerHTML =
-				tasks[taskId]["points"];
+				addPoints == 0 ? tasks[taskId]["points"] : addPoints;
 		}
 	}
 }
