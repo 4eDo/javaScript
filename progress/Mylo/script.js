@@ -104,13 +104,16 @@ function initDoneList() {
 	</div>
 	`;
 	for (let i = 0; i < doneList.length; i++) {
-		let taskId = findIdByKey(tasks, "id", doneList[i].taskCode);
+		let taskCode = doneList[i].taskCode;
+		let addPoints = taskCode.includes("oth") ? taskCode.replace("oth", "") : 0;
+		taskCode = addPoints == 0 ? doneList[i].taskCode : "oth");
+		let taskId = findIdByKey(tasks, "id", taskCode);
 		let barId = findIdByKey(bars, "key", doneList[i].forBar);
 
 		if (taskId != -1 && barId != -1) {
 			tasks[taskId]["done"] = Number(tasks[taskId]["done"]) + 1;
 			bars[barId]["progress"] =
-				Number(bars[barId]["progress"]) + Number(tasks[taskId]["points"]);
+				Number(bars[barId]["progress"]) + Number(tasks[taskId]["points"]) + Number(addPoints);
 
 			let doneT = document.createElement("div");
 			let doneId = "taskDone_" + i;
