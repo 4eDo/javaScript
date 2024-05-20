@@ -106,7 +106,7 @@ function initDoneList() {
 	for (let i = 0; i < doneList.length; i++) {
 		let taskCode = doneList[i].taskCode;
 		let addPoints = taskCode.includes("oth") ? taskCode.replace("oth", "") : 0;
-		taskCode = addPoints == 0 ? doneList[i].taskCode : "oth");
+		taskCode = addPoints == 0 ? doneList[i].taskCode : "oth";
 		let taskId = findIdByKey(tasks, "id", taskCode);
 		let barId = findIdByKey(bars, "key", doneList[i].forBar);
 
