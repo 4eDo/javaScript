@@ -108,5 +108,10 @@
     "taskCode": "nazgul",
     "date": "2024-05-21 23:11",
     "forBar": "01"
-  }
+  },
+	{
+		"taskCode": "oth12",
+		"date": "2024-05-21 23:22",
+		"forBar": "00"
+	}
 ]
