@@ -61,10 +61,12 @@ function initBarsList() {
 		document.querySelector("#" + barId + " .scrollRow").style.width =
 			(barWidth / bars[i].size) * bars[i].progress + "px";
 
-		let option = document.createElement("option");
-		option.setAttribute("value", bars[i].key);
-		option.appendChild(document.createTextNode(bars[i].name));
-		selBar.appendChild(option);
+		if(bars[i].size > bars[i].progress) {
+			let option = document.createElement("option");
+			option.setAttribute("value", bars[i].key);
+			option.appendChild(document.createTextNode(bars[i].name));
+			selBar.appendChild(option);	
+		}
 	}
 }
 
