@@ -113,5 +113,20 @@
 		"taskCode": "oth12",
 		"date": "2024-05-21 23:22",
 		"forBar": "00"
+	},
+	{
+		"taskCode": "nazgul",
+		"date": "2024-05-22 19:20",
+		"forBar": "01"
+	},
+	{
+		"taskCode": "smallwalk",
+		"date": "2024-05-22 19:20",
+		"forBar": "01"
+	},
+	{
+		"taskCode": "sleep",
+		"date": "2024-05-22 19:21",
+		"forBar": "01"
 	}
 ]
