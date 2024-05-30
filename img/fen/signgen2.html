@@ -1,0 +1,14 @@
+<div id="sign"></div>
+<script>
+  let imgs = [
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_01.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_02.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_03.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_04.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_05.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_06.png?raw=true',
+    'https://raw.githubusercontent.com/4eDo/javaScript/main/img/fen/sgn_07.png?raw=true'
+  ];
+  let rand = imgs[(Math.random() * imgs.length) | 0];
+  sign.innerHTML = `<img src='` + rand + `' style='width:150px;height:100px;float: right;'>`;
+</script>
