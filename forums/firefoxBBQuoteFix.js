@@ -60,7 +60,7 @@ function htmlToBBmozilla(htmlString) {
     htmlString = htmlString.replace(/<\/p><p>/g, '\n');
     htmlString = htmlString.replace(/<p>/g, '');
     htmlString = htmlString.replace(/<\/p>/g, '');
-	htmlString = htmlString.replace(/<dl class="post-sig">[\s\S]*?<\/dl>/g, "")
+	htmlString = htmlString.replace(/<dl class="post-sig">[\s\S]*?<\/dl>/g, "");
     htmlString = htmlString.replace(/<[^>]+>/g, '');
 	
 
