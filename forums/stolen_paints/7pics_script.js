@@ -90,7 +90,7 @@ function applyFilters(ctx, canvas, originalData, colorSums, container) {
   container.querySelector(".black").innerText = colorSums.black;
   container.querySelector(".white").innerText = colorSums.white;
 
-  const shadow = 100 - 1 * colorSums.pale + colorSums.vivid;
+  const shadow = 100 - 1 * colorSums.pale + colorSums.vivid > 0 ? 100 - 1 * colorSums.pale + colorSums.vivid : 0;
   container.querySelector(".pale").innerText = colorSums.pale;
   container.querySelector(".vivid").innerText = colorSums.vivid;
 
