@@ -47,8 +47,8 @@
     "user": "the hanged man",
     "picId": "4",
     "red": "5.8",
-    "green": "15.9",
-    "blue": "25.1",
+    "green": "5.9",
+    "blue": "5.1",
     "white": "35.2",
     "black": "5.3",
     "pale": "10.4",
@@ -62,7 +62,7 @@
     "blue": "30.8",
     "white": "40.9",
     "black": "15.0",
-    "pale": "25.1",
+    "pale": "205.1",
     "vivid": "35.2"
   },
   {
@@ -123,8 +123,8 @@
   {
     "user": "Matthew California",
     "picId": "4",
-    "red": "30.9",
-    "green": "20.0",
+    "red": "0.9",
+    "green": "10.0",
     "blue": "10.1",
     "white": "15.2",
     "black": "35.3",
