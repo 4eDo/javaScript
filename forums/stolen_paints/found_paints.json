@@ -31,5 +31,137 @@
     "black": "30",
     "pale": "20",
     "vivid": "10"
+  },
+  {
+    "user": "Caradoc Dearborn",
+    "picId": "3",
+    "red": "15",
+    "green": "25",
+    "blue": "35",
+    "white": "5",
+    "black": "10",
+    "pale": "20",
+    "vivid": "30"
+  },
+  {
+    "user": "the hanged man",
+    "picId": "4",
+    "red": "5",
+    "green": "15",
+    "blue": "25",
+    "white": "35",
+    "black": "5",
+    "pale": "10",
+    "vivid": "20"
+  },
+  {
+    "user": "Matthew California",
+    "picId": "5",
+    "red": "20",
+    "green": "10",
+    "blue": "30",
+    "white": "40",
+    "black": "15",
+    "pale": "25",
+    "vivid": "35"
+  },
+  {
+    "user": "Caradoc Dearborn",
+    "picId": "6",
+    "red": "25",
+    "green": "35",
+    "blue": "5",
+    "white": "15",
+    "black": "20",
+    "pale": "30",
+    "vivid": "10"
+  },
+  {
+    "user": "the hanged man",
+    "picId": "7",
+    "red": "30",
+    "green": "20",
+    "blue": "10",
+    "white": "25",
+    "black": "35",
+    "pale": "5",
+    "vivid": "15"
+  },
+  {
+    "user": "Matthew California",
+    "picId": "1",
+    "red": "10",
+    "green": "30",
+    "blue": "20",
+    "white": "10",
+    "black": "40",
+    "pale": "5",
+    "vivid": "25"
+  },
+  {
+    "user": "Caradoc Dearborn",
+    "picId": "2",
+    "red": "20",
+    "green": "5",
+    "blue": "15",
+    "white": "35",
+    "black": "25",
+    "pale": "10",
+    "vivid": "30"
+  },
+  {
+    "user": "the hanged man",
+    "picId": "3",
+    "red": "35",
+    "green": "25",
+    "blue": "15",
+    "white": "5",
+    "black": "10",
+    "pale": "30",
+    "vivid": "20"
+  },
+  {
+    "user": "Matthew California",
+    "picId": "4",
+    "red": "30",
+    "green": "20",
+    "blue": "10",
+    "white": "15",
+    "black": "35",
+    "pale": "25",
+    "vivid": "5"
+  },
+  {
+    "user": "Caradoc Dearborn",
+    "picId": "5",
+    "red": "25",
+    "green": "15",
+    "blue": "35",
+    "white": "5",
+    "black": "20",
+    "pale": "10",
+    "vivid": "40"
+  },
+  {
+    "user": "the hanged man",
+    "picId": "6",
+    "red": "15",
+    "green": "5",
+    "blue": "25",
+    "white": "35",
+    "black": "30",
+    "pale": "20",
+    "vivid": "10"
+  },
+  {
+    "user": "Matthew California",
+    "picId": "7",
+    "red": "5",
+    "green": "15",
+    "blue": "30",
+    "white": "10",
+    "black": "40",
+    "pale": "35",
+    "vivid": "25"
   }
 ]
