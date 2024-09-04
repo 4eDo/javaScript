@@ -31,15 +31,20 @@ function calculateColorSums(paintId) {
 
   FOUND_PAINTS_ARR.forEach((paint) => {
     if (paint.picId === paintId) {
-      sums.red += parseFloat(paint.red).toFixed(1);
-      sums.green += parseFloat(paint.green).toFixed(1);
-      sums.blue += parseFloat(paint.blue).toFixed(1);
-      sums.white += parseFloat(paint.white).toFixed(1);
-      sums.black += parseFloat(paint.black).toFixed(1);
-      sums.pale += parseFloat(paint.pale).toFixed(1);
-      sums.vivid += parseFloat(paint.vivid).toFixed(1);
+      sums.red += parseFloat(paint.red);
+      sums.green += parseFloat(paint.green);
+      sums.blue += parseFloat(paint.blue);
+      sums.white += parseFloat(paint.white);
+      sums.black += parseFloat(paint.black);
+      sums.pale += parseFloat(paint.pale);
+      sums.vivid += parseFloat(paint.vivid);
     }
   });
+
+  // Округляем суммы до одного знака после запятой
+  for (let key in sums) {
+    sums[key] = parseFloat(sums[key].toFixed(1));
+  }
 
   return sums;
 }
