@@ -23,7 +23,7 @@ const FOUND_PAINTS_ARR = [
   },
   {
     "user": "Matthew California",
-    "picId": "1",
+    "picId": "2",
     "red": "70",
     "green": "60",
     "blue": "50",
