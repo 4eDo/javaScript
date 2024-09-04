@@ -1,4 +1,4 @@
-const FOUND_PAINTS_ARR = [
+[
   {
     "user": "the hanged man",
     "picId": "0",
