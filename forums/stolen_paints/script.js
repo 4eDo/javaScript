@@ -28,16 +28,19 @@ function calculateColorSums() {
 
 async function loadPaints() {
   try {
-    const response = await fetch("found_paints.json");
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
+        const timestamp = new Date().getTime();
+        const response = await fetch(`found_paints.json?timestamp=${timestamp}`, {
+            cache: "no-store"
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        FOUND_PAINTS_ARR = await response.json();
+        const colorSums = calculateColorSums();
+        applyFilters(colorSums);
+    } catch (error) {
+        console.error('Ошибка загрузки JSON:', error);
     }
-    FOUND_PAINTS_ARR = await response.json();
-    const colorSums = calculateColorSums();
-    applyFilters(colorSums);
-  } catch (error) {
-    console.error("Ошибка загрузки JSON:", error);
-  }
 }
 
 const canvas = document.getElementById("canvas");
