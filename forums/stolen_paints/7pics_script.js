@@ -110,6 +110,7 @@ function applyFilters(ctx, canvas, originalData, colorSums, container) {
 
   // Применяем CSS фильтры
   canvas.style.filter = `brightness(${light}%) saturate(${shadow}%)`;
+  console.log(`brightness(${light}%) saturate(${shadow}%)`);
 }
 
 loadPaints();
