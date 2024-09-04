@@ -1,0 +1,28 @@
+.container {
+            display: flex;
+        }
+        #canvas {
+            width: 600px;
+            height: auto;
+            margin-right: 20px;
+        }
+        .sliders {
+            display: flex;
+            flex-direction: column;
+        }
+        .color-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .red-box { background-color: red; }
+        .green-box { background-color: green; }
+        .blue-box { background-color: blue; }
+        .white-box { background-color: white; }
+        .black-box { background-color: black; }
+        .gray-box { background-color: gray; }
+        .rainbow-box {
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+        }
