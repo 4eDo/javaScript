@@ -86,7 +86,7 @@ function applyFilters(ctx, canvas, originalData, colorSums, container) {
   const blue = colorSums.blue / 100;
   container.querySelector(".blue").innerText = colorSums.blue;
 
-  const light = 100 - 1 * colorSums.black + colorSums.white;
+  const light = 100 - 1 * colorSums.black + colorSums.white > 0 ? 100 - 1 * colorSums.black + colorSums.white : 0;
   container.querySelector(".black").innerText = colorSums.black;
   container.querySelector(".white").innerText = colorSums.white;
 
