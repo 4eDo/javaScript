@@ -135,7 +135,7 @@
     "user": "Caradoc Dearborn",
     "picId": "5",
     "red": "25",
-    "green": "15",
+    "green": "0",
     "blue": "35",
     "white": "5",
     "black": "20",
@@ -145,7 +145,7 @@
   {
     "user": "the hanged man",
     "picId": "6",
-    "red": "15",
+    "red": "35",
     "green": "5",
     "blue": "25",
     "white": "35",
