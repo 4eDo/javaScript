@@ -31,13 +31,13 @@ function calculateColorSums(paintId) {
 
   FOUND_PAINTS_ARR.forEach((paint) => {
     if (paint.picId === paintId) {
-      sums.red += parseInt(paint.red, 10);
-      sums.green += parseInt(paint.green, 10);
-      sums.blue += parseInt(paint.blue, 10);
-      sums.white += parseInt(paint.white, 10);
-      sums.black += parseInt(paint.black, 10);
-      sums.pale += parseInt(paint.pale, 10);
-      sums.vivid += parseInt(paint.vivid, 10);
+      sums.red += parseFloat(paint.red);
+      sums.green += parseFloat(paint.green);
+      sums.blue += parseFloat(paint.blue);
+      sums.white += parseFloat(paint.white);
+      sums.black += parseFloat(paint.black);
+      sums.pale += parseFloat(paint.pale);
+      sums.vivid += parseFloat(paint.vivid);
     }
   });
 
