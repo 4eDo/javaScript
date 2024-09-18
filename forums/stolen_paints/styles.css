@@ -7,6 +7,8 @@
   margin-right: 20px;
 }
 .canvas {
+  width:500px;
+  height:300px;
 }
 .sliders {
   display: flex;
