@@ -26,3 +26,51 @@
         .rainbow-box {
             background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
         }
+
+
+:root {
+	--dark-color: #392f2e;
+  --dark-orange-color: #b45540;
+}
+
+.body {
+    height: 300px;
+    width: 500px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.dark-background {
+	background: var(--dark-color);
+}
+
+.inner-border {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.outer-border {
+	border: 2px solid  var(--dark-orange-color);
+   	height: 99%;
+    width: 98%;
+    padding: 6px;
+    margin: 0 auto;
+}
+
+.mid-border {
+    border: 6px solid var(--dark-orange-color);
+    height: 100%;
+    width: 100%;
+    padding: 6px;
+    margin: auto;
+}
+
+.inner-border {
+	position: relative;
+	border: 2px solid var(--dark-orange-color);
+    height: 100%;
+    width: 100%;
+    margin: auto;
+}
