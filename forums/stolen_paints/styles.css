@@ -6,6 +6,9 @@
             height: auto;
             margin-right: 20px;
         }
+.canvas {
+	margin-bottom: -3px;
+}
         .sliders {
             display: flex;
             flex-direction: column;
@@ -34,11 +37,10 @@
 }
 
 .body {
-    height: 300px;
-    width: 500px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
+    height: auto;
+  width: auto;
+  margin: 20px;
+  padding: 10px;
 }
 
 .dark-background {
@@ -53,24 +55,17 @@
 
 .outer-border {
 	border: 2px solid  var(--dark-orange-color);
-   	height: 99%;
-    width: 98%;
     padding: 6px;
     margin: 0 auto;
 }
 
 .mid-border {
-    border: 6px solid var(--dark-orange-color);
-    height: 100%;
-    width: 100%;
-    padding: 6px;
-    margin: auto;
+   border: 6px solid var(--dark-orange-color);
+  padding: 6px;
+  margin: auto;
 }
 
 .inner-border {
 	position: relative;
-	border: 2px solid var(--dark-orange-color);
-    height: 100%;
-    width: 100%;
-    margin: auto;
+  border: 2px solid var(--dark-orange-color);
 }
