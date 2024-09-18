@@ -12,7 +12,8 @@
 }
 .sliders {
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  
+  margin-top: 23px;
 }
 .color-box {
   display: inline-block;
