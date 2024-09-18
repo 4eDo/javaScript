@@ -1,71 +1,90 @@
 .container {
-            display: flex;
-        }
-        #canvas {
-            width: 550px;
-            height: auto;
-            margin-right: 20px;
-        }
-.canvas {
-	margin-bottom: -3px;
+  display: flex;
 }
-        .sliders {
-            display: flex;
-            flex-direction: column;
-        }
-        .color-box {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-right: 5px;
-            vertical-align: middle;
-        }
-        .red-box { background-color: red; }
-        .green-box { background-color: green; }
-        .blue-box { background-color: blue; }
-        .white-box { background-color: white; }
-        .black-box { background-color: black; }
-        .gray-box { background-color: gray; }
-        .rainbow-box {
-            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-        }
-
+#canvas {
+  width: 550px;
+  height: auto;
+  margin-right: 20px;
+}
+.canvas {
+}
+.sliders {
+  display: flex;
+  flex-direction: column;
+}
+.color-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.red-box {
+  background-color: red;
+}
+.green-box {
+  background-color: green;
+}
+.blue-box {
+  background-color: blue;
+}
+.white-box {
+  background-color: white;
+}
+.black-box {
+  background-color: black;
+}
+.gray-box {
+  background-color: gray;
+}
+.rainbow-box {
+  background: linear-gradient(
+    to right,
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    indigo,
+    violet
+  );
+}
 
 :root {
-	--dark-color: #392f2e;
+  --dark-color: #392f2e;
   --dark-orange-color: #b45540;
 }
 
 .body {
-    height: auto;
+  height: auto;
   width: auto;
   margin: 20px;
   padding: 10px;
 }
 
 .dark-background {
-	background: var(--dark-color);
+  background: var(--dark-color);
 }
 
 .inner-border {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .outer-border {
-	border: 2px solid  var(--dark-orange-color);
-    padding: 6px;
-    margin: 0 auto;
+  border: 2px solid var(--dark-orange-color);
+  padding: 6px;
+  margin: 0 auto;
 }
 
 .mid-border {
-   border: 6px solid var(--dark-orange-color);
+  border: 6px solid var(--dark-orange-color);
   padding: 6px;
   margin: auto;
 }
 
 .inner-border {
-	position: relative;
+  position: relative;
   border: 2px solid var(--dark-orange-color);
 }
