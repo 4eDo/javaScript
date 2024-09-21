@@ -17,7 +17,7 @@
         th {
             background-color: rgba(0,0,0,0.3);
         }
-        #th_2 th{
+        .w-70px {
             width: 70px;
         }
         tr:hover {
@@ -57,20 +57,19 @@
 <table>
     <thead>
         <tr>
-            <th>Пользователь</th>
+            <th rowspan="2">Пользователь</th>
             <th colspan="7">Картины</th>
             <th colspan="7">Цвета</th>
-            <th>Итого</th>
+            <th rowspan="2">Итого</th>
         </tr>
-        <tr id="th_2">
-            <th></th>
-            <th>Алый дракон</th>
-            <th>Зелёный леший</th>
-            <th>Сапфировая акула</th>
-            <th>Живая тень</th>
-            <th>Белоснежный пегас</th>
-            <th>Скучающий дементор</th>
-            <th>Пьяная вейла</th>
+        <tr>
+            <th class="w-70px">Алый дракон</th>
+            <th class="w-70px">Зелёный леший</th>
+            <th class="w-70px">Сапфировая акула</th>
+            <th class="w-70px">Живая тень</th>
+            <th class="w-70px">Белоснежный пегас</th>
+            <th class="w-70px">Скучающий дементор</th>
+            <th class="w-70px">Пьяная вейла</th>
             <th class="color-box red-box" title="Красный пигмент"></th>
             <th class="color-box green-box" title="Зелёный пигмент"></th>
             <th class="color-box blue-box" title="Синий пигмент"></th>
@@ -78,7 +77,6 @@
             <th class="color-box white-box" title="Белый пигмент"></th>
             <th class="color-box gray-box" title="Выцветшая основа"></th>
             <th class="color-box rainbow-box" title="Психоделическая основа"></th>
-            <th></th>
         </tr>
     </thead>
     <tbody id="data-body">
