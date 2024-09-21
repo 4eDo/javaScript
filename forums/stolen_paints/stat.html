@@ -146,21 +146,22 @@
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${picSums[1].toFixed(2)}</td>
-                    <td>${picSums[2].toFixed(2)}</td>
-                    <td>${picSums[3].toFixed(2)}</td>
-                    <td>${picSums[4].toFixed(2)}</td>
-                    <td>${picSums[5].toFixed(2)}</td>
-                    <td>${picSums[6].toFixed(2)}</td>
-                    <td>${picSums[7].toFixed(2)}</td>
-                    <td>${colorSums.red.toFixed(2)}</td>
-                    <td>${colorSums.green.toFixed(2)}</td>
-                    <td>${colorSums.blue.toFixed(2)}</td>
-                    <td>${colorSums.black.toFixed(2)}</td>
-                    <td>${colorSums.white.toFixed(2)}</td>
-                    <td>${colorSums.pale.toFixed(2)}</td>
-                    <td>${colorSums.vivid.toFixed(2)}</td>
-                    <td>${totalSum.toFixed(2)}</td>
+                    <td>${user}</td>
+                    <td>${parseFloat(picSums[1].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[2].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[3].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[4].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[5].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[6].toFixed(2))}</td>
+                    <td>${parseFloat(picSums[7].toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.red.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.green.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.blue.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.black.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.white.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.pale.toFixed(2))}</td>
+                    <td>${parseFloat(colorSums.vivid.toFixed(2))}</td>
+                    <td>${parseFloat(totalSum.toFixed(2))}</td>
                 `;
                 tbody.appendChild(row);
             }
