@@ -1,160 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <title>Таблица данных</title>
-  <style>
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 8px;
-      border: 1px solid #ddd;
-    }
-
-    th {
-      background-color: #f2f2f2;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paints Data</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+    <h1>Данные по картинам</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+		<th colspan="7">Картины</th>
+        	<th colspan="7">Цвета</th>
+                <th>Итого</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th>Алый дракон</th>
+                <th>Зелёный леший</th>
+                <th>Сапфировая акула</th>
+                <th>Живая тень</th>
+                <th>Белоснежный пегас</th>
+                <th>Скучающий дементор</th>
+                <th>Пьяная вейла</th>
+                <th>red</th>
+                <th>green</th>
+                <th>blue</th>
+                <th>black</th>
+                <th>white</th>
+                <th>pale</th>
+                <th>vivid</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
 
-  <h1>Таблица данных</h1>
-
-  <table id="data-table">
-    <thead>
-      <tr>
-        <th>Пользователь</th>
-        <th colspan="7">Картины</th>
-        <th colspan="7">Цвета</th>
-        <th>Итого</th>
-      </tr>
-      <tr>
-        <th></th>
-        <th>Алый дракон</th>
-        <th>Зелёный леший</th>
-        <th>Сапфировая акула</th>
-        <th>Живая тень</th>
-        <th>Белоснежный пегас</th>
-        <th>Скучающий дементор</th>
-        <th>Пьяная вейла</th>
-        <th>red</th>
-        <th>green</th>
-        <th>blue</th>
-        <th>black</th>
-        <th>white</th>
-        <th>pale</th>
-        <th>vivid</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-
-  <script>
-    const timestamp = new Date().getTime();
-    fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}')
-      .then(response => response.json())
-      .then(data => {
-        // Группируем данные по пользователям
-        const groupedData = {};
-        data.forEach(item => {
-          const user = item.user;
-          if (!groupedData[user]) {
-            groupedData[user] = {
-              pictures: {
-                '0': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '1': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '2': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '3': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '4': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '5': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                '6': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 }
-              },
-              colors: {
-                red: 0,
-                green: 0,
-                blue: 0,
-                black: 0,
-                white: 0,
-                pale: 0,
-                vivid: 0
-              },
-              total: 0
-            };
-          }
-          const picId = item.picId;
-          groupedData[user].pictures[picId].red += parseFloat(item.red);
-          groupedData[user].pictures[picId].green += parseFloat(item.green);
-          groupedData[user].pictures[picId].blue += parseFloat(item.blue);
-          groupedData[user].pictures[picId].black += parseFloat(item.black);
-          groupedData[user].pictures[picId].white += parseFloat(item.white);
-          groupedData[user].pictures[picId].pale += parseFloat(item.pale);
-          groupedData[user].pictures[picId].vivid += parseFloat(item.vivid);
-
-          groupedData[user].colors.red += parseFloat(item.red);
-          groupedData[user].colors.green += parseFloat(item.green);
-          groupedData[user].colors.blue += parseFloat(item.blue);
-          groupedData[user].colors.black += parseFloat(item.black);
-          groupedData[user].colors.white += parseFloat(item.white);
-          groupedData[user].colors.pale += parseFloat(item.pale);
-          groupedData[user].colors.vivid += parseFloat(item.vivid);
-
-          groupedData[user].total += parseFloat(item.red) + parseFloat(item.green) + parseFloat(item.blue) + parseFloat(item.black) + parseFloat(item.white) + parseFloat(item.pale) + parseFloat(item.vivid);
-        });
-
-        // Выводим данные в таблицу
-        const tableBody = document.querySelector('#data-table tbody');
-        for (const user in groupedData) {
-          const row = tableBody.insertRow();
-          const userCell = row.insertCell();
-          userCell.textContent = user;
-
-          const pictureCells = [
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell()
-          ];
-          for (let i = 0; i < 7; i++) {
-				if (groupedData[user].pictures[i.toString()]) {
-					pictureCells[i].textContent = groupedData[user].pictures[i.toString()].red + groupedData[user].pictures[i.toString()].green + groupedData[user].pictures[i.toString()].blue + groupedData[user].pictures[i.toString()].black + groupedData[user].pictures[i.toString()].white + groupedData[user].pictures[i.toString()].pale + groupedData[user].pictures[i.toString()].vivid;
-				} else {
-					pictureCells[i].textContent = 0;
-				}
-          }
-
-          const colorCells = [
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell(),
-            row.insertCell()
-          ];
-          colorCells[0].textContent = groupedData[user].colors.red;
-          colorCells[1].textContent = groupedData[user].colors.green;
-          colorCells[2].textContent = groupedData[user].colors.blue;
-          colorCells[3].textContent = groupedData[user].colors.black;
-          colorCells[4].textContent = groupedData[user].colors.white;
-          colorCells[5].textContent = groupedData[user].colors.pale;
-          colorCells[6].textContent = groupedData[user].colors.vivid;
-
-          const totalCell = row.insertCell();
-          totalCell.textContent = groupedData[user].total;
+    <script>
+        // Функция для загрузки данных из файла JSON
+        async function loadPaintData() {
+	    	const timestamp = new Date().getTime();
+            const response = await fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}');
+            const data = await response.json();
+            return data;
         }
-      })
-      .catch(error => {
-        console.error('Ошибка при загрузке данных:', error);
-      });
-  </script>
 
+        // Функция для формирования таблицы
+        function buildTable(data) {
+            const groupedData = {};
+
+            data.forEach(item => {
+                const user = item.user;
+                const picId = item.picId;
+                const colors = {
+                    red: parseFloat(item.red) || 0,
+                    green: parseFloat(item.green) || 0,
+                    blue: parseFloat(item.blue) || 0,
+                    black: parseFloat(item.black) || 0,
+                    white: parseFloat(item.white) || 0,
+                    pale: parseFloat(item.pale) || 0,
+                    vivid: parseFloat(item.vivid) || 0,
+                };
+
+                if (!groupedData[user]) {
+                    groupedData[user] = {
+                        total: {
+                            red: 0,
+                            green: 0,
+                            blue: 0,
+                            black: 0,
+                            white: 0,
+                            pale: 0,
+                            vivid: 0,
+                        },
+                        picSums: Array(7).fill(0) // 7 картин
+                    };
+                }
+
+                // Добавление значений для picId
+                groupedData[user].picSums[picId] += Object.values(colors).reduce((sum, value) => sum + value, 0);
+
+                // Суммирование цветов для пользователя
+                for (const [key, value] of Object.entries(colors)) {
+                    groupedData[user].total[key] += value;
+                }
+            });
+
+            const tableBody = document.getElementById('table-body');
+            for (const user in groupedData) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user}</td>
+                    ${groupedData[user].picSums.map(sum => `<td>${sum.toFixed(1)}</td>`).join('')}
+                    ${Object.values(groupedData[user].total).map(total => `<td>${total.toFixed(1)}</td>`).join('')}
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        // Основной код для выполнения загрузки и построения таблицы
+        loadPaintData().then(buildTable).catch(error => console.error('Ошибка при загрузке данных:', error));
+    </script>
 </body>
 </html>
