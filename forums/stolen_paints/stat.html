@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <table id="paintsTable">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th colspan="7">Картины</th>
+                <th colspan="7">Цвета</th>
+                <th>Итого</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th>Алый дракон</th>
+                <th>Зелёный леший</th>
+                <th>Сапфировая акула</th>
+                <th>Живая тень</th>
+                <th>Белоснежный пегас</th>
+                <th>Скучающий дементор</th>
+                <th>Пьяная вейла</th>
+                <th>red</th>
+                <th>green</th>
+                <th>blue</th>
+                <th>black</th>
+                <th>white</th>
+                <th>pale</th>
+                <th>vivid</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+
+    <script>
+        fetch('found_paints.json')
+            .then(response => response.json())
+            .then(data => {
+                const groupedData = data.reduce((acc, curr) => {
+                    const existingUser = acc.find(item => item.user === curr.user);
+                    if (existingUser) {
+                        existingUser.paints[curr.picId] = Object.keys(curr).reduce((res, key) => {
+                            if (key !== 'user' && key !== 'picId') {
+                                res[key] = (res[key] || 0) + parseFloat(curr[key]);
+                            }
+                            return res;
+                        }, existingUser.paints[curr.picId] || {});
+                        existingUser.colors = Object.keys(curr).reduce((res, key) => {
+                            if (key !== 'user' && key !== 'picId') {
+                                res[key] = (res[key] || 0) + parseFloat(curr[key]);
+                            }
+                            return res;
+                        }, existingUser.colors || {});
+                    } else {
+                        acc.push({
+                            user: curr.user,
+                            paints: {
+                                [curr.picId]: Object.keys(curr).reduce((res, key) => {
+                                    if (key !== 'user' && key !== 'picId') {
+                                        res[key] = parseFloat(curr[key]);
+                                    }
+                                    return res;
+                                }, {})
+                            },
+                            colors: Object.keys(curr).reduce((res, key) => {
+                                if (key !== 'user' && key !== 'picId') {
+                                    res[key] = parseFloat(curr[key]);
+                                }
+                                return res;
+                            }, {})
+                        });
+                    }
+                    return acc;
+                }, []);
+
+                const tableBody = document.getElementById('tableBody');
+                groupedData.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.user}</td>
+                        <td>${Object.values(user.paints[0]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[1]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[2]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[3]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[4]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[5]).join('</td><td>')}</td>
+                        <td>${Object.values(user.paints[6]).join('</td><td>')}</td>
+                        <td>${Object.values(user.colors).join('</td><td>')}</td>
+                        <td>${Object.values(user.colors).reduce((acc, curr) => acc + curr, 0)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+    </script>
+</body>
+</html>
