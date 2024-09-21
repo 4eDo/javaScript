@@ -1,14 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Таблица с данными о картинах</title>
+    <title>Сводная таблица</title>
     <style>
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
         }
         th, td {
             border: 1px solid black;
@@ -21,93 +20,124 @@
     </style>
 </head>
 <body>
-    <h1>Данные о картинах</h1>
-    <table id="paints-table">
-        <thead>
-            <tr>
-                <th>Пользователь</th>
-		<th colspan="7">Картины</th>
-        	<th colspan="7">Цвета</th>
-                <th>Итого</th>
-            </tr>
-            <tr>
-                <th></th>
-                <th>Алый дракон</th>
-                <th>Зелёный леший</th>
-                <th>Сапфировая акула</th>
-                <th>Живая тень</th>
-                <th>Белоснежный пегас</th>
-                <th>Скучающий дементор</th>
-                <th>Пьяная вейла</th>
-                <th>red</th>
-                <th>green</th>
-                <th>blue</th>
-                <th>black</th>
-                <th>white</th>
-                <th>pale</th>
-                <th>vivid</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Данные будут добавлены здесь -->
-        </tbody>
-    </table>
 
-    <script>
-        const timestamp = new Date().getTime();
-        const url = `https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}`;
+<h1>Сводная таблица по пользователям и картинам</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Пользователь</th>
+            <th colspan="7">Картины</th>
+            <th colspan="7">Цвета</th>
+            <th>Итого</th>
+        </tr>
+        <tr>
+            <th></th>
+            <th>Алый дракон</th>
+            <th>Зелёный леший</th>
+            <th>Сапфировая акула</th>
+            <th>Живая тень</th>
+            <th>Белоснежный пегас</th>
+            <th>Скучающий дементор</th>
+            <th>Пьяная вейла</th>
+            <th>red</th>
+            <th>green</th>
+            <th>blue</th>
+            <th>black</th>
+            <th>white</th>
+            <th>pale</th>
+            <th>vivid</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="data-body">
+        <!-- Здесь будет заполнение данных -->
+    </tbody>
+</table>
 
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const userStats = {};
+<script>
+    const timestamp = new Date().getTime();
+    const url = `https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}`;
 
-                data.forEach(item => {
-                    const user = item.user;
-                    const picId = item.picId;
-                    const colors = ['red', 'green', 'blue', 'black', 'white', 'pale', 'vivid'];
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const users = {};
 
-                    if (!userStats[user]) {
-                        userStats[user] = {
-                            total: { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
-                            picTotals: {
-                                '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
-                            }
-                        };
-                    }
-
-                    // Суммируем цвета
-                    colors.forEach(color => {
-                        const value = parseFloat(item[color] || 0);
-                        userStats[user].total[color] += value;
-                        userStats[user].picTotals[picId] += value;
-                    });
-                });
-
-                const tbody = document.getElementById('paints-table').getElementsByTagName('tbody')[0];
-
-                for (const user in userStats) {
-                    const stats = userStats[user];
-                    const row = tbody.insertRow();
-
-                    row.insertCell(0).innerText = user; // Пользователь
-
-                    // Картины
-                    const picCell = row.insertCell(1);
-                    picCell.innerText = Object.values(stats.picTotals).join(', '); // Суммы по picId
-                    
-                    // Цвета
-                    const colorCell = row.insertCell(2);
-                    colorCell.innerText = Object.values(stats.total).join(', '); // Суммы по цветам
-
-                    // Итого
-                    const totalSum = Object.values(stats.total).reduce((acc, curr) => acc + curr, 0);
-                    row.insertCell(3).innerText = totalSum.toFixed(2); // Итого
+            data.forEach(item => {
+                const user = item.user;
+                const picId = item.picId;
+                
+                // Инициализация пользователя, если он еще не создан
+                if (!users[user]) {
+                    users[user] = {
+                        picSums: Array(7).fill(0), // Суммы по picId
+                        colorSums: {
+                            red: 0,
+                            green: 0,
+                            blue: 0,
+                            black: 0,
+                            white: 0,
+                            pale: 0,
+                            vivid: 0
+                        }
+                    };
                 }
-            })
-            .catch(error => {
-                console.error('Ошибка при загрузке данных:', error);
+
+                // Обновление сумм для цветов
+                users[user].colorSums.red += parseFloat(item.red) || 0;
+                users[user].colorSums.green += parseFloat(item.green) || 0;
+                users[user].colorSums.blue += parseFloat(item.blue) || 0;
+                users[user].colorSums.black += parseFloat(item.black) || 0;
+                users[user].colorSums.white += parseFloat(item.white) || 0;
+                users[user].colorSums.pale += parseFloat(item.pale) || 0;
+                users[user].colorSums.vivid += parseFloat(item.vivid) || 0;
+
+                // Обновление сумм для картин
+                const picIdIndex = parseInt(picId);
+                if (picIdIndex >= 0 && picIdIndex < 7) {
+                    const colorSum = 
+                        parseFloat(item.red) + 
+                        parseFloat(item.green) + 
+                        parseFloat(item.blue) + 
+                        parseFloat(item.black) + 
+                        parseFloat(item.white) + 
+                        parseFloat(item.pale) + 
+                        parseFloat(item.vivid) || 0;
+                    
+                    users[user].picSums[picIdIndex] += colorSum;
+                }
             });
-    </script>
+
+            // Заполнение таблицы
+            const tbody = document.getElementById('data-body');
+            for (const user in users) {
+                const { picSums, colorSums } = users[user];
+                const totalSum = Object.values(colorSums).reduce((a, b) => a + b, 0);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user}</td>
+                    <td>${picSums[0]}</td>
+                    <td>${picSums[1]}</td>
+                    <td>${picSums[2]}</td>
+                    <td>${picSums[3]}</td>
+                    <td>${picSums[4]}</td>
+                    <td>${picSums[5]}</td>
+                    <td>${picSums[6]}</td>
+                    <td>${colorSums.red}</td>
+                    <td>${colorSums.green}</td>
+                    <td>${colorSums.blue}</td>
+                    <td>${colorSums.black}</td>
+                    <td>${colorSums.white}</td>
+                    <td>${colorSums.pale}</td>
+                    <td>${colorSums.vivid}</td>
+                    <td>${totalSum}</td>
+                `;
+                tbody.appendChild(row);
+            }
+        })
+        .catch(error => console.error('Ошибка загрузки данных:', error));
+
+</script>
 </body>
 </html>
