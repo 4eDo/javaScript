@@ -52,7 +52,8 @@
     </table>
 
     <script>
-        fetch('found_paints.json')
+        const timestamp = new Date().getTime();
+        fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}')
             .then(response => response.json())
             .then(data => {
                 const groupedData = data.reduce((acc, curr) => {
