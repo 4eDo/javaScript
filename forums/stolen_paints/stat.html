@@ -146,22 +146,21 @@
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${user}</td>
-                    <td>${picSums[1]}</td>
-                    <td>${picSums[2]}</td>
-                    <td>${picSums[3]}</td>
-                    <td>${picSums[4]}</td>
-                    <td>${picSums[5]}</td>
-                    <td>${picSums[6]}</td>
-                    <td>${picSums[7]}</td>
-                    <td>${colorSums.red}</td>
-                    <td>${colorSums.green}</td>
-                    <td>${colorSums.blue}</td>
-                    <td>${colorSums.black}</td>
-                    <td>${colorSums.white}</td>
-                    <td>${colorSums.pale}</td>
-                    <td>${colorSums.vivid}</td>
-                    <td>${totalSum}</td>
+                    <td>${picSums[1].toFixed(2)}</td>
+                    <td>${picSums[2].toFixed(2)}</td>
+                    <td>${picSums[3].toFixed(2)}</td>
+                    <td>${picSums[4].toFixed(2)}</td>
+                    <td>${picSums[5].toFixed(2)}</td>
+                    <td>${picSums[6].toFixed(2)}</td>
+                    <td>${picSums[7].toFixed(2)}</td>
+                    <td>${colorSums.red.toFixed(2)}</td>
+                    <td>${colorSums.green.toFixed(2)}</td>
+                    <td>${colorSums.blue.toFixed(2)}</td>
+                    <td>${colorSums.black.toFixed(2)}</td>
+                    <td>${colorSums.white.toFixed(2)}</td>
+                    <td>${colorSums.pale.toFixed(2)}</td>
+                    <td>${colorSums.vivid.toFixed(2)}</td>
+                    <td>${totalSum.toFixed(2)}</td>
                 `;
                 tbody.appendChild(row);
             }
