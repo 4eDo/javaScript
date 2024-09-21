@@ -139,6 +139,9 @@
 
             // Заполнение таблицы
             const tbody = document.getElementById('data-body');
+            users = users.sort(function(a,b){
+                return (Object.keys(a)[0].toLowerCase() > Object.keys(b)[0].toLowerCase()) - 0.5;
+            });
             for (const user in users) {
                 const { picSums, colorSums } = users[user];
                 const totalSum = Object.values(colorSums).reduce((a, b) => a + b, 0);
