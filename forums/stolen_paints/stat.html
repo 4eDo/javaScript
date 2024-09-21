@@ -1,116 +1,157 @@
+html
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Статистика</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-        }
-    </style>
+  <title>Таблица данных</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
-
 <body>
-    <table id="paintsTable">
-        <thead>
-            <tr>
-                <th>Пользователь</th>
-                <th colspan="7">Картины</th>
-                <th colspan="7">Цвета</th>
-                <th>Итого</th>
-            </tr>
-            <tr>
-                <th></th>
-                <th>Алый дракон</th>
-                <th>Зелёный леший</th>
-                <th>Сапфировая акула</th>
-                <th>Живая тень</th>
-                <th>Белоснежный пегас</th>
-                <th>Скучающий дементор</th>
-                <th>Пьяная вейла</th>
-                <th>red</th>
-                <th>green</th>
-                <th>blue</th>
-                <th>black</th>
-                <th>white</th>
-                <th>pale</th>
-                <th>vivid</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-        </tbody>
-    </table>
 
-    <script>
-        const timestamp = new Date().getTime();
-        fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}')
-            .then(response => response.json())
-            .then(data => {
-                const groupedData = data.reduce((acc, curr) => {
-                    const existingUser = acc.find(item => item.user === curr.user);
-                    if (existingUser) {
-                        existingUser.paints[curr.picId] = Object.keys(curr).reduce((res, key) => {
-                            if (key !== 'user' && key !== 'picId') {
-                                res[key] = (res[key] || 0) + parseFloat(curr[key]);
-                            }
-                            return res;
-                        }, existingUser.paints[curr.picId] || {});
-                        existingUser.colors = Object.keys(curr).reduce((res, key) => {
-                            if (key !== 'user' && key !== 'picId') {
-                                res[key] = (res[key] || 0) + parseFloat(curr[key]);
-                            }
-                            return res;
-                        }, existingUser.colors || {});
-                    } else {
-                        acc.push({
-                            user: curr.user,
-                            paints: {
-                                [curr.picId]: Object.keys(curr).reduce((res, key) => {
-                                    if (key !== 'user' && key !== 'picId') {
-                                        res[key] = parseFloat(curr[key]);
-                                    }
-                                    return res;
-                                }, {})
-                            },
-                            colors: Object.keys(curr).reduce((res, key) => {
-                                if (key !== 'user' && key !== 'picId') {
-                                    res[key] = parseFloat(curr[key]);
-                                }
-                                return res;
-                            }, {})
-                        });
-                    }
-                    return acc;
-                }, []);
+  <h1>Таблица данных</h1>
 
-                const tableBody = document.getElementById('tableBody');
-                groupedData.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.user}</td>
-                        <td>${Object.values(user.paints[0]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[1]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[2]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[3]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[4]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[5]).join('</td><td>')}</td>
-                        <td>${Object.values(user.paints[6]).join('</td><td>')}</td>
-                        <td>${Object.values(user.colors).join('</td><td>')}</td>
-                        <td>${Object.values(user.colors).reduce((acc, curr) => acc + curr, 0)}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            });
-    </script>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Пользователь</th>
+        <th>Картины</th>
+        <th>Цвета</th>
+        <th>Итого</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th>Алый дракон</th>
+        <th>Зелёный леший</th>
+        <th>Сапфировая акула</th>
+        <th>Живая тень</th>
+        <th>Белоснежный пегас</th>
+        <th>Скучающий дементор</th>
+        <th>Пьяная вейла</th>
+        <th>red</th>
+        <th>green</th>
+        <th>blue</th>
+        <th>black</th>
+        <th>white</th>
+        <th>pale</th>
+        <th>vivid</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    const timestamp = new Date().getTime();
+    fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}')
+      .then(response => response.json())
+      .then(data => {
+        // Группируем данные по пользователям
+        const groupedData = {};
+        data.forEach(item => {
+          const user = item.user;
+          if (!groupedData[user]) {
+            groupedData[user] = {
+              pictures: {
+                '0': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '1': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '2': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '3': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '4': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '5': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                '6': { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 }
+              },
+              colors: {
+                red: 0,
+                green: 0,
+                blue: 0,
+                black: 0,
+                white: 0,
+                pale: 0,
+                vivid: 0
+              },
+              total: 0
+            };
+          }
+          const picId = item.picId;
+          groupedData[user].pictures[picId].red += parseFloat(item.red);
+          groupedData[user].pictures[picId].green += parseFloat(item.green);
+          groupedData[user].pictures[picId].blue += parseFloat(item.blue);
+          groupedData[user].pictures[picId].black += parseFloat(item.black);
+          groupedData[user].pictures[picId].white += parseFloat(item.white);
+          groupedData[user].pictures[picId].pale += parseFloat(item.pale);
+          groupedData[user].pictures[picId].vivid += parseFloat(item.vivid);
+
+          groupedData[user].colors.red += parseFloat(item.red);
+          groupedData[user].colors.green += parseFloat(item.green);
+          groupedData[user].colors.blue += parseFloat(item.blue);
+          groupedData[user].colors.black += parseFloat(item.black);
+          groupedData[user].colors.white += parseFloat(item.white);
+          groupedData[user].colors.pale += parseFloat(item.pale);
+          groupedData[user].colors.vivid += parseFloat(item.vivid);
+
+          groupedData[user].total += parseFloat(item.red) + parseFloat(item.green) + parseFloat(item.blue) + parseFloat(item.black) + parseFloat(item.white) + parseFloat(item.pale) + parseFloat(item.vivid);
+        });
+
+        // Выводим данные в таблицу
+        const tableBody = document.querySelector('#data-table tbody');
+        for (const user in groupedData) {
+          const row = tableBody.insertRow();
+          const userCell = row.insertCell();
+          userCell.textContent = user;
+
+          const pictureCells = [
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell()
+          ];
+          for (let i = 0; i < 7; i++) {
+            pictureCells[i].textContent = groupedData[user].pictures[i.toString()].red + groupedData[user].pictures[i.toString()].green + groupedData[user].pictures[i.toString()].blue + groupedData[user].pictures[i.toString()].black + groupedData[user].pictures[i.toString()].white + groupedData[user].pictures[i.toString()].pale + groupedData[user].pictures[i.toString()].vivid;
+          }
+
+          const colorCells = [
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell(),
+            row.insertCell()
+          ];
+          colorCells[0].textContent = groupedData[user].colors.red;
+          colorCells[1].textContent = groupedData[user].colors.green;
+          colorCells[2].textContent = groupedData[user].colors.blue;
+          colorCells[3].textContent = groupedData[user].colors.black;
+          colorCells[4].textContent = groupedData[user].colors.white;
+          colorCells[5].textContent = groupedData[user].colors.pale;
+          colorCells[6].textContent = groupedData[user].colors.vivid;
+
+          const totalCell = row.insertCell();
+          totalCell.textContent = groupedData[user].total;
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка при загрузке данных:', error);
+      });
+  </script>
+
 </body>
 </html>
