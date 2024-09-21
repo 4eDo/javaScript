@@ -14,7 +14,7 @@
             text-align: center;
         }
         th {
-            background-color: rgba(0,0,0,0.3);
+            background-color: rgba(0,0,0,0.1);
             cursor: pointer;
         }
         .w-70px {
@@ -23,7 +23,7 @@
         	height: 104px;
         }
         tr:hover {
-            background-color: rgba(0,0,0,0.3);
+            background-color: rgba(0,0,0,0.1);
         }
         .color-box {
             width: 50px;
@@ -55,7 +55,7 @@
 </head>
 <body>
 
-<h1>Сводная таблица по пользователям и картинам</h1>
+<i>Клик по заголовку для сортировки.</i>
 <table class="sortable">
     <thead>
 <!--         <tr>
@@ -65,7 +65,7 @@
             <th rowspan="2">Итого</th>
         </tr> -->
         <tr>
-            <th >Пользователь</th>
+            <th class="w-70px">Пользователь</th>
             <th class="w-70px">Алый дракон</th>
             <th class="w-70px">Зелёный леший</th>
             <th class="w-70px">Сапфировая акула</th>
@@ -80,7 +80,7 @@
             <th class="color-box white-box" title="Белый пигмент"></th>
             <th class="color-box gray-box" title="Выцветшая основа"></th>
             <th class="color-box rainbow-box" title="Психоделическая основа"></th>
-            <th>Итого</th>
+            <th class="w-70px">Итого</th>
         </tr>
     </thead>
     <tbody id="data-body">
