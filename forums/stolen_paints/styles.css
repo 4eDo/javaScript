@@ -23,34 +23,25 @@
   vertical-align: middle;
 }
 .red-box {
-  background-color: red;
+  background-image: url("img/paint_0_red.png");
 }
 .green-box {
-  background-color: green;
+  background-image: url("img/paint_1_green.png");
 }
 .blue-box {
-  background-color: blue;
+  background-image: url("img/paint_2_blue.png");
 }
 .white-box {
-  background-color: white;
+  background-image: url("img/paint_4_white.png");
 }
 .black-box {
-  background-color: black;
+  background-image: url("img/paint_3_black.png");;
 }
 .gray-box {
-  background-color: gray;
+  background-image: url("img/paint_5_gray.png");
 }
 .rainbow-box {
-  background: linear-gradient(
-    to right,
-    red,
-    orange,
-    yellow,
-    green,
-    blue,
-    indigo,
-    violet
-  );
+  background-image: url("img/paint_6_rainbow.png");
 }
 
 :root {
