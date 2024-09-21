@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paints Data</title>
+    <title>Таблица с данными о картинах</title>
     <style>
         table {
             width: 100%;
@@ -14,11 +15,14 @@
             padding: 8px;
             text-align: center;
         }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
-    <h1>Данные по картинам</h1>
-    <table>
+    <h1>Данные о картинах</h1>
+    <table id="paints-table">
         <thead>
             <tr>
                 <th>Пользователь</th>
@@ -44,74 +48,66 @@
                 <th>vivid</th>
             </tr>
         </thead>
-        <tbody id="table-body">
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
         </tbody>
     </table>
 
     <script>
-        // Функция для загрузки данных из файла JSON
-        async function loadPaintData() {
-	    	const timestamp = new Date().getTime();
-            const response = await fetch('https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}');
-            const data = await response.json();
-            return data;
-        }
+        const timestamp = new Date().getTime();
+        const url = `https://4edo.github.io/javaScript/forums/stolen_paints/found_paints.json?timestamp=${timestamp}`;
 
-        // Функция для формирования таблицы
-        function buildTable(data) {
-            const groupedData = {};
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const userStats = {};
 
-            data.forEach(item => {
-                const user = item.user;
-                const picId = item.picId;
-                const colors = {
-                    red: parseFloat(item.red) || 0,
-                    green: parseFloat(item.green) || 0,
-                    blue: parseFloat(item.blue) || 0,
-                    black: parseFloat(item.black) || 0,
-                    white: parseFloat(item.white) || 0,
-                    pale: parseFloat(item.pale) || 0,
-                    vivid: parseFloat(item.vivid) || 0,
-                };
+                data.forEach(item => {
+                    const user = item.user;
+                    const picId = item.picId;
+                    const colors = ['red', 'green', 'blue', 'black', 'white', 'pale', 'vivid'];
 
-                if (!groupedData[user]) {
-                    groupedData[user] = {
-                        total: {
-                            red: 0,
-                            green: 0,
-                            blue: 0,
-                            black: 0,
-                            white: 0,
-                            pale: 0,
-                            vivid: 0,
-                        },
-                        picSums: Array(7).fill(0) // 7 картин
-                    };
+                    if (!userStats[user]) {
+                        userStats[user] = {
+                            total: { red: 0, green: 0, blue: 0, black: 0, white: 0, pale: 0, vivid: 0 },
+                            picTotals: {
+                                '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
+                            }
+                        };
+                    }
+
+                    // Суммируем цвета
+                    colors.forEach(color => {
+                        const value = parseFloat(item[color] || 0);
+                        userStats[user].total[color] += value;
+                        userStats[user].picTotals[picId] += value;
+                    });
+                });
+
+                const tbody = document.getElementById('paints-table').getElementsByTagName('tbody')[0];
+
+                for (const user in userStats) {
+                    const stats = userStats[user];
+                    const row = tbody.insertRow();
+
+                    row.insertCell(0).innerText = user; // Пользователь
+
+                    // Картины
+                    const picCell = row.insertCell(1);
+                    picCell.innerText = Object.values(stats.picTotals).join(', '); // Суммы по picId
+                    
+                    // Цвета
+                    const colorCell = row.insertCell(2);
+                    colorCell.innerText = Object.values(stats.total).join(', '); // Суммы по цветам
+
+                    // Итого
+                    const totalSum = Object.values(stats.total).reduce((acc, curr) => acc + curr, 0);
+                    row.insertCell(3).innerText = totalSum.toFixed(2); // Итого
                 }
-
-                // Добавление значений для picId
-                groupedData[user].picSums[picId] += Object.values(colors).reduce((sum, value) => sum + value, 0);
-
-                // Суммирование цветов для пользователя
-                for (const [key, value] of Object.entries(colors)) {
-                    groupedData[user].total[key] += value;
-                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке данных:', error);
             });
-
-            const tableBody = document.getElementById('table-body');
-            for (const user in groupedData) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user}</td>
-                    ${groupedData[user].picSums.map(sum => `<td>${sum.toFixed(1)}</td>`).join('')}
-                    ${Object.values(groupedData[user].total).map(total => `<td>${total.toFixed(1)}</td>`).join('')}
-                `;
-                tableBody.appendChild(row);
-            }
-        }
-
-        // Основной код для выполнения загрузки и построения таблицы
-        loadPaintData().then(buildTable).catch(error => console.error('Ошибка при загрузке данных:', error));
     </script>
 </body>
 </html>
