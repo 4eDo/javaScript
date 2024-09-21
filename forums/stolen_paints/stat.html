@@ -94,7 +94,7 @@
 
                 // Обновление сумм для картин
                 const picIdIndex = parseInt(picId);
-                if (picIdIndex >= 1 && picIdIndex < 8) {
+                if (picIdIndex > 0 && picIdIndex <= 7) {
                     const colorSum = 
                         parseFloat(item.red) + 
                         parseFloat(item.green) + 
@@ -117,13 +117,13 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${user}</td>
-                    <td>${picSums[0]}</td>
                     <td>${picSums[1]}</td>
                     <td>${picSums[2]}</td>
                     <td>${picSums[3]}</td>
                     <td>${picSums[4]}</td>
                     <td>${picSums[5]}</td>
                     <td>${picSums[6]}</td>
+                    <td>${picSums[7]}</td>
                     <td>${colorSums.red}</td>
                     <td>${colorSums.green}</td>
                     <td>${colorSums.blue}</td>
