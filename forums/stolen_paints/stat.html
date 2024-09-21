@@ -124,7 +124,11 @@ html
             row.insertCell()
           ];
           for (let i = 0; i < 7; i++) {
-            pictureCells[i].textContent = groupedData[user].pictures[i.toString()].red + groupedData[user].pictures[i.toString()].green + groupedData[user].pictures[i.toString()].blue + groupedData[user].pictures[i.toString()].black + groupedData[user].pictures[i.toString()].white + groupedData[user].pictures[i.toString()].pale + groupedData[user].pictures[i.toString()].vivid;
+				if (groupedData[user].pictures[i.toString()]) {
+					pictureCells[i].textContent = groupedData[user].pictures[i.toString()].red + groupedData[user].pictures[i.toString()].green + groupedData[user].pictures[i.toString()].blue + groupedData[user].pictures[i.toString()].black + groupedData[user].pictures[i.toString()].white + groupedData[user].pictures[i.toString()].pale + groupedData[user].pictures[i.toString()].vivid;
+				} else {
+					pictureCells[i].textContent = 0;
+				}
           }
 
           const colorCells = [
