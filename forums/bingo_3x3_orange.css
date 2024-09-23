@@ -1,0 +1,67 @@
+:root{
+  --circleDiameter: 130px;
+  --bgGray: #c9c9c7;
+    --bgChecked: #b45540;
+    --text: #392f2e;
+  --textChecked: #c9c9c7;
+    --dottedBorder: #392f2e;
+}
+.x, .X, .х, .Х {
+  background-color: var(--bgChecked) !important;
+  border: 3px dashed var(--dottedBorder) !important;color: var(--textChecked) !important;
+}
+.bingo {
+  color: var(--text);
+  
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+font-size: 13px;
+  line-height: 13px;
+letter-spacing: 0px;
+word-spacing: 0px;
+font-weight: 400;
+text-decoration: none solid rgb(68, 68, 68);
+font-style: normal;
+font-variant: small-caps;
+text-transform: none;
+  font-size: 20px;
+	font-family: 'Ohburn';
+}
+.bingo > tbody > tr > td {
+  border: 3px solid rgba(0,0,0,0);
+  width: var(--circleDiameter);
+  height: var(--circleDiameter);
+  text-align: center;
+  vertical-align: middle;
+}
+.bingo > tbody > tr > td > div {
+  background-color: var(--bgGray);
+  border: 3px dashed var(--dottedBorder);
+  border-radius: 10%;
+  width: var(--circleDiameter);
+  height: var(--circleDiameter);
+  padding: 0;
+  text-align: center;
+  
+}
+
+.bingo > tbody > tr > td > div > div {
+  height: var(--circleDiameter) !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bingo > tbody > tr > td > div > div > div {
+    align-content: center;
+  	text-overflow: clip;
+	height: var(--circleDiameter) !important;
+	overflow: hidden;
+}
+
+
+.or{
+  display: block;
+  font-weight: bold;
+  font-style: italic;
+  padding: 4px;
+}
