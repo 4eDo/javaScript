@@ -36,101 +36,96 @@
   const getLinkBtn = document.getElementById('getLinkBtn');
   const loadCodeBtn = document.getElementById('loadCodeBtn');
   const outputText = document.getElementById('outputText');
+  const fields = [
+    'uname',
+    'picId',
+    'count',
+    'pigm',
+    'color',
+    'red',
+    'green',
+    'blue',
+    'black',
+    'white',
+    'pale',
+    'vivid',
+  ];
+
+  // Функция для получения значений из формы или URL-параметров
+  function getValues(source = 'form') {
+    const values = {};
+    fields.forEach(field => {
+      const element = document.getElementById(field);
+      const value = source === 'form' ? element.value : new URLSearchParams(window.location.search).get(field) || 0;
+      values[field] = value;
+    });
+    return values;
+  }
+
+  // Функция для заполнения формы значениями
+  function setValues(values) {
+    fields.forEach(field => {
+      document.getElementById(field).value = values[field];
+    });
+  }
+
+  // Функция для обработки значений полей
+  function processValues(values) {
+    if (values.count > 1) {
+      ['red', 'green', 'blue', 'black', 'white', 'pale', 'vivid'].forEach(field => {
+        values[field] = parseFloat(values[field]) * values.count;
+      });
+    }
+
+    if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid) {
+      if (values.color === "none") {
+        const colors = ["red", "green", "blue", "black", "white", "pale", "vivid"];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        values[randomColor] = values.pigm;
+      } else {
+        values[values.color] = values.pigm;
+      }
+    }
+    return values;
+  }
+
+  // Функция для формирования JSON-объекта
+  function createJson(values) {
+    return `
+    {
+        "user": "${values.uname}",
+        "picId": "${values.picId}",
+        "red": "${values.red}",
+        "green": "${values.green}",
+        "blue": "${values.blue}",
+        "white": "${values.white}",
+        "black": "${values.black}",
+        "pale": "${values.pale}",
+        "vivid": "${values.vivid}"
+      },`;
+  }
+
+  // Загрузка формы из URL-параметров при загрузке страницы
+  window.addEventListener('load', () => {
+    setValues(processValues(getValues('url')));
+  });
 
   getLinkBtn.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const user = document.getElementById('uname').value;
-    const picId = document.getElementById('picId').value;
-    const count = document.getElementById('count').value;
-    const pigm = document.getElementById('pigm').value;
-    const color = document.getElementById('color').value;
-    const red = document.getElementById('red').value;
-    const green = document.getElementById('green').value;
-    const blue = document.getElementById('blue').value;
-    const black = document.getElementById('black').value;
-    const white = document.getElementById('white').value;
-    const pale = document.getElementById('pale').value;
-    const vivid = document.getElementById('vivid').value;
+    const values = processValues(getValues('form'));
 
-    if (user) urlParams.set('user', user);
-    if (picId) urlParams.set('picId', picId);
-    if (count) urlParams.set('count', count);
-    if (pigm) urlParams.set('pigm', pigm);
-    if (color) urlParams.set('color', color);
-    if (red) urlParams.set('red', red);
-    if (green) urlParams.set('green', green);
-    if (blue) urlParams.set('blue', blue);
-    if (black) urlParams.set('black', black);
-    if (white) urlParams.set('white', white);
-    if (pale) urlParams.set('pale', pale);
-    if (vivid) urlParams.set('vivid', vivid);
+    fields.forEach(field => {
+      if (values[field]) urlParams.set(field, values[field]);
+    });
 
     const newUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
     outputText.value = newUrl;
   });
 
   loadCodeBtn.addEventListener('click', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const user = urlParams.get('user') || 0;
-    const picId = urlParams.get('picId') || 0;
-    const count = urlParams.get('count') || 1;
-    const pigm = urlParams.get('pigm') || 0;
-    const color = urlParams.get('color') || "none";
-    let red = urlParams.get('red') || 0;
-    let green = urlParams.get('green') || 0;
-    let blue = urlParams.get('blue') || 0;
-    let black = urlParams.get('black') || 0;
-    let white = urlParams.get('white') || 0;
-    let pale = urlParams.get('pale') || 0;
-    let vivid = urlParams.get('vivid') || 0;
-
-    document.getElementById('uname').value = user;
-    document.getElementById('picId').value = picId;
-    document.getElementById('count').value = count;
-    document.getElementById('pigm').value = pigm;
-    document.getElementById('color').value = color;
-    document.getElementById('red').value = red;
-    document.getElementById('green').value = green;
-    document.getElementById('blue').value = blue;
-    document.getElementById('black').value = black;
-    document.getElementById('white').value = white;
-    document.getElementById('pale').value = pale;
-    document.getElementById('vivid').value = vivid;
-
-    if (count > 1) {
-      red *= count;
-      green *= count;
-      blue *= count;
-      black *= count;
-      white *= count;
-      pale *= count;
-      vivid *= count;
-    }
-
-    if (!red && !green && !blue && !black && !white && !pale && !vivid) {
-      if (color === "none") {
-        const colors = ["red", "green", "blue", "black", "white", "pale", "vivid"];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        document.getElementById(randomColor).value = pigm;
-      } else {
-        document.getElementById(color).value = pigm;
-      }
-    }
-
-    const outputText = `
-    {
-        "user": "${user}",
-        "picId": "${picId}",
-        "red": "${red}",
-        "green": "${green}",
-        "blue": "${blue}",
-        "white": "${white}",
-        "black": "${black}",
-        "pale": "${pale}",
-        "vivid": "${vivid}"
-      },`;
-
-    outputText.value = outputText;
+    const values = processValues(getValues('url'));
+    setValues(values);
+    outputText.value = createJson(values);
   });
 </script>
 </body>
