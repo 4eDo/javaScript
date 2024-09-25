@@ -54,7 +54,7 @@
     const values = {};
     fields.forEach(field => {
       const element = document.getElementById(field);
-      const value = source === 'form' ? element.value : new URLSearchParams(window.location.search).get(field) || 0;
+      const value = source === 'form' ? element.value : new URLSearchParams(window.location.search).get(field).replace("%20", " "); || 0;
       values[field] = value;
     });
     return values;
