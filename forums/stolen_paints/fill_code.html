@@ -38,8 +38,6 @@
   const outputText = document.getElementById('outputText');
   const fields = [
     'uname',
-    'picId',
-    'count',
     'pigm',
     'color',
     'red',
@@ -71,12 +69,6 @@
 
   // Функция для обработки значений полей
   function processValues(values) {
-    if (values.count > 1) {
-      ['red', 'green', 'blue', 'black', 'white', 'pale', 'vivid'].forEach(field => {
-        values[field] = parseFloat(values[field]) * values.count;
-      });
-    }
-
     if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid) {
       if (values.color === "none") {
         const colors = ["red", "green", "blue", "black", "white", "pale", "vivid"];
@@ -91,31 +83,42 @@
 
   // Функция для формирования JSON-объекта
   function createJson(values) {
+    const count = parseFloat(document.getElementById('count').value) || 1; // Получаем count из формы
     return `
     {
         "user": "${values.uname}",
         "picId": "${values.picId}",
-        "red": "${values.red}",
-        "green": "${values.green}",
-        "blue": "${values.blue}",
-        "white": "${values.white}",
-        "black": "${values.black}",
-        "pale": "${values.pale}",
-        "vivid": "${values.vivid}"
+        "red": "${parseFloat(values.red) * count}", // Умножаем на count
+        "green": "${parseFloat(values.green) * count}", // Умножаем на count
+        "blue": "${parseFloat(values.blue) * count}", // Умножаем на count
+        "white": "${parseFloat(values.white) * count}", // Умножаем на count
+        "black": "${parseFloat(values.black) * count}", // Умножаем на count
+        "pale": "${parseFloat(values.pale) * count}", // Умножаем на count
+        "vivid": "${parseFloat(values.vivid) * count}" // Умножаем на count
       },`;
   }
 
   // Загрузка формы из URL-параметров при загрузке страницы
   window.addEventListener('load', () => {
-    setValues(processValues(getValues('url')));
+    const values = processValues(getValues('url'));
+    setValues(values);
+  });
+
+  // Обработчик события для изменения поля "count"
+  document.getElementById('count').addEventListener('change', () => {
+    const values = processValues(getValues('form'));
+    outputText.value = createJson(values);
   });
 
   getLinkBtn.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const values = processValues(getValues('form'));
 
+    // Убираем count и picId из URL-параметров
     fields.forEach(field => {
-      if (values[field]) urlParams.set(field, values[field]);
+      if (field !== 'count' && field !== 'picId' && values[field]) {
+        urlParams.set(field, values[field]);
+      }
     });
 
     const newUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
