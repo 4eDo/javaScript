@@ -133,6 +133,11 @@
     const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
   });
+  // Обработчик события для изменения поля "pigm"
+  document.getElementById('pigm').addEventListener('change', () => {
+    const values = processValues(getValues('form')); // Получаем значения из формы
+    outputText.value = createJson(values); // Вызываем createJson для обновления outputText
+  });
 
   getLinkBtn.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
