@@ -84,11 +84,11 @@
   // Функция для формирования JSON-объекта
   function createJson(values) {
     const count = parseFloat(document.getElementById('count').value) || 1; // Получаем count из формы
-    const count = document.getElementById('picId').value || 0;
+    const picId = document.getElementById('picId').value || 0;
     return `
     {
         "user": "${values.uname}",
-        "picId": "${values.picId}",
+        "picId": "${picId}",
         "red": "${parseFloat(values.red) * count}",
         "green": "${parseFloat(values.green) * count}",
         "blue": "${parseFloat(values.blue) * count}",
