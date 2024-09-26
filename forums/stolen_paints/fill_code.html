@@ -27,10 +27,10 @@
 <p>Pale: <input type="number"  id="pale" step="0.5"/></p>
 <p>Vivid: <input type="number"  id="vivid" step="0.5"/></p>
 
-<button id="getLinkBtn">Получить ссылку</button>
-<button id="loadCodeBtn">Загрузить код</button>
+<p><button id="getLinkBtn">Получить ссылку</button></p>
+<p><button id="loadCodeBtn">Загрузить код</button></p>
 
-<textarea id="outputText" readonly placeholder="Результат будет здесь..."></textarea>
+<textarea id="outputText" width="300px" height="500px" readonly placeholder="Результат будет здесь..."></textarea>
 
 <script>
   const getLinkBtn = document.getElementById('getLinkBtn');
@@ -84,17 +84,18 @@
   // Функция для формирования JSON-объекта
   function createJson(values) {
     const count = parseFloat(document.getElementById('count').value) || 1; // Получаем count из формы
+    const count = document.getElementById('picId').value || 0;
     return `
     {
         "user": "${values.uname}",
         "picId": "${values.picId}",
-        "red": "${parseFloat(values.red) * count}", // Умножаем на count
-        "green": "${parseFloat(values.green) * count}", // Умножаем на count
-        "blue": "${parseFloat(values.blue) * count}", // Умножаем на count
-        "white": "${parseFloat(values.white) * count}", // Умножаем на count
-        "black": "${parseFloat(values.black) * count}", // Умножаем на count
-        "pale": "${parseFloat(values.pale) * count}", // Умножаем на count
-        "vivid": "${parseFloat(values.vivid) * count}" // Умножаем на count
+        "red": "${parseFloat(values.red) * count}",
+        "green": "${parseFloat(values.green) * count}",
+        "blue": "${parseFloat(values.blue) * count}",
+        "white": "${parseFloat(values.white) * count}",
+        "black": "${parseFloat(values.black) * count}",
+        "pale": "${parseFloat(values.pale) * count}",
+        "vivid": "${parseFloat(values.vivid) * count}"
       },`;
   }
 
@@ -106,6 +107,11 @@
 
   // Обработчик события для изменения поля "count"
   document.getElementById('count').addEventListener('change', () => {
+    const values = getValues('form'); // Получаем значения из формы
+    outputText.value = createJson(values); // Вызываем createJson для обновления outputText
+  });
+  // Обработчик события для изменения поля "picId"
+  document.getElementById('picId').addEventListener('change', () => {
     const values = getValues('form'); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
   });
@@ -126,7 +132,7 @@
   });
 
   loadCodeBtn.addEventListener('click', () => {
-    const values = getValues('url'); // Получаем значения из URL
+    const values = getValues('form');
     setValues(values);
     outputText.value = createJson(values);
   });
