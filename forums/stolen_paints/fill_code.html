@@ -4,33 +4,40 @@
 <title>Форма</title>
 </head>
 <body>
-
-<p>User: <input type="text" id="uname" /></p>
-<p>PicId: <input type="number" min="0" max="7" id="picId"/></p>
-<p>Count: <input type="number" min="1" id="count" /></p>
-<p>pigm: <input type="number" min="0" id="pigm"  step="0.5"/></p>
-<p>selColor: <select id="color">
-	<option value="none">none</option>
-	<option value="red">red</option>
-	<option value="green">green</option>
-	<option value="blue">blue</option>
-	<option value="black">black</option>
-	<option value="white">white</option>
-	<option value="pale">pale</option>
-	<option value="vivid">vivid</option>
-</select></p>
-<p>Red: <input type="number"  id="red" step="0.5"/></p>
-<p>Green: <input type="number"  id="green" step="0.5"/></p>
-<p>Blue: <input type="number"  id="blue" step="0.5"/></p>
-<p>Black: <input type="number"  id="black" step="0.5"/></p>
-<p>White: <input type="number"  id="white" step="0.5"/></p>
-<p>Pale: <input type="number"  id="pale" step="0.5"/></p>
-<p>Vivid: <input type="number"  id="vivid" step="0.5"/></p>
-
-<p><button id="getLinkBtn">Получить ссылку</button></p>
-<p><button id="loadCodeBtn">Загрузить код</button></p>
-
-<textarea id="outputText" style="width: 300px; height: 500px;" readonly placeholder="Результат будет здесь..."></textarea>
+<table>
+	<tr>
+		<td>
+			<p>User: <input type="text" id="uname" /></p>
+			<p>PicId: <input type="number" min="0" max="7" id="picId"/></p>
+			<p>Count: <input type="number" min="1" id="count" /></p>
+			<p>pigm: <input type="number" min="0" id="pigm"  step="0.5"/></p>
+			<p>selColor: <select id="color">
+				<option value="none">none</option>
+				<option value="red">red</option>
+				<option value="green">green</option>
+				<option value="blue">blue</option>
+				<option value="black">black</option>
+				<option value="white">white</option>
+				<option value="pale">pale</option>
+				<option value="vivid">vivid</option>
+			</select></p>
+			<p>Red: <input type="number"  id="red" step="0.5"/></p>
+			<p>Green: <input type="number"  id="green" step="0.5"/></p>
+			<p>Blue: <input type="number"  id="blue" step="0.5"/></p>
+			<p>Black: <input type="number"  id="black" step="0.5"/></p>
+			<p>White: <input type="number"  id="white" step="0.5"/></p>
+			<p>Pale: <input type="number"  id="pale" step="0.5"/></p>
+			<p>Vivid: <input type="number"  id="vivid" step="0.5"/></p>
+			
+			<p><button id="getLinkBtn">Получить ссылку</button></p>
+			<p><button id="loadCodeBtn">Загрузить код</button></p>
+		</td>
+		<td>
+			<textarea id="outputText" style="width: 300px; height: 500px;" readonly placeholder="Результат будет здесь..."></textarea>
+			<p><button onclick="copyCode()">Забрать код</button></p>
+		</td>
+	</tr>
+</table>
 
 <script>
   const getLinkBtn = document.getElementById('getLinkBtn');
@@ -137,6 +144,42 @@
     setValues(values);
     outputText.value = createJson(values);
   });
+
+	// Copies a string to the clipboard. Must be called from within an event handler such as click.
+// May return false if it failed, but this is not always
+// possible. Browser support for Chrome 43+, Firefox 42+, Edge and IE 10+.
+// No Safari support, as of (Nov. 2015). Returns false.
+// IE: The clipboard feature may be disabled by an adminstrator. By default a prompt is
+// shown the first time the clipboard is used (per session).
+function copyToClipboard(text) {
+	if (window.clipboardData && window.clipboardData.setData) {
+		// IE specific code path to prevent textarea being shown while dialog is visible.
+		return clipboardData.setData("Text", text);
+	} else if (
+		document.queryCommandSupported &&
+		document.queryCommandSupported("copy")
+	) {
+		var textarea = document.createElement("textarea");
+		textarea.textContent = text;
+		textarea.style.position = "fixed"; // Prevent scrolling to bottom of page in MS Edge.
+		document.body.appendChild(textarea);
+		textarea.select();
+		try {
+			return document.execCommand("copy"); // Security exception may be thrown by some browsers.
+		} catch (ex) {
+			console.warn("Copy to clipboard failed.", ex);
+			return false;
+		} finally {
+			document.body.removeChild(textarea);
+		}
+	}
+}
+
+function copyCode() {
+	getCode();
+	var result = copyToClipboard(outputText.value);
+	console.log("copied?", result);
+}
 </script>
 </body>
 </html>
