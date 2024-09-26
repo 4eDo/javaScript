@@ -70,7 +70,17 @@
   // Функция для заполнения формы значениями
   function setValues(values) {
     fields.forEach(field => {
-      document.getElementById(field).value = values[field];
+	    if(field == "color") {
+		    var mySelect = document.getElementById('color');
+			for(var i, j = 0; i = mySelect.options[j]; j++) {
+			    if(i.value == values[field]) {
+			        mySelect.selectedIndex = j;
+			        break;
+			    }
+			}
+	    } else {
+		       document.getElementById(field).value = values[field];   
+	    }
     });
   }
 
