@@ -69,7 +69,8 @@
 
   // Функция для обработки значений полей
   function processValues(values) {
-    if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid && values.pigm) {
+    if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid && values.pigm
+       || values.red == 0 && values.green == 0 && values.blue == 0 && values.black == 0 && values.white == 0 && values.pale == 0 && values.vivid == 0 && values.pigm != 0) {
       if (values.color === "none") {
         const colors = ["red", "green", "blue", "black", "white", "pale", "vivid"];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
