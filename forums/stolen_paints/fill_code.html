@@ -69,7 +69,7 @@
 
   // Функция для обработки значений полей
   function processValues(values) {
-    if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid) {
+    if (!values.red && !values.green && !values.blue && !values.black && !values.white && !values.pale && !values.vivid && values.pigm) {
       if (values.color === "none") {
         const colors = ["red", "green", "blue", "black", "white", "pale", "vivid"];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -107,18 +107,18 @@
 
   // Обработчик события для изменения поля "count"
   document.getElementById('count').addEventListener('change', () => {
-    const values = getValues('form'); // Получаем значения из формы
+    const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
   });
   // Обработчик события для изменения поля "picId"
   document.getElementById('picId').addEventListener('change', () => {
-    const values = getValues('form'); // Получаем значения из формы
+    const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
   });
 
   getLinkBtn.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const values = getValues('form'); // Получаем значения из формы
+    const values = processValues(getValues('form')); // Получаем значения из формы
 
     // Убираем count и picId из URL-параметров
     fields.forEach(field => {
@@ -132,7 +132,7 @@
   });
 
   loadCodeBtn.addEventListener('click', () => {
-    const values = getValues('form');
+    const values = processValues(getValues('form'));
     setValues(values);
     outputText.value = createJson(values);
   });
