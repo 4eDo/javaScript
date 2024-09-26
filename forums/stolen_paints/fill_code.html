@@ -54,7 +54,7 @@
     const values = {};
     fields.forEach(field => {
       const element = document.getElementById(field);
-      const value = source === 'form' ? element.value : new URLSearchParams(window.location.search).get(field).replace("%20", " "); || 0;
+      const value = source === 'form' ? element.value : new URLSearchParams(window.location.search).get(field) || 0;
       values[field] = value;
     });
     return values;
@@ -106,13 +106,13 @@
 
   // Обработчик события для изменения поля "count"
   document.getElementById('count').addEventListener('change', () => {
-    const values = processValues(getValues('form'));
-    outputText.value = createJson(values);
+    const values = getValues('form'); // Получаем значения из формы
+    outputText.value = createJson(values); // Вызываем createJson для обновления outputText
   });
 
   getLinkBtn.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const values = processValues(getValues('form'));
+    const values = getValues('form'); // Получаем значения из формы
 
     // Убираем count и picId из URL-параметров
     fields.forEach(field => {
@@ -126,7 +126,7 @@
   });
 
   loadCodeBtn.addEventListener('click', () => {
-    const values = processValues(getValues('url'));
+    const values = getValues('url'); // Получаем значения из URL
     setValues(values);
     outputText.value = createJson(values);
   });
