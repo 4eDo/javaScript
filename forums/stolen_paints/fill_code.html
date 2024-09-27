@@ -123,13 +123,13 @@
     const count = parseFloat(document.getElementById('count').value) || 1; // Получаем count из формы
     const picId = document.getElementById('picId').value || 0;
 	return `В [b]картину №${picId}[/b] добавлено:`
-		+ addBBimgRow('img/paint_0_red.png', parseFloat(values.red) * count)
-		+ addBBimgRow('img/paint_1_green.png', parseFloat(values.green) * count)
-		+ addBBimgRow('img/paint_2_blue.png', parseFloat(values.blue) * count)
-		+ addBBimgRow('img/paint_4_white.png', parseFloat(values.white) * count)
-		+ addBBimgRow('img/paint_3_black.png', parseFloat(values.black) * count)
-		+ addBBimgRow('img/paint_5_gray.png', parseFloat(values.pale) * count)
-		+ addBBimgRow('img/paint_6_rainbow.png', parseFloat(values.vivid) * count);
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_0_red.png', parseFloat(values.red) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_1_green.png', parseFloat(values.green) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_2_blue.png', parseFloat(values.blue) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_4_white.png', parseFloat(values.white) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_3_black.png', parseFloat(values.black) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_5_gray.png', parseFloat(values.pale) * count)
+		+ addBBimgRow('https://4edo.github.io/javaScript/forums/stolen_paints/img/paint_6_rainbow.png', parseFloat(values.vivid) * count);
   }
 	function addBBimgRow(img, value) {
 	  if(value > 0) {
