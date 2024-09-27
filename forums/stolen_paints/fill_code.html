@@ -35,6 +35,8 @@
 		<td>
 			<textarea id="outputText" style="width: 300px; height: 500px;" readonly placeholder="Результат будет здесь..."></textarea>
 			<p><button onclick="copyCode()">Забрать код</button></p>
+			<textarea id="outputText2" style="width: 300px; height: 200px;" readonly placeholder="BB-code..."></textarea>
+			<p><button onclick="copyCode2()">Забрать код</button></p>
 		</td>
 	</tr>
 </table>
@@ -117,6 +119,27 @@
       },`;
   }
 
+  function createBB(values) {
+    const count = parseFloat(document.getElementById('count').value) || 1; // Получаем count из формы
+    const picId = document.getElementById('picId').value || 0;
+	return `В [b]картину №${picId}[/b] добавлено:`
+		+ addBBimgRow('img/paint_0_red.png', ${parseFloat(values.red) * count})
+		+ addBBimgRow('img/paint_1_green.png', ${parseFloat(values.green) * count})
+		+ addBBimgRow('img/paint_2_blue.png', ${parseFloat(values.blue) * count})
+		+ addBBimgRow('img/paint_4_white.png', ${parseFloat(values.white) * count})
+		+ addBBimgRow('img/paint_3_black.png', ${parseFloat(values.black) * count})
+		+ addBBimgRow('img/paint_5_gray.png', ${parseFloat(values.pale) * count})
+		+ addBBimgRow('img/paint_6_rainbow.png', ${parseFloat(values.vivid) * count});
+  }
+	function addBBimgRow(img, value) {
+	  if(value > 0) {
+		  return `
+   - [img]${img}[/img] x ${value}`;
+	  } else {
+		  return '';
+	  }
+	}
+
   // Загрузка формы из URL-параметров при загрузке страницы
   window.addEventListener('load', () => {
     const values = processValues(getValues('url'));
@@ -127,16 +150,19 @@
   document.getElementById('count').addEventListener('change', () => {
     const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
+    outputText2.value = createBB(values);
   });
   // Обработчик события для изменения поля "picId"
   document.getElementById('picId').addEventListener('change', () => {
     const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
+    outputText2.value = createBB(values);
   });
   // Обработчик события для изменения поля "pigm"
   document.getElementById('pigm').addEventListener('change', () => {
     const values = processValues(getValues('form')); // Получаем значения из формы
     outputText.value = createJson(values); // Вызываем createJson для обновления outputText
+    outputText2.value = createBB(values);
   });
 
   getLinkBtn.addEventListener('click', () => {
@@ -152,12 +178,14 @@
 
     const newUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
     outputText.value = newUrl;
+    outputText2.value = '';
   });
 
   loadCodeBtn.addEventListener('click', () => {
     const values = processValues(getValues('form'));
     setValues(values);
     outputText.value = createJson(values);
+    outputText2.value = createBB(values);
   });
 
 	// Copies a string to the clipboard. Must be called from within an event handler such as click.
@@ -192,6 +220,10 @@ function copyToClipboard(text) {
 
 function copyCode() {
 	var result = copyToClipboard(outputText.value);
+	console.log("copied?", result);
+}
+function copyCode2() {
+	var result = copyToClipboard(outputText2.value);
 	console.log("copied?", result);
 }
 </script>
