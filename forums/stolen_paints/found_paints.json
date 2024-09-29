@@ -1,5 +1,16 @@
 [
-{
+  {
+    "user": "Li Yunxi",
+    "picId": "1",
+    "red": "2",
+    "green": "2.75",
+    "blue": "1.25",
+    "white": "2.5",
+    "black": "1.25",
+    "pale": "2.5",
+    "vivid": "4"
+  },
+  {
     "user": "Lillian Selwyn",
     "picId": "1",
     "red": "3.25",
