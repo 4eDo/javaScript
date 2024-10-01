@@ -2,6 +2,17 @@
   {
     "user": "Fabian Prewett",
     "picId": "6",
+    "red": "2.5",
+    "green": "0.5",
+    "blue": "0.75",
+    "white": "1.25",
+    "black": "1.75",
+    "pale": "1",
+    "vivid": "1.5"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
     "red": "1.5",
     "green": "1.5",
     "blue": "1.5",
