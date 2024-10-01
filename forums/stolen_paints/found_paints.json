@@ -1,5 +1,16 @@
 [
     {
+        "user": "Fabian Prewett",
+        "picId": "1",
+        "red": "0",
+        "green": "0",
+        "blue": "0.8",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
+    {
         "user": "Matthew California",
         "picId": "6",
         "red": "1",
