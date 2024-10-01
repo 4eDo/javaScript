@@ -1,5 +1,16 @@
 [
   {
+    "user": "Marcus Scarrs",
+    "picId": "1",
+    "red": "2",
+    "green": "1.75",
+    "blue": "0",
+    "white": "1.25",
+    "black": "3",
+    "pale": "5.25",
+    "vivid": "4"
+  },
+  {
     "user": "Fabian Prewett",
     "picId": "6",
     "red": "1.75",
