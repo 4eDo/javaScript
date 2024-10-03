@@ -1,4 +1,26 @@
 [
+  {
+    "user": "Arya Runcorn",
+    "picId": "4",
+    "red": "1.75",
+    "green": "4.25",
+    "blue": "1.75",
+    "white": "1.5",
+    "black": "3",
+    "pale": "3.25",
+    "vivid": "2.25"
+  },
+  {
+    "user": "Arya Runcorn",
+    "picId": "4",
+    "red": "5.75",
+    "green": "7.5",
+    "blue": "4.5",
+    "white": "3.75",
+    "black": "8.5",
+    "pale": "6.25",
+    "vivid": "6.25"
+  },
     {
         "user": "Li Yunxi",
         "picId": "1",
