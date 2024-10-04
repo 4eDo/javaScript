@@ -2,6 +2,17 @@
   {
     "user": "Matthew California",
     "picId": "6",
+    "red": "3.75",
+    "green": "8.75",
+    "blue": "1.75",
+    "white": "1.5",
+    "black": "1.75",
+    "pale": "5",
+    "vivid": "6.5"
+  },
+  {
+    "user": "Matthew California",
+    "picId": "6",
     "red": "5",
     "green": "3.25",
     "blue": "1.5",
