@@ -1,4 +1,15 @@
 [
+  {
+    "user": "Lillian Selwyn",
+    "picId": "1",
+    "red": "1",
+    "green": "3.25",
+    "blue": "1.75",
+    "white": "1",
+    "black": "2",
+    "pale": "4",
+    "vivid": "0.75"
+  },
     {
         "user": "Fabian Prewett",
         "picId": "6",
