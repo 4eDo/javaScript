@@ -1,4 +1,26 @@
 [
+  {
+    "user": "Atreus Shafiq",
+    "picId": "1",
+    "red": "1.25",
+    "green": "1.5",
+    "blue": "0.5",
+    "white": "1",
+    "black": "1",
+    "pale": "2",
+    "vivid": "5"
+  },
+  {
+    "user": "Atreus Shafiq",
+    "picId": "1",
+    "red": "1.25",
+    "green": "1.5",
+    "blue": "1.5",
+    "white": "0.25",
+    "black": "1.5",
+    "pale": "3.25",
+    "vivid": "3"
+  },
     {
         "user": "Fabian Prewett",
         "picId": "1",
