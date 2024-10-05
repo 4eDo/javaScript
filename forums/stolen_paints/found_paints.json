@@ -1,4 +1,26 @@
 [
+    {
+        "user": "Fabian Prewett",
+        "picId": "1",
+        "red": "0",
+        "green": "0",
+        "blue": "5",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
+  {
+    "user": "Fabian Prewett",
+    "picId": "1",
+    "red": "1.75",
+    "green": "2.75",
+    "blue": "0.5",
+    "white": "0.5",
+    "black": "2",
+    "pale": "1.75",
+    "vivid": "1.75"
+  },
   {
     "user": "Lucy McIver",
     "picId": "4",
