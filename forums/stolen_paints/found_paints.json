@@ -1,5 +1,27 @@
 [
   {
+    "user": "Lucy McIver",
+    "picId": "4",
+    "red": "2.75",
+    "green": "2.25",
+    "blue": "4.25",
+    "white": "1.75",
+    "black": "4.75",
+    "pale": "3.75",
+    "vivid": "4"
+  },
+  {
+    "user": "Regulus Black",
+    "picId": "4",
+    "red": "2",
+    "green": "1.25",
+    "blue": "1.25",
+    "white": "0",
+    "black": "2.75",
+    "pale": "1.5",
+    "vivid": "5.25"
+  },
+  {
     "user": "Fabian Prewett",
     "picId": "6",
     "red": "2.5",
