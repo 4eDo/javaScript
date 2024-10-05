@@ -1,4 +1,48 @@
 [
+    {
+        "user": "Fabian Prewett",
+        "picId": "6",
+        "red": "0",
+        "green": "0",
+        "blue": "6",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "0.75",
+    "green": "2.75",
+    "blue": "1.25",
+    "white": "0.25",
+    "black": "2.25",
+    "pale": "1.5",
+    "vivid": "1.75"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "0.75",
+    "green": "0.5",
+    "blue": "0.25",
+    "white": "0.25",
+    "black": "1",
+    "pale": "1.5",
+    "vivid": "2.75"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "0.25",
+    "green": "1",
+    "blue": "0.75",
+    "white": "0.25",
+    "black": "1.75",
+    "pale": "2.25",
+    "vivid": "1.75"
+  },
   {
     "user": "Atreus Shafiq",
     "picId": "1",
