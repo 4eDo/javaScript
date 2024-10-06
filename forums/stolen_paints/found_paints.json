@@ -1,5 +1,38 @@
 [
   {
+    "user": "Marcus Scarrs",
+    "picId": "1",
+    "red": "1.25",
+    "green": "2.5",
+    "blue": "1.5",
+    "white": "0.75",
+    "black": "3",
+    "pale": "4",
+    "vivid": "5.5"
+  },
+  {
+    "user": "Marcus Scarrs",
+    "picId": "1",
+    "red": "2.5",
+    "green": "3.5",
+    "blue": "0.75",
+    "white": "1.25",
+    "black": "3.75",
+    "pale": "3",
+    "vivid": "4.75"
+  },
+  {
+    "user": "Marcus Scarrs",
+    "picId": "1",
+    "red": "1",
+    "green": "0.5",
+    "blue": "0.25",
+    "white": "0.5",
+    "black": "1.75",
+    "pale": "2.25",
+    "vivid": "3.5"
+  },
+  {
     "user": "Leslie Dow",
     "picId": "6",
     "red": "2.75",
