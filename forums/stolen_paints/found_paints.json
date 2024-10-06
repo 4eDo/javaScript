@@ -1,4 +1,26 @@
 [
+  {
+    "user": "Leslie Dow",
+    "picId": "6",
+    "red": "2.75",
+    "green": "3",
+    "blue": "0.5",
+    "white": "1.25",
+    "black": "2.25",
+    "pale": "3.75",
+    "vivid": "2"
+  },
+  {
+    "user": "Peter Pettigrew",
+    "picId": "1",
+    "red": "1.5",
+    "green": "1.5",
+    "blue": "1.25",
+    "white": "0.5",
+    "black": "1.5",
+    "pale": "0.25",
+    "vivid": "2.75"
+  },
     {
         "user": "Sirius Black",
         "picId": "4",
