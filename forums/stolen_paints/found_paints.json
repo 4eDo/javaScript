@@ -1,5 +1,93 @@
 [
     {
+        "user": "Sirius Black",
+        "picId": "4",
+        "red": "0",
+        "green": "5",
+        "blue": "0",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "2.25",
+    "green": "1.5",
+    "blue": "2.5",
+    "white": "0.25",
+    "black": "1.5",
+    "pale": "1.75",
+    "vivid": "1.75"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "1.5",
+    "green": "0.25",
+    "blue": "0.75",
+    "white": "0.5",
+    "black": "5.25",
+    "pale": "4.75",
+    "vivid": "2.5"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "2.75",
+    "green": "1.75",
+    "blue": "0.75",
+    "white": "2.75",
+    "black": "6.25",
+    "pale": "3.25",
+    "vivid": "2.5"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "1.75",
+    "green": "1.25",
+    "blue": "0.75",
+    "white": "0.25",
+    "black": "3.5",
+    "pale": "2.5",
+    "vivid": "2"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "1.25",
+    "green": "1.75",
+    "blue": "1.25",
+    "white": "1.5",
+    "black": "2.5",
+    "pale": "2.75",
+    "vivid": "5.75"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "1.5",
+    "green": "1.5",
+    "blue": "1.75",
+    "white": "1.25",
+    "black": "1.75",
+    "pale": "2.5",
+    "vivid": "3.5"
+  },
+  {
+    "user": "Sirius Black",
+    "picId": "4",
+    "red": "2.5",
+    "green": "3.25",
+    "blue": "1",
+    "white": "0.5",
+    "black": "2.25",
+    "pale": "4.5",
+    "vivid": "3"
+  },
+    {
         "user": "Fabian Prewett",
         "picId": "6",
         "red": "0",
