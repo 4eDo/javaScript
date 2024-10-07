@@ -1,4 +1,26 @@
 [
+  {
+    "user": "Fabian Prewett",
+    "picId": "1",
+    "red": "1.25",
+    "green": "4.25",
+    "blue": "2.75",
+    "white": "0",
+    "black": "2",
+    "pale": "0.75",
+    "vivid": "3"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "1",
+    "red": "1.75",
+    "green": "1",
+    "blue": "0.75",
+    "white": "0.75",
+    "black": "0.75",
+    "pale": "1",
+    "vivid": "1.5"
+  },
     {
         "user": "Li Yunxi",
         "picId": "1",
