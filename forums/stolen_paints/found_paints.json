@@ -1,5 +1,27 @@
 [
   {
+    "user": "Matthew California",
+    "picId": "6",
+    "red": "4.75",
+    "green": "2.25",
+    "blue": "2.75",
+    "white": "0.5",
+    "black": "2.5",
+    "pale": "4.5",
+    "vivid": "5.5"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "2.5",
+    "green": "0.75",
+    "blue": "0.75",
+    "white": "0.25",
+    "black": "3",
+    "pale": "0.75",
+    "vivid": "0.25"
+  },
+  {
     "user": "Fabian Prewett",
     "picId": "1",
     "red": "1.25",
