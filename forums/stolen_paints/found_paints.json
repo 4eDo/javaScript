@@ -1,4 +1,15 @@
 [
+    {
+        "user": "Fabian Prewett",
+        "picId": "1",
+        "red": "0",
+        "green": "0",
+        "blue": "5",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
   {
     "user": "Jack Falco",
     "picId": "6",
