@@ -1,5 +1,49 @@
 [
   {
+    "user": "Jack Falco",
+    "picId": "6",
+    "red": "2",
+    "green": "2.25",
+    "blue": "1.25",
+    "white": "0.25",
+    "black": "4.25",
+    "pale": "2.25",
+    "vivid": "3.5"
+  },
+  {
+    "user": "Jack Falco",
+    "picId": "6",
+    "red": "1.5",
+    "green": "1.25",
+    "blue": "2.5",
+    "white": "0",
+    "black": "3.5",
+    "pale": "3.75",
+    "vivid": "1.75"
+  },
+  {
+    "user": "Jack Falco",
+    "picId": "6",
+    "red": "1",
+    "green": "1",
+    "blue": "1.5",
+    "white": "1",
+    "black": "1.75",
+    "pale": "2",
+    "vivid": "3.25"
+  },
+  {
+    "user": "Jack Falco",
+    "picId": "6",
+    "red": "1.75",
+    "green": "2.25",
+    "blue": "2",
+    "white": "2.25",
+    "black": "1.5",
+    "pale": "2.25",
+    "vivid": "5.5"
+  },
+  {
     "user": "Matthew California",
     "picId": "6",
     "red": "4.75",
