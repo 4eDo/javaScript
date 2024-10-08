@@ -1,11 +1,3 @@
-if (typeof jQuery === 'undefined') {
-	const script = document.createElement('script');
-	script.src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js";
-	document.head.appendChild(script);
-} else {
-	console.log("jQuery подключен!");
-}
-
 const _CHAR_TEMPLATE = CHAR_TEMPLATE.innerHTML;
 const _NAMELIST_TEMPLATE = NAMELIST_TEMPLATE.innerHTML;
 const _SURNAMELIST_TEMPLATE = SURNAMELIST_TEMPLATE.innerHTML;
