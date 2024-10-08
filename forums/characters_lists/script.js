@@ -271,6 +271,7 @@ function viewJobs() {
 			.replace("{{surname}}", capitalizeFLetter(roles[i].surname))
 			.replace("{{side}}", roles[i].side)
 			.replace("{{profile}}", roles[i].profile)
+			.replace("{{currLevel}}", currLevel)
 			.replace("{{fullPath}}", pathStr)
 			.replace("{{job}}", !path ? path[currLevel] : tempPath[currLevel]); // Используем tempPath для job в блоке else
 
