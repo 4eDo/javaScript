@@ -1,4 +1,26 @@
 [
+  {
+    "user": "Regulus Black",
+    "picId": "4",
+    "red": "2.75",
+    "green": "3",
+    "blue": "0.75",
+    "white": "1.25",
+    "black": "1.25",
+    "pale": "2.5",
+    "vivid": "4.75"
+  },
+  {
+    "user": "Lucy McIver",
+    "picId": "4",
+    "red": "1.75",
+    "green": "2.75",
+    "blue": "1.75",
+    "white": "1",
+    "black": "3",
+    "pale": "3.5",
+    "vivid": "2.5"
+  },
     {
         "user": "Jack Falco",
         "picId": "6",
