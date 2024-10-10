@@ -34,7 +34,7 @@ async function fetchAndParseTemplates() {
         let decoder = new TextDecoder(charset); // Проверка кодировки. У mybb это windows-1251
         let htmlText = decoder.decode(buffer);
 
-        console.log("HTML Text:", htmlText);
+        // console.log("HTML Text:", htmlText);
 
         // Парсим полученный HTML
         let parser = new DOMParser();
@@ -42,7 +42,7 @@ async function fetchAndParseTemplates() {
 
         // Получаем блок roles_4edo
         let rolesBlock = doc.getElementById('roles_4edo');
-        console.log("Characters cards Block:", rolesBlock);
+        // console.log("Characters cards Block:", rolesBlock);
 
         if (!rolesBlock) { 
             console.error("roles_4edo не найден.");
@@ -244,7 +244,7 @@ function viewJobs() {
 	let currLevel = 0;
 	for (let i = 0; i < roles.length; i++) {
 		let tempPath = roles[i].job.split(", ");
-		console.log(tempPath);
+		// console.log(tempPath);
 		if(tempPath.length == 1) {
 			otherJobs += _JOBLIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
