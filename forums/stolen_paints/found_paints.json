@@ -2,6 +2,17 @@
   {
     "user": "Regulus Black",
     "picId": "4",
+    "red": "8.75",
+    "green": "5.25",
+    "blue": "5",
+    "white": "3",
+    "black": "4.75",
+    "pale": "9.75",
+    "vivid": "10.75"
+  },
+  {
+    "user": "Regulus Black",
+    "picId": "4",
     "red": "2.75",
     "green": "3",
     "blue": "0.75",
