@@ -273,7 +273,7 @@ function viewJobs() {
 			.replace("{{profile}}", roles[i].profile)
 			.replace("{{currLevel}}", currLevel)
 			.replace("{{fullPath}}", pathStr)
-			.replace("{{job}}", !path ? path[currLevel] : tempPath[currLevel]); // Используем tempPath для job в блоке else
+			.replace("{{job}}", !path ? path[currLevel] : tempPath[tempPath.length - 1]); // Используем tempPath для job в блоке else
 
 		$("#addonAll").append(temp);
 	}
