@@ -227,11 +227,25 @@ function viewJobs() {
 	$("#addonM").html("");
 	$("#addonF").html("");
 
+	let otherJobs = _JOBPATH_TEMPLATE
+					.replace("{{pathLevel}}", 0)
+					.replace("{{path}}", "Прочее");
 	let path = [];
 	let currLevel = 0;
 	for (let i = 0; i < roles.length; i++) {
 		let tempPath = roles[i].job.split(", ");
 		console.log(tempPath);
+		if(tempPath.length == 1) {
+			otherJobs += _JOBLIST_TEMPLATE
+			.replace("{{name}}", capitalizeFLetter(roles[i].name))
+			.replace("{{surname}}", capitalizeFLetter(roles[i].surname))
+			.replace("{{side}}", roles[i].side)
+			.replace("{{profile}}", roles[i].profile)
+			.replace("{{currLevel}}", 1)
+			.replace("{{fullPath}}", tempPath[0])
+			.replace("{{job}}", tempPath[0]);
+			continue;
+		}
 		let pathTemp = "";
 		let pathStr = "";
 		if (!path || path.length < 1) {
@@ -277,6 +291,7 @@ function viewJobs() {
 
 		$("#addonAll").append(temp);
 	}
+	$("#addonAll").append(otherJobs);
 }
 
 function viewFaces() {
