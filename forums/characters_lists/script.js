@@ -261,7 +261,7 @@ function viewJobs() {
 			for (let j = 0; j < tempPath.length - 1; j++) {
 				pathTemp += _JOBPATH_TEMPLATE
 					.replace("{{pathLevel}}", j)
-					.replace("{{path}}", tempPath[j]);
+					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
 			}
