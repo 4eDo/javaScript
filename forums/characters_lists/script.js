@@ -211,8 +211,7 @@ function viewSurnames() {
 
 	let currentFirstLetter = "";
 	for (let i = 0; i < roles.length; i++) {
-		let temp = `<a href="{{profile}}">{{surname}}, {{name}}, {{side}}</p>`;
-		temp = temp
+		let temp = _SURNAMELIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}",  roles[i].surname.toUpperCase())
 			.replace("{{side}}", roles[i].side)
