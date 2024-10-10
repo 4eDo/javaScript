@@ -16,7 +16,7 @@ let _stat_n = 0;
 
 // URL страницы со списком карточек пользователей
 // const url = '/pages/_characters_lists'; // Основной адрес
-const url = 'https://4edo.github.io/javaScript/forums/characters_lists/4eDo_characters_lists.html'; // Адрес для тестов
+const url = 'https://4edo.github.io/javaScript/forums/characters_lists/burn_characters_lists.html'; // Адрес для тестов
 
 const charset = url.includes("github") ? "utf-8" : 'windows-1251';
 
@@ -34,7 +34,7 @@ async function fetchAndParseTemplates() {
         let decoder = new TextDecoder(charset); // Проверка кодировки. У mybb это windows-1251
         let htmlText = decoder.decode(buffer);
 
-//         console.log("HTML Text:", htmlText);
+        console.log("HTML Text:", htmlText);
 
         // Парсим полученный HTML
         let parser = new DOMParser();
@@ -42,10 +42,10 @@ async function fetchAndParseTemplates() {
 
         // Получаем блок roles_4edo
         let rolesBlock = doc.getElementById('roles_4edo');
-        // console.log("Characters cards Block:", rolesBlock);
+        console.log("Characters cards Block:", rolesBlock);
 
         if (!rolesBlock) { 
-            console.error("roles_4edo  не найден.");
+            console.error("roles_4edo не найден.");
             return;
         }
 
@@ -65,15 +65,24 @@ fetchAndParseTemplates();
 
 // Функция сортировки JSON
 function sortBy(prop, DESC_ASC) {
-	let order = DESC_ASC.toUpperCase() == "ASC" ? 1 : -1;
-	return function (a, b) {
-		if (a[prop] > b[prop]) {
-			return 1 * order;
-		} else if (a[prop] < b[prop]) {
-			return -1 * order;
-		}
-		return 0;
-	};
+  let order = DESC_ASC.toUpperCase() == "ASC" ? 1 : -1;
+  return function (a, b) {
+    if (typeof a[prop] === 'string' && typeof b[prop] === 'string') {
+      // Ignore case when comparing strings
+      if (a[prop].toLowerCase() > b[prop].toLowerCase()) {
+        return 1 * order;
+      } else if (a[prop].toLowerCase() < b[prop].toLowerCase()) {
+        return -1 * order;
+      }
+    } else {
+      if (a[prop] > b[prop]) {
+        return 1 * order;
+      } else if (a[prop] < b[prop]) {
+        return -1 * order;
+      }
+    }
+    return 0;
+  };
 }
 // //Usage
 // roles.sort( sortBy("age", "ASC") );
@@ -144,6 +153,7 @@ function loadAllChars() {
 	stat_cr.innerText = _stat_cr;
 	stat_mm.innerText = _stat_mm;
 	stat_n.innerText = _stat_n;
+viewJobs();
 }
 
 
@@ -201,7 +211,7 @@ function viewSurnames() {
 
 	let currentFirstLetter = "";
 	for (let i = 0; i < roles.length; i++) {
-		let temp = _SURNAMELIST_TEMPLATE;
+		let temp = `<a href="{{profile}}">{{surname}}, {{name}}, {{side}}</p>`;
 		temp = temp
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}",  roles[i].surname.toUpperCase())
@@ -270,7 +280,7 @@ function viewJobs() {
 
 				pathTemp += _JOBPATH_TEMPLATE
 					.replace("{{pathLevel}}", j)
-					.replace("{{path}}", tempPath[j]);
+					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
 			}
@@ -291,7 +301,28 @@ function viewJobs() {
 
 		$("#addonAll").append(temp);
 	}
-	$("#addonAll").append(otherJobs);
+		$("#addonAll").append(otherJobs);
+}
+function getPrettyPath(label) {
+  const levels = {
+    "Уровень 1": " (Кабинеты Министра магии и вспомогательного персонала)",
+    "Уровень 2": " (Отдел обеспечения магического правопорядка)",
+    "Уровень 3": " (Отдел магических происшествий и катастроф)",
+    "Уровень 4": " (Отдел регулирования магических популяций и контроля над ними)",
+    "Уровень 5": " (Отдел международного магического сотрудничества)",
+    "Уровень 6": " (Отдел магического транспорта)",
+    "Уровень 7": " (Отдел магических игр и спорта)",
+    "Уровень 8": " (Атриум)",
+    "Уровень 9": " (Отдел тайн)",
+    "1 этаж": " (Травмы от рукотворных предметов)",
+    "2 этаж": " (Ранения от живых существ)",
+    "3 этаж": " (Волшебные вирусы)",
+    "4 этаж": " (Отравления растениями и зельями)",
+    "5 этаж": " (Недуги от заклятий)",
+    "6 этаж": " (Буфет для посетителей и больничная лавка)",
+  };
+
+  return levels[label] ? label + levels[label] : capitalizeFLetter(label);
 }
 
 function viewFaces() {
@@ -305,8 +336,12 @@ function viewFaces() {
 	$("#addonM").html("MALES:");
 	$("#addonF").html("FEMALES:");
 
-	let currentFirstLetter = "";
+	let currentFirstLetter_F = "";
+	let currentFirstLetter_M = "";
 	for (let i = 0; i < roles.length; i++) {
+		let currentFirstLetter = roles[i].sex.toUpperCase() == "F"
+			? currentFirstLetter_F
+			: currentFirstLetter_M;
 		let temp = _FACELIST_TEMPLATE;
 		temp = temp
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
@@ -314,8 +349,9 @@ function viewFaces() {
 			.replace("{{face}}", roles[i].face.toUpperCase())
 			.replace("{{profile}}", roles[i].profile);
 
-		if (currentFirstLetter != roles[i].face.charAt(0)) {
-			currentFirstLetter = roles[i].face.charAt(0);
+		if (currentFirstLetter != roles[i].face.charAt(0).toUpperCase()) {
+			currentFirstLetter = roles[i].face.charAt(0).toUpperCase();
+			if(roles[i].sex.toUpperCase() == "F") {currentFirstLetter_F=currentFirstLetter;}else{currentFirstLetter_M=currentFirstLetter;}
 			temp =
 				_FIRSTLETTER_TEMPLATE.replace("{{letter}}", currentFirstLetter) + temp;
 		}
