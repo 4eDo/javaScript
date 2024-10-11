@@ -1,5 +1,16 @@
 [
   {
+    "user": "Martin Ocean",
+    "picId": "4",
+    "red": "0.75",
+    "green": "1.75",
+    "blue": "0.75",
+    "white": "0.75",
+    "black": "2.5",
+    "pale": "2.75",
+    "vivid": "1.75"
+  },
+  {
     "user": "Fabian Prewett",
     "picId": "6",
     "red": "2",
