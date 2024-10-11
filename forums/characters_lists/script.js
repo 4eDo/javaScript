@@ -177,16 +177,21 @@ function viewNames() {
 	$("#addonM").html("MALES:");
 	$("#addonF").html("FEMALES:");
 
-	let currentFirstLetter = "";
+	let currentFirstLetter_F = "";
+	let currentFirstLetter_M = "";
 	for (let i = 0; i < roles.length; i++) {
+		let currentFirstLetter = roles[i].sex.toUpperCase() == "F"
+			? currentFirstLetter_F
+			: currentFirstLetter_M;
 		let temp = _NAMELIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}", capitalizeFLetter(roles[i].surname))
 			.replace("{{side}}", roles[i].side)
 			.replace("{{profile}}", roles[i].profile);
 
-		if (currentFirstLetter != roles[i].name.charAt(0)) {
-			currentFirstLetter = roles[i].name.charAt(0);
+		if (currentFirstLetter != roles[i].name.charAt(0).toUpperCase()) {
+			currentFirstLetter = roles[i].name.charAt(0).toUpperCase();
+			if(roles[i].sex.toUpperCase() == "F") {currentFirstLetter_F=currentFirstLetter;}else{currentFirstLetter_M=currentFirstLetter;}
 			temp =
 				_FIRSTLETTER_TEMPLATE.replace("{{letter}}", currentFirstLetter) + temp;
 		}
@@ -211,14 +216,18 @@ function viewSurnames() {
 
 	let currentFirstLetter = "";
 	for (let i = 0; i < roles.length; i++) {
+		let currentFirstLetter = roles[i].sex.toUpperCase() == "F"
+			? currentFirstLetter_F
+			: currentFirstLetter_M;
 		let temp = _SURNAMELIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}",  roles[i].surname.toUpperCase())
 			.replace("{{side}}", roles[i].side)
 			.replace("{{profile}}", roles[i].profile);
 
-		if (currentFirstLetter != roles[i].surname.charAt(0)) {
-			currentFirstLetter = roles[i].surname.charAt(0);
+		if (currentFirstLetter != roles[i].surname.charAt(0).toUpperCase()) {
+			currentFirstLetter = roles[i].surname.charAt(0).toUpperCase();
+			if(roles[i].sex.toUpperCase() == "F") {currentFirstLetter_F=currentFirstLetter;}else{currentFirstLetter_M=currentFirstLetter;}
 			temp =
 				_FIRSTLETTER_TEMPLATE.replace("{{letter}}", currentFirstLetter) + temp;
 		}
