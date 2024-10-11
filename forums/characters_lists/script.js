@@ -5,6 +5,7 @@ const _FACELIST_TEMPLATE = FACELIST_TEMPLATE.innerHTML;
 const _JOBLIST_TEMPLATE = JOBLIST_TEMPLATE.innerHTML;
 const _FIRSTLETTER_TEMPLATE = FIRSTLETTER_TEMPLATE.innerHTML;
 const _JOBPATH_TEMPLATE = JOBPATH_TEMPLATE.innerHTML;
+const _JOBPATH_DELIMETER = JOBPATH_DELIMETER ? JOBPATH_DELIMETER.innerHTML : "";
 
 let _stat_all = 0;
 let _stat_f = 0;
@@ -245,6 +246,7 @@ function viewJobs() {
 					.replace("{{pathLevel}}", 0)
 					.replace("{{path}}", "Прочее");
 	let path = [];
+	let prevCurrLevel = -1;
 	let currLevel = 0;
 	for (let i = 0; i < roles.length; i++) {
 		let tempPath = roles[i].job.split(", ");
@@ -269,6 +271,10 @@ function viewJobs() {
 					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
+				if (currLevel < prevCurrLevel) {
+				  $("#addonAll").append(_JOBPATH_DELIMETER);
+				}
+				prevCurrLevel = currLevel;
 			}
 			$("#addonAll").append(pathTemp);
 			path = tempPath;
@@ -287,6 +293,10 @@ function viewJobs() {
 					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
+				if (currLevel < prevCurrLevel) {
+				  $("#addonAll").append(_JOBPATH_DELIMETER);
+				}
+				prevCurrLevel = currLevel;
 			}
 			currLevel = maxLevel;
 			pathStr += tempPath[maxLevel] + ", ";
@@ -305,7 +315,7 @@ function viewJobs() {
 
 		$("#addonAll").append(temp);
 	}
-		$("#addonAll").append(otherJobs);
+	$("#addonAll").append(otherJobs);
 }
 function getPrettyPath(label) {
   const levels = {
