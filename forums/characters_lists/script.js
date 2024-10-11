@@ -233,83 +233,85 @@ function viewSurnames() {
 }
 
 function viewJobs() {
-	roles.sort(sortBy("job", "ASC"));
-	
-	$("#addonM").hide();
-	$("#addonF").hide();
-	$("#addonAll").show();
-	$("#addonAll").html("");
-	$("#addonM").html("");
-	$("#addonF").html("");
+  roles.sort(sortBy("job", "ASC"));
+  
+  $("#addonM").hide();
+  $("#addonF").hide();
+  $("#addonAll").show();
+  $("#addonAll").html("");
+  $("#addonM").html("");
+  $("#addonF").html("");
 
-	let otherJobs = _JOBPATH_TEMPLATE
-					.replace("{{pathLevel}}", 0)
-					.replace("{{path}}", "Прочее");
-	let path = [];
-	let currLevel = 0;
-	for (let i = 0; i < roles.length; i++) {
-		let tempPath = roles[i].job.split(", ");
-		// console.log(tempPath);
-		if(tempPath.length == 1) {
-			otherJobs += _JOBLIST_TEMPLATE
-			.replace("{{name}}", capitalizeFLetter(roles[i].name))
-			.replace("{{surname}}", capitalizeFLetter(roles[i].surname))
-			.replace("{{side}}", roles[i].side)
-			.replace("{{profile}}", roles[i].profile)
-			.replace("{{currLevel}}", 1)
-			.replace("{{fullPath}}", tempPath[0])
-			.replace("{{job}}", capitalizeFLetter(tempPath[0]));
-			continue;
-		}
-		let pathTemp = "";
-		let pathStr = "";
-		if (!path || path.length < 1) {
-			for (let j = 0; j < tempPath.length - 1; j++) {
-				pathTemp += _JOBPATH_TEMPLATE
-					.replace("{{pathLevel}}", j)
-					.replace("{{path}}", getPrettyPath(tempPath[j]));
-				pathStr += tempPath[j] + ", ";
-				currLevel = j;
-			}
-			$("#addonAll").append(pathTemp);
-			path = tempPath;
-		} else {
-			let maxLevel = tempPath.length - 1;
-			for (let j = 0; j < maxLevel; j++) {
-				if (
-					path[j] &&
-					tempPath[j] &&
-					path[j].toUpperCase() == tempPath[j].toUpperCase()
-				)
-					continue;
+  let otherJobs = _JOBPATH_TEMPLATE
+                  .replace("{{pathLevel}}", 0)
+                  .replace("{{path}}", "Прочее");
+  let path = [];
+  let currLevel = 0;
+	let isFirst = true;
+  for (let i = 0; i < roles.length; i++) {
+    let tempPath = roles[i].job.split(", ");
+    // console.log(tempPath);
+    if(tempPath.length == 1) {
+      otherJobs += _JOBLIST_TEMPLATE
+        .replace("{{name}}", capitalizeFLetter(roles[i].name))
+        .replace("{{surname}}", capitalizeFLetter(roles[i].surname))
+        .replace("{{side}}", roles[i].side)
+        .replace("{{profile}}", roles[i].profile)
+        .replace("{{currLevel}}", currLevel)
+        .replace("{{fullPath}}", tempPath[0])
+        .replace("{{job}}", capitalizeFLetter(tempPath[0]));
+      continue;
+    }
+    let pathTemp = "";
+    let pathStr = "";
+    if (!path || path.length < 1) {
+      for (let j = 0; j < tempPath.length - 1; j++) {
+        pathTemp += _JOBPATH_TEMPLATE
+          .replace("{{pathLevel}}", j)
+          .replace("{{path}}", getPrettyPath(tempPath[j]));
+        pathStr += tempPath[j] + ", ";
+        currLevel = j;
+      }
+      $("#addonAll").append(pathTemp);
+      path = tempPath;
+    } else {
+      let maxLevel = tempPath.length - 1;
+      for (let j = 0; j < maxLevel; j++) {
+        if (
+          path[j] &&
+          tempPath[j] &&
+          path[j].toUpperCase() == tempPath[j].toUpperCase()
+        )
+          continue;
 
-				pathTemp += _JOBPATH_TEMPLATE
-					.replace("{{pathLevel}}", j)
-					.replace("{{path}}", getPrettyPath(tempPath[j]));
-				pathStr += tempPath[j] + ", ";
-				currLevel = j;
-			}
-			currLevel = maxLevel;
-			pathStr += tempPath[maxLevel] + ", ";
-			$("#addonAll").append(pathTemp);
-			path = tempPath;
-		}
+        pathTemp += _JOBPATH_TEMPLATE
+          .replace("{{pathLevel}}", j)
+          .replace("{{path}}", getPrettyPath(tempPath[j]));
+        pathStr += tempPath[j] + ", ";
+        currLevel = j;
+      }
+      currLevel = maxLevel;
+      pathStr += tempPath[maxLevel] + ", ";
+      $("#addonAll").append(pathTemp);
+      path = tempPath;
+    }
+		if (isFirst) { currLevel++; isFirst = false;}
+    let temp = _JOBLIST_TEMPLATE
+      .replace("{{name}}", capitalizeFLetter(roles[i].name))
+      .replace("{{surname}}", capitalizeFLetter(roles[i].surname))
+      .replace("{{side}}", roles[i].side)
+      .replace("{{profile}}", roles[i].profile)
+      .replace("{{currLevel}}", currLevel)
+      .replace("{{fullPath}}", pathStr)
+      .replace("{{job}}", capitalizeFLetter(!path ? path[currLevel] : tempPath[tempPath.length - 1])); // Используем tempPath для job в блоке else
 
-		let temp = _JOBLIST_TEMPLATE
-			.replace("{{name}}", capitalizeFLetter(roles[i].name))
-			.replace("{{surname}}", capitalizeFLetter(roles[i].surname))
-			.replace("{{side}}", roles[i].side)
-			.replace("{{profile}}", roles[i].profile)
-			.replace("{{currLevel}}", currLevel)
-			.replace("{{fullPath}}", pathStr)
-			.replace("{{job}}", capitalizeFLetter(!path ? path[currLevel] : tempPath[tempPath.length - 1])); // Используем tempPath для job в блоке else
+    $("#addonAll").append(temp);
+  }
+  appendDelimiter($("#addonAll > [class^='pathlevel-'][class$='-final']"));
 
-		$("#addonAll").append(temp);
-	}
-	appendDelimiter($("#addonAll > [class^='pathlevel-'][class$='-final']"));
-
-	$("#addonAll").append(otherJobs);
+  $("#addonAll").append(otherJobs);
 }
+
 function getPrettyPath(label) {
   const levels = {
     "Уровень 1": " (Кабинеты Министра магии и вспомогательного персонала)",
