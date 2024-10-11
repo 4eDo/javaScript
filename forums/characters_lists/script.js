@@ -216,9 +216,6 @@ function viewSurnames() {
 
 	let currentFirstLetter = "";
 	for (let i = 0; i < roles.length; i++) {
-		let currentFirstLetter = roles[i].sex.toUpperCase() == "F"
-			? currentFirstLetter_F
-			: currentFirstLetter_M;
 		let temp = _SURNAMELIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}",  roles[i].surname.toUpperCase())
@@ -227,7 +224,6 @@ function viewSurnames() {
 
 		if (currentFirstLetter != roles[i].surname.charAt(0).toUpperCase()) {
 			currentFirstLetter = roles[i].surname.charAt(0).toUpperCase();
-			if(roles[i].sex.toUpperCase() == "F") {currentFirstLetter_F=currentFirstLetter;}else{currentFirstLetter_M=currentFirstLetter;}
 			temp =
 				_FIRSTLETTER_TEMPLATE.replace("{{letter}}", currentFirstLetter) + temp;
 		}
@@ -261,7 +257,7 @@ function viewJobs() {
 			.replace("{{profile}}", roles[i].profile)
 			.replace("{{currLevel}}", 1)
 			.replace("{{fullPath}}", tempPath[0])
-			.replace("{{job}}", tempPath[0]);
+			.replace("{{job}}", capitalizeFLetter(tempPath[0]));
 			continue;
 		}
 		let pathTemp = "";
@@ -305,7 +301,7 @@ function viewJobs() {
 			.replace("{{profile}}", roles[i].profile)
 			.replace("{{currLevel}}", currLevel)
 			.replace("{{fullPath}}", pathStr)
-			.replace("{{job}}", !path ? path[currLevel] : tempPath[tempPath.length - 1]); // Используем tempPath для job в блоке else
+			.replace("{{job}}", capitalizeFLetter(!path ? path[currLevel] : tempPath[tempPath.length - 1])); // Используем tempPath для job в блоке else
 
 		$("#addonAll").append(temp);
 	}
