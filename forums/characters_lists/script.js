@@ -246,7 +246,6 @@ function viewJobs() {
 					.replace("{{pathLevel}}", 0)
 					.replace("{{path}}", "Прочее");
 	let path = [];
-	let prevCurrLevel = -1;
 	let currLevel = 0;
 	for (let i = 0; i < roles.length; i++) {
 		let tempPath = roles[i].job.split(", ");
@@ -271,10 +270,6 @@ function viewJobs() {
 					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
-				if (currLevel < prevCurrLevel) {
-				  $("#addonAll").append(_JOBPATH_DELIMETER);
-				}
-				prevCurrLevel = currLevel;
 			}
 			$("#addonAll").append(pathTemp);
 			path = tempPath;
@@ -293,10 +288,6 @@ function viewJobs() {
 					.replace("{{path}}", getPrettyPath(tempPath[j]));
 				pathStr += tempPath[j] + ", ";
 				currLevel = j;
-				if (currLevel < prevCurrLevel) {
-				  $("#addonAll").append(_JOBPATH_DELIMETER);
-				}
-				prevCurrLevel = currLevel;
 			}
 			currLevel = maxLevel;
 			pathStr += tempPath[maxLevel] + ", ";
@@ -315,6 +306,8 @@ function viewJobs() {
 
 		$("#addonAll").append(temp);
 	}
+	appendDelimiter($("#addonAll > [class^='pathlevel-'][class$='-final']"));
+
 	$("#addonAll").append(otherJobs);
 }
 function getPrettyPath(label) {
@@ -337,6 +330,24 @@ function getPrettyPath(label) {
   };
 
   return levels[label] ? label + levels[label] : capitalizeFLetter(label);
+}
+function appendDelimiter(elements) {
+  elements.each(function() {
+    let pathLevelMatch = $(this).attr("class").match(/pathlevel-(\d+)-final/);
+    if (pathLevelMatch) {
+      let currPathLevel = pathLevelMatch[1];
+      let nextElement = $(this).next();
+      if (nextElement.length > 0) {
+        let nextPathLevelMatch = nextElement.attr("class").match(/pathlevel-(\d+)-final/);
+        if (nextPathLevelMatch) {
+          let nextPathLevel = nextPathLevelMatch[1];
+          if (parseInt(nextPathLevel) < parseInt(currPathLevel)) {
+            $(this).after(_JOBPATH_DELIMETER);
+          }
+        }
+      }
+    }
+  });
 }
 
 function viewFaces() {
