@@ -257,7 +257,7 @@ function viewJobs() {
         .replace("{{surname}}", capitalizeFLetter(roles[i].surname))
         .replace("{{side}}", roles[i].side)
         .replace("{{profile}}", roles[i].profile)
-        .replace("{{currLevel}}", currLevel)
+        .replace("{{currLevel}}", 1)
         .replace("{{fullPath}}", tempPath[0])
         .replace("{{job}}", capitalizeFLetter(tempPath[0]));
       continue;
