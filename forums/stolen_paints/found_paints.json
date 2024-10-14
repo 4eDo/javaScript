@@ -1,5 +1,27 @@
 [
   {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "3.5",
+    "green": "1",
+    "blue": "4",
+    "white": "2.5",
+    "black": "2",
+    "pale": "3",
+    "vivid": "4.5"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "3",
+    "green": "1",
+    "blue": "1.5",
+    "white": "1.5",
+    "black": "3.5",
+    "pale": "7",
+    "vivid": "3"
+  },
+  {
     "user": "Arya Runcorn",
     "picId": "4",
     "red": "3.5",
