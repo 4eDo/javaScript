@@ -1,5 +1,60 @@
 [
   {
+    "user": "Jack Falco",
+    "picId": "4",
+    "red": "6",
+    "green": "14.5",
+    "blue": "7",
+    "white": "2",
+    "black": "18",
+    "pale": "16",
+    "vivid": "13"
+  },
+  {
+    "user": "Li Yunxi",
+    "picId": "1",
+    "red": "10.5",
+    "green": "3",
+    "blue": "8",
+    "white": "10.5",
+    "black": "7",
+    "pale": "9",
+    "vivid": "10.5"
+  },
+  {
+    "user": "Li Yunxi",
+    "picId": "1",
+    "red": "2.5",
+    "green": "3",
+    "blue": "1.5",
+    "white": "5.5",
+    "black": "2",
+    "pale": "5.5",
+    "vivid": "1"
+  },
+  {
+    "user": "Li Yunxi",
+    "picId": "1",
+    "red": "5.5",
+    "green": "8.5",
+    "blue": "4.5",
+    "white": "11",
+    "black": "6.5",
+    "pale": "12.5",
+    "vivid": "8"
+  },
+  {
+    "user": "Li Yunxi",
+    "picId": "1",
+    "red": "7.5",
+    "green": "14.5",
+    "blue": "12",
+    "white": "20",
+    "black": "8.5",
+    "pale": "10.5",
+    "vivid": "10.5"
+  },
+  {
     "user": "Martin Ocean",
     "picId": "6",
     "red": "3.5",
