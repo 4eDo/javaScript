@@ -1,5 +1,27 @@
 [
   {
+    "user": "Martin Ocean",
+    "picId": "6",
+    "red": "3.5",
+    "green": "4",
+    "blue": "1.5",
+    "white": "1",
+    "black": "6.5",
+    "pale": "4",
+    "vivid": "5.5"
+  },
+  {
+    "user": "Lillian Selwyn",
+    "picId": "4",
+    "red": "6.5",
+    "green": "9",
+    "blue": "5",
+    "white": "5",
+    "black": "6",
+    "pale": "8.5",
+    "vivid": "7"
+  },
+  {
     "user": "Fabian Prewett",
     "picId": "6",
     "red": "3.5",
