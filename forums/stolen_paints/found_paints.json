@@ -1,4 +1,37 @@
 [
+    {
+        "user": "Fabian Prewett",
+        "picId": "2",
+        "red": "10",
+        "green": "0",
+        "blue": "0",
+        "white": "0",
+        "black": "0",
+        "pale": "0",
+        "vivid": "0"
+      },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "6.5",
+    "green": "1",
+    "blue": "1",
+    "white": "1",
+    "black": "6",
+    "pale": "1",
+    "vivid": "4"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "2",
+    "red": "1",
+    "green": "1.5",
+    "blue": "0.5",
+    "white": "1.5",
+    "black": "2.5",
+    "pale": "3",
+    "vivid": "3"
+  },
   {
     "user": "Lillian Selwyn",
     "picId": "1",
