@@ -16,8 +16,8 @@ let _stat_mm = 0;
 let _stat_n = 0;
 
 // URL страницы со списком карточек пользователей
-// const url = '/pages/_characters_lists'; // Основной адрес
-const url = 'https://4edo.github.io/javaScript/forums/characters_lists/burn_characters_lists.html'; // Адрес для тестов
+const url = '/pages/_characters_lists'; // Основной адрес
+// const url = 'https://4edo.github.io/javaScript/forums/characters_lists/burn_characters_lists.html'; // Адрес для тестов
 
 const charset = url.includes("github") ? "utf-8" : 'windows-1251';
 
@@ -247,7 +247,7 @@ function viewSurnames() {
 		let temp = _SURNAMELIST_TEMPLATE
 			.replace("{{name}}", capitalizeFLetter(roles[i].name))
 			.replace("{{surname}}",  roles[i].surname.toUpperCase())
-			.replace("{{side}}", roles[i].side)
+			.replace("{{blood}}", roles[i].blood)
 			.replace("{{profile}}", roles[i].profile);
 
 		if (currentFirstLetter != roles[i].surname.charAt(0).toUpperCase()) {
