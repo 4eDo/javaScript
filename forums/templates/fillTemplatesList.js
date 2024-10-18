@@ -42,7 +42,7 @@ async function fetchAndParseTemplates() {
 
         // Получаем блок userTemplates
         let userTemplates = doc.getElementById('userTemplates');
-        console.log("User Templates Block:", userTemplates);
+        // console.log("User Templates Block:", userTemplates);
 
         if (!userTemplates) {
             console.error("userTemplates не найден.");
@@ -62,7 +62,7 @@ async function fetchAndParseTemplates() {
             let code = template.querySelector('.tmpl_code').innerHTML.trim();
 
             // Проверка данных перед добавлением в массив
-            console.log("Template:", { name, forums, topics, form, code });
+            // console.log("Template:", { name, forums, topics, form, code });
 
 			if(
 				(forums.includes("all") || forums.includes(currentForum))
@@ -178,7 +178,7 @@ function drawForm(id) {
 		}
 
         inputElement.id = `field_${field.tmpl}`;
-	inputElement.style.color = `#000000`;
+	inputElement.style.color = `#000000 !important`;
         inputCell.appendChild(inputElement);
 
         // Добавляем ячейки в строку таблицы
