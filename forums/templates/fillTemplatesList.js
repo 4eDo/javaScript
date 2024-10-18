@@ -84,7 +84,7 @@ async function fetchAndParseTemplates() {
 			}
             
         }
-	    if(!hasTemplates) {document.getElementById('templateBtn').style.display = 'none';}
+	    if(hasTemplates) {document.getElementById('templateBtn').style.display = 'inline-block';}
 
         // Добавляем блоки в DOM
         populateTemplateList();
