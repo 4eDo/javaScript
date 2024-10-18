@@ -1,4 +1,37 @@
 [
+  {
+    "user": "Fabian Prewett",
+    "picId": "2",
+    "red": "1.5",
+    "green": "4.5",
+    "blue": "2",
+    "white": "0",
+    "black": "3",
+    "pale": "0.5",
+    "vivid": "3.5"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "2",
+    "green": "1",
+    "blue": "2",
+    "white": "1.5",
+    "black": "0.5",
+    "pale": "1.5",
+    "vivid": "3"
+  },
+  {
+    "user": "Fabian Prewett",
+    "picId": "6",
+    "red": "8.5",
+    "green": "2.5",
+    "blue": "1",
+    "white": "1",
+    "black": "1.5",
+    "pale": "5",
+    "vivid": "6"
+  },
     {
         "user": "Yang Xuelong",
         "picId": "1",
