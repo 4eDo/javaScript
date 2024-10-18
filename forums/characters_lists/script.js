@@ -142,7 +142,7 @@ function loadAllChars() {
 			.replace("{{face}}", roles[i].face)
 			.replace("{{sideRu}}", sideRu)
 			.replace("{{sub}}", sub)
-			.replace("{{job}}", roles[i].job);
+			.replace("{{job}}", getShortJob(roles[i].job));
 
 		$(".all-chars").append(temp);
 		// console.log(temp);
@@ -156,7 +156,31 @@ function loadAllChars() {
 	stat_n.innerText = _stat_n;
 
 }
+function getShortJob(job) {
+  // Создаем копию объекта map, чтобы не изменять исходный объект.
+  const replacements = {
+    "Министерство Магии": "ММ",
+    "Больница Святого Мунго": "Мунго",
+	"Лютный переулок": "Лютный",
+	"Косой переулок": "Косой пер.",
+	"уровень": "ур.",
+	"/ ": "; ",
+	"Спорт, квиддич,": "Квиддич, ",
+  };
 
+  // Регулярное выражение для замены всех вхождений ключей.
+  const regex = new RegExp(Object.keys(replacements).join('|'), 'g');
+
+  return job.replace(regex, (match) => {
+      // Проверяем, есть ли ключ в replacements
+      if(replacements[match]){
+        return replacements[match];
+      } else {
+        //Если ключ отсутствует, возвращаем исходное значение
+        return match;
+      }
+  });
+}
 
 
 function cleanList() {
@@ -165,6 +189,9 @@ function cleanList() {
 
 function capitalizeFLetter(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+function capitalizeOnlyFLetter(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 function viewNames() {
@@ -233,7 +260,16 @@ function viewSurnames() {
 }
 
 function viewJobs() {
-  roles.sort(sortBy("job", "ASC"));
+	let tempRoles = new Array();
+	for (let i = 0; i < roles.length; i++) {
+		let allJobs = roles[i].job.split("/ ");
+		for (let j = 0; j < allJobs.length; j++) {
+			let currCard = {...roles[i]};
+			currCard.job = allJobs[j];
+			tempRoles.push(currCard);
+		}
+	}
+  tempRoles.sort(sortBy("job", "ASC"));
   
   $("#addonM").hide();
   $("#addonF").hide();
@@ -248,18 +284,18 @@ function viewJobs() {
   let path = [];
   let currLevel = 0;
 	let isFirst = true;
-  for (let i = 0; i < roles.length; i++) {
-    let tempPath = roles[i].job.split(", ");
+  for (let i = 0; i < tempRoles.length; i++) {
+    let tempPath = tempRoles[i].job.split(", ");
     // console.log(tempPath);
     if(tempPath.length == 1) {
       otherJobs += _JOBLIST_TEMPLATE
-        .replace("{{name}}", capitalizeFLetter(roles[i].name))
-        .replace("{{surname}}", capitalizeFLetter(roles[i].surname))
-        .replace("{{side}}", roles[i].side)
-        .replace("{{profile}}", roles[i].profile)
+        .replace("{{name}}", capitalizeFLetter(tempRoles[i].name))
+        .replace("{{surname}}", capitalizeFLetter(tempRoles[i].surname))
+        .replace("{{side}}", tempRoles[i].side)
+        .replace("{{profile}}", tempRoles[i].profile)
         .replace("{{currLevel}}", 1)
         .replace("{{fullPath}}", tempPath[0])
-        .replace("{{job}}", capitalizeFLetter(tempPath[0]));
+        .replace("{{job}}", capitalizeOnlyFLetter(tempPath[0]));
       continue;
     }
     let pathTemp = "";
@@ -297,10 +333,10 @@ function viewJobs() {
     }
 		if (isFirst) { currLevel++; isFirst = false;}
     let temp = _JOBLIST_TEMPLATE
-      .replace("{{name}}", capitalizeFLetter(roles[i].name))
-      .replace("{{surname}}", capitalizeFLetter(roles[i].surname))
-      .replace("{{side}}", roles[i].side)
-      .replace("{{profile}}", roles[i].profile)
+      .replace("{{name}}", capitalizeFLetter(tempRoles[i].name))
+      .replace("{{surname}}", capitalizeFLetter(tempRoles[i].surname))
+      .replace("{{side}}", tempRoles[i].side)
+      .replace("{{profile}}", tempRoles[i].profile)
       .replace("{{currLevel}}", currLevel)
       .replace("{{fullPath}}", pathStr)
       .replace("{{job}}", capitalizeFLetter(!path ? path[currLevel] : tempPath[tempPath.length - 1])); // Используем tempPath для job в блоке else
@@ -331,7 +367,7 @@ function getPrettyPath(label) {
     "6 этаж": " (Буфет для посетителей и больничная лавка)",
   };
 
-  return levels[label] ? label + levels[label] : capitalizeFLetter(label);
+  return levels[label] ? label + levels[label] : capitalizeOnlyFLetter(label);
 }
 function appendDelimiter(elements) {
   elements.each(function() {
