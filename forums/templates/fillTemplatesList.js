@@ -178,7 +178,7 @@ function drawForm(id) {
 		}
 
         inputElement.id = `field_${field.tmpl}`;
-	inputElement.style.color = `#000000 !important`;
+	inputElement.setAttribute('style', "color: #000000 !important");
         inputCell.appendChild(inputElement);
 
         // Добавляем ячейки в строку таблицы
