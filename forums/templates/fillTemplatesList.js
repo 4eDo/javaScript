@@ -137,6 +137,7 @@ function drawForm(id) {
         label.innerText = field.name;
         let labelDescr = document.createElement('div');
         labelDescr.innerText = field.info.replace("{{LINK_TEMPLATE}}", `<a href='ссылка на профиль'>ваш любимчик</a>`);
+        labelDescr.innerText = field.info.replace("<br>", `\n`);
         labelCell.appendChild(label);
         labelCell.appendChild(labelDescr);
 
