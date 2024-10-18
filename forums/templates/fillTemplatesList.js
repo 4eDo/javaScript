@@ -51,6 +51,7 @@ async function fetchAndParseTemplates() {
 
         // Перебираем все элементы с классом "template"
         let templates = userTemplates.getElementsByClassName('template');
+	    let hasTemplates = false;
         let id = 0;
 
         for (let template of templates) {
@@ -77,12 +78,13 @@ async function fetchAndParseTemplates() {
 					form: form,
 					code: code
 				};
-
+				hasTemplates = true;
 				userTemplateList.push(templateObj);
 				id++;
 			}
             
         }
+	    if(!hasTemplates) {document.getElementById('templateBtn').style.display = 'none';}
 
         // Добавляем блоки в DOM
         populateTemplateList();
