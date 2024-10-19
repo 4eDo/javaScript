@@ -168,6 +168,13 @@ function drawForm(id) {
         } else if (field.type === 'select') {
             inputElement = document.createElement('select');
 
+		if(field.addEmptyOpt) {
+			let option = document.createElement('option');
+	                option.value = "none";
+	                option.innerText = field.addEmptyOpt;
+	                inputElement.appendChild(option);
+		}
+
             field.optList.forEach(opt => {
                 let option = document.createElement('option');
                 option.value = opt;
@@ -230,7 +237,11 @@ function fillCode(id) {
 					case "uppercase": inputValue = inputValue.toUpperCase(); break;
 				}
 			}
-        	code = code.replace(placeholder, inputValue);
+			if(inputValue == "none") {
+				code = code.replace(placeholder, "");
+			} else {
+				code = code.replace(placeholder, inputValue);
+			}	
 		}
         
     });
