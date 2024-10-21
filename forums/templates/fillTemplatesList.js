@@ -15,11 +15,13 @@ const openPopupButton = document.getElementById('templateBtn');
 function showTemplateWindow() {
       overlay.style.display = 'block';
       popup.style.display = 'block';
+      pun-navlinks.style.display = 'none';
 }
 
 function hideTemplateWindow() {
       overlay.style.display = 'none';
       popup.style.display = 'none';
+      pun-navlinks.style.display = 'block';
 }
 
 // Функция для получения и обработки HTML
