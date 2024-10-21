@@ -1,7 +1,7 @@
 // URL страницы с шаблонами
 const url = '/pages/_templates_user';
 
-var currentForum = FORUM.topic.forum_id;
+var currentForum = FORUM.topic&&FORUM.topic.forum_id ? FORUM.topic.forum_id : new URLSearchParams(window.location.search).get('fid');
 var currentTopic = $get.id;
 
 // Инициализируем пустой массив для хранения шаблонов
