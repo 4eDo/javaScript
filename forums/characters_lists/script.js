@@ -262,7 +262,7 @@ function viewSurnames() {
 function viewJobs() {
 	let tempRoles = new Array();
 	for (let i = 0; i < roles.length; i++) {
-		let allJobs = roles[i].job.split("/ ");
+		let allJobs = roles[i].job.split("/ ").filter(item => item !== '');
 		for (let j = 0; j < allJobs.length; j++) {
 			let currCard = {...roles[i]};
 			currCard.job = allJobs[j];
