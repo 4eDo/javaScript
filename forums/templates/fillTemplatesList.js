@@ -11,17 +11,18 @@ const openPopupButton = document.getElementById('templateBtn');
     const closePopupButton = document.getElementById('tmpl_close-button');
     const overlay = document.querySelector('.tmpl_overlay');
     const popup = document.querySelector('.tmpl_popup');
+    const navlinks = document.getElementById('pun-navlinks');
 
 function showTemplateWindow() {
       overlay.style.display = 'block';
       popup.style.display = 'block';
-      pun-navlinks.style.display = 'none';
+      navlinks.style.display = 'none';
 }
 
 function hideTemplateWindow() {
       overlay.style.display = 'none';
       popup.style.display = 'none';
-      pun-navlinks.style.display = 'block';
+      navlinks.style.display = 'block';
 }
 
 // Функция для получения и обработки HTML
