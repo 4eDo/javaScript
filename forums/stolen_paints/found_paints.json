@@ -1,5 +1,16 @@
 [
   {
+    "user": "Arya Runcorn",
+    "picId": "4",
+    "red": "2",
+    "green": "4.5",
+    "blue": "1.5",
+    "white": "1.5",
+    "black": "2.5",
+    "pale": "3",
+    "vivid": "6"
+  },
+  {
     "user": "Yang Xuelong",
     "picId": "1",
     "red": "6",
