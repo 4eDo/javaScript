@@ -1,5 +1,38 @@
 [
   {
+    "user": "Yang Xuelong",
+    "picId": "2",
+    "red": "3.5",
+    "green": "7.5",
+    "blue": "7",
+    "white": "5.5",
+    "black": "3",
+    "pale": "5.5",
+    "vivid": "6.5"
+  },
+  {
+    "user": "Yang Xuelong",
+    "picId": "2",
+    "red": "3.5",
+    "green": "3",
+    "blue": "2",
+    "white": "6",
+    "black": "2",
+    "pale": "4",
+    "vivid": "4.5"
+  },
+  {
+    "user": "Martin Ocean",
+    "picId": "2",
+    "red": "4",
+    "green": "1.5",
+    "blue": "2.5",
+    "white": "2.5",
+    "black": "5",
+    "pale": "12",
+    "vivid": "3"
+  },
+  {
     "user": "Arya Runcorn",
     "picId": "4",
     "red": "2",
