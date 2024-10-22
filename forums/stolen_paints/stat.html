@@ -144,9 +144,11 @@
 
             // Заполнение таблицы
             const tbody = document.getElementById('data-body');
+            let totalCount = 0;
             for (const user in users) {
                 const { picSums, colorSums } = users[user];
                 const totalSum = Object.values(colorSums).reduce((a, b) => a + b, 0);
+                totalCount += totalSum;
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -169,6 +171,7 @@
                 `;
                 tbody.appendChild(row);
             }
+            console.log(totalCount);
         })
         .catch(error => console.error('Ошибка загрузки данных:', error));
 
