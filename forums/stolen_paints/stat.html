@@ -145,6 +145,13 @@
             // Заполнение таблицы
             const tbody = document.getElementById('data-body');
             let totalCount = 0;
+            let totalR = 0;
+            let totalG = 0;
+            let totalB = 0;
+            let totalBl = 0;
+            let totalWh = 0;
+            let totalP = 0;
+            let totalV = 0;
             for (const user in users) {
                 const { picSums, colorSums } = users[user];
                 const totalSum = Object.values(colorSums).reduce((a, b) => a + b, 0);
@@ -169,9 +176,24 @@
                     <td>${parseFloat(colorSums.vivid.toFixed(2))}</td>
                     <td>${parseFloat(totalSum.toFixed(2))}</td>
                 `;
+
+                    totalR += parseFloat(colorSums.red.toFixed(2));
+                    totalG += parseFloat(colorSums.green.toFixed(2));
+                    totalB += parseFloat(colorSums.blue.toFixed(2));
+                    totalBl += parseFloat(colorSums.black.toFixed(2));
+                    totalWh += parseFloat(colorSums.white.toFixed(2));
+                    totalP += parseFloat(colorSums.pale.toFixed(2));
+                    totalV += parseFloat(colorSums.vivid.toFixed(2));
                 tbody.appendChild(row);
             }
             console.log(totalCount);
+            console.log("red: " + totalR);
+            console.log("green: " + totalG);
+            console.log("blue: " + totalB);
+            console.log("black: " + totalBl);
+            console.log("white: " + totalWh);
+            console.log("pale: " + totalP);
+            console.log("vivid: " + totalV);
         })
         .catch(error => console.error('Ошибка загрузки данных:', error));
 
