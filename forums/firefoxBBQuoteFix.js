@@ -28,7 +28,7 @@ function mozillaQuote(username, messageId) {
 		.replace(/\r\n/g, "\n")
 		.replace(/\n\n\n/g, "\n\n");
 	//console.log(htmlToBBmozilla(message));
-	insert(  insert('[quote="' + username + '"]' + $.trim(htmlToBBmozilla(message)) + "[/quote]\n"));
+	insert( '[quote="' + username + '"]' + $.trim(htmlToBBmozilla(message)) + "[/quote]\n");
 }
 
 function htmlToBBmozilla(htmlString) {
