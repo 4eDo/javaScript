@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.05
+// @version      0.06
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
-// @match        *://nostresscross.rusff.me/*
+// @match        *://karma.f-rpg.me/*
 // ==/UserScript==
 $(function() {
 	const BODY_TEMPLATE = `
 	<table>
 	  <tr>
-		<td width="150px;">Фон профиля</td>
+		<td width="150px;">Шапка профиля</td>
 		<td><textarea id="{{pid}}_top-img_4eDo" style="width: 390px; height: 30px;">{{top-img}}</textarea></td>
 	  </tr>
 	  <tr>
@@ -18,8 +18,8 @@ $(function() {
 		<td><textarea id="{{pid}}_avatar_4eDo" style="width: 390px; height: 30px;">{{avatar}}</textarea></td>
 	  </tr>
 	  <tr>
-		<td>Эмодзи</td>
-		<td><textarea id="{{pid}}_emoji_4eDo" style="width: 390px; height: 30px;">{{emoji}}</textarea></td>
+		<td>Плашка</td>
+		<td><textarea id="{{pid}}_plate_4eDo" style="width: 390px; height: 30px;">{{plate}}</textarea></td>
 	  </tr>
 	  <tr>
 		<td>Личное звание</td>
@@ -41,16 +41,16 @@ $(function() {
 
 		elements.forEach(element => {
 			let pid = element.id;
-			let topImg = getComputedStyle(document.querySelector("#" + pid + " > div > div.post-author")).backgroundImage;
+			let topImg = getComputedStyle(document.querySelector("#" + pid + " .igrokFon"));
 			let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
-			let emoji = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld6 > img");
+			let plate = document.querySelector("#" + pid + " .plashka");
 			let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
 			let sign = document.querySelector("#" + pid + "-content > dl");
 			let signContent = document.querySelector("#" + pid + "-content > dl > dd > p");
 			let temp = BODY_TEMPLATE.replaceAll("{{pid}}", pid)
 			.replaceAll("{{top-img}}", topImg ? topImg : "")
 			.replaceAll("{{avatar}}", avatar ? avatar.src : "")
-			.replaceAll("{{emoji}}", emoji ? emoji.src : "")
+			.replaceAll("{{plate}}", plate ? plate.src : "")
 			.replaceAll("{{lz}}", lz ? lz.innerHTML  : "")
 			.replaceAll("{{subscription}}", sign ? signContent.innerHTML  : "");
 			temp += sign ? sign.outerHTML  : "";
@@ -64,11 +64,10 @@ $(function() {
 
 	function look_4eDo(pid, uid){
 		console.log("look...");
-		let topImg = getComputedStyle(document.querySelector("#" + pid + " > div > div.post-author")).backgroundImage;
+		let topImg = getComputedStyle(document.querySelector("#" + pid + " .igrokFon"));
 		let topImg_new = document.querySelector("#" + pid + "_top-img_4eDo").value;
 		if(topImg_new != '') {
-			let style = '<style>[data-user-id="' + uid + '"].post .post-author {background: ' + topImg_new +' no-repeat top !important;}</style>';
-			document.querySelector("#" + pid + "_style_4eDo").innerHTML = style;
+			topImg.src = topImg_new;
 		}
 		
 		let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
@@ -76,9 +75,9 @@ $(function() {
 		if(avatar_new != '') avatar.src = avatar_new;
 		
 		
-		let emoji = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld6 > img");
-		let emoji_new = document.querySelector("#" + pid + "_emoji_4eDo").value;
-		if(emoji_new != '') emoji.src = emoji_new;
+		let plate = document.querySelector("#" + pid + " .plashka");
+		let plate_new = document.querySelector("#" + pid + "_plate_4eDo").value;
+		if(plate_new != '') plate.src = plate_new;
 		
 		
 		let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
