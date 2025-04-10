@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      1.0
+// @version      1.1
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -87,7 +87,7 @@ $(function() {
 		if(avatar_new != '') avatar.src = avatar_new;
 		
 		
-		let plate = document.querySelector("#" + pid + " .plashka");
+		let plate = document.querySelector("#" + pid + " .pa-fld5");
 		let plate_new = document.querySelector("#" + pid + "_plate_4eDo").value;
 		if(plate_new != '') plate.innerHTML = plate_new;
 		
