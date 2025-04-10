@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.06
+// @version      0.07
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -64,7 +64,7 @@ $(function() {
 
 	function look_4eDo(pid, uid){
 		console.log("look...");
-		let topImg = getComputedStyle(document.querySelector("#" + pid + " .igrokFon"));
+		let topImg = document.querySelector("#" + pid + " .igrokFon");
 		let topImg_new = document.querySelector("#" + pid + "_top-img_4eDo").value;
 		if(topImg_new != '') {
 			topImg.src = topImg_new;
