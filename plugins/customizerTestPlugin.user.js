@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.08
+// @version      0.09
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -33,6 +33,9 @@ $(function() {
 	<button name="button" id="{{pid}}_look_4eDo">ПРИМЕРИТЬ</button>
 	<div id="{{pid}}_style_4eDo"></div>
 	`;
+	
+	const TOP_TMPL = `<li class="pa-fld6"><img src="{{src}}" class="igrokFon"></li>`;
+	const PLATE_TMPL = `<li class="pa-fld5"><img src="{{src}}" class="plashka"><icnk><img src="{{EMOJI_SRC}}"></icnk><wrds style="color: #ffffff;">{{SOME_TEXT}}</wrds></li>`;
 	initAll_4eDo();
 
 	function initAll_4eDo() {
@@ -41,16 +44,19 @@ $(function() {
 
 		elements.forEach(element => {
 			let pid = element.id;
+			if(!$("#" + pid + ' .pa-fld5')) $("#" + pid + ' .pa-fld2').after($('<li class="pa-fld5"><img src="" class="igrokFon"></li>'));
+			if(!$("#" + pid + ' .pa-fld6')) $("#" + pid + ' .pa-fld2').after($('<li class="pa-fld6"></li>'));
 			let topImg = document.querySelector("#" + pid + " .igrokFon");
 			let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
-			let plate = document.querySelector("#" + pid + " .plashka");
+			
+			let plate = document.querySelector("#" + pid + " .pa-fld5");
 			let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
 			let sign = document.querySelector("#" + pid + "-content > dl");
 			let signContent = document.querySelector("#" + pid + "-content > dl > dd > p");
 			let temp = BODY_TEMPLATE.replaceAll("{{pid}}", pid)
-			.replaceAll("{{top-img}}", topImg ? topImg : "")
+			.replaceAll("{{top-img}}", topImg ? topImg.src : "")
 			.replaceAll("{{avatar}}", avatar ? avatar.src : "")
-			.replaceAll("{{plate}}", plate ? plate.src : "")
+			.replaceAll("{{plate}}", plate ? plate.innerHTML : PLATE_TMPL)
 			.replaceAll("{{lz}}", lz ? lz.innerHTML  : "")
 			.replaceAll("{{subscription}}", sign ? signContent.innerHTML  : "");
 			temp += sign ? sign.outerHTML  : "";
@@ -77,7 +83,7 @@ $(function() {
 		
 		let plate = document.querySelector("#" + pid + " .plashka");
 		let plate_new = document.querySelector("#" + pid + "_plate_4eDo").value;
-		if(plate_new != '') plate.src = plate_new;
+		if(plate_new != '') plate.innerHTML = plate_new;
 		
 		
 		let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
