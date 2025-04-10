@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.07
+// @version      0.08
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -41,7 +41,7 @@ $(function() {
 
 		elements.forEach(element => {
 			let pid = element.id;
-			let topImg = getComputedStyle(document.querySelector("#" + pid + " .igrokFon"));
+			let topImg = document.querySelector("#" + pid + " .igrokFon");
 			let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
 			let plate = document.querySelector("#" + pid + " .plashka");
 			let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
