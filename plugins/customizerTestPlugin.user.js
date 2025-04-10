@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ТЕСТ КАСТОМИЗАЦИИ
-// @version      0.09
+// @version      1.0
 // @description  Скрипт для теста кастомизации на noStressCross
 // @namespace    http://tampermonkey.net/
 // @author       4eDo (https://github.com/4eDo)
@@ -19,7 +19,7 @@ $(function() {
 	  </tr>
 	  <tr>
 		<td>Плашка</td>
-		<td><textarea id="{{pid}}_plate_4eDo" style="width: 390px; height: 30px;">{{plate}}</textarea></td>
+		<td><textarea id="{{pid}}_plate_4eDo" style="width: 390px; height: 90px;">{{plate}}</textarea></td>
 	  </tr>
 	  <tr>
 		<td>Личное звание</td>
@@ -34,8 +34,6 @@ $(function() {
 	<div id="{{pid}}_style_4eDo"></div>
 	`;
 	
-	const TOP_TMPL = `<li class="pa-fld6"><img src="{{src}}" class="igrokFon"></li>`;
-	const PLATE_TMPL = `<li class="pa-fld5"><img src="{{src}}" class="plashka"><icnk><img src="{{EMOJI_SRC}}"></icnk><wrds style="color: #ffffff;">{{SOME_TEXT}}</wrds></li>`;
 	initAll_4eDo();
 
 	function initAll_4eDo() {
@@ -44,19 +42,27 @@ $(function() {
 
 		elements.forEach(element => {
 			let pid = element.id;
-			if(!$("#" + pid + ' .pa-fld5')) $("#" + pid + ' .pa-fld2').after($('<li class="pa-fld5"><img src="" class="igrokFon"></li>'));
-			if(!$("#" + pid + ' .pa-fld6')) $("#" + pid + ' .pa-fld2').after($('<li class="pa-fld6"></li>'));
+			let paFld2Selector = "#" + pid + ' li.pa-fld2';
+
+		  if ($("#" + pid + ' li.pa-fld5').length === 0) {
+			$(paFld2Selector).after('<li class="pa-fld5"><img src="{{src}}" class="plashka"><icnk><img src="{{EMOJI_SRC}}"></icnk><wrds style="color: #ffffff;">{{SOME_TEXT}}</wrds></li>');
+		  }
+
+		  if ($("#" + pid + ' li.pa-fld6').length === 0) {
+			$(paFld2Selector).after('<li class="pa-fld6"><img src="" class="igrokFon"></li>');
+		  }
+		  
 			let topImg = document.querySelector("#" + pid + " .igrokFon");
-			let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
+			let avatar = document.querySelector("#" + pid + " .pa-avatar.item2 > img");
 			
 			let plate = document.querySelector("#" + pid + " .pa-fld5");
-			let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
+			let lz = document.querySelector("#" + pid + " .pa-fld2");
 			let sign = document.querySelector("#" + pid + "-content > dl");
 			let signContent = document.querySelector("#" + pid + "-content > dl > dd > p");
 			let temp = BODY_TEMPLATE.replaceAll("{{pid}}", pid)
 			.replaceAll("{{top-img}}", topImg ? topImg.src : "")
 			.replaceAll("{{avatar}}", avatar ? avatar.src : "")
-			.replaceAll("{{plate}}", plate ? plate.innerHTML : PLATE_TMPL)
+			.replaceAll("{{plate}}", plate ? plate.innerHTML : "")
 			.replaceAll("{{lz}}", lz ? lz.innerHTML  : "")
 			.replaceAll("{{subscription}}", sign ? signContent.innerHTML  : "");
 			temp += sign ? sign.outerHTML  : "";
@@ -76,7 +82,7 @@ $(function() {
 			topImg.src = topImg_new;
 		}
 		
-		let avatar = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-avatar.item2 > img");
+		let avatar = document.querySelector("#" + pid + " .pa-avatar > img");
 		let avatar_new = document.querySelector("#" + pid + "_avatar_4eDo").value;
 		if(avatar_new != '') avatar.src = avatar_new;
 		
@@ -86,7 +92,7 @@ $(function() {
 		if(plate_new != '') plate.innerHTML = plate_new;
 		
 		
-		let lz = document.querySelector("#" + pid + " > div > div.post-author > ul > li.pa-fld2 > bio");
+		let lz = document.querySelector("#" + pid + " .pa-fld2");
 		let lz_new = document.querySelector("#" + pid + "_lz_4eDo").value;
 		if(lz_new != '') lz.innerHTML = lz_new;
 		
