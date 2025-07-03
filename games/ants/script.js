@@ -1108,3 +1108,4 @@ function init() {
     if (needShowTestAnts) showTestAnts();
     drawCanvas();
 }
+init();
