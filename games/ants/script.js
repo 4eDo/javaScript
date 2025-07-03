@@ -1052,7 +1052,7 @@ function addAnt(type) {
     ants.push({
         id: ANT_ID_COUNTER++,
         type:type,
-        dir:randFromArr(dirs)",
+        dir:randFromArr(dirs),
         x:home0[0],
         y:home0[1],
         target: {},
