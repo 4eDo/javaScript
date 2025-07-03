@@ -17,6 +17,8 @@
     canvas {
         background-color: #f0f0f0;
         display: block;
+        max-width: 100%;
+        max-height: 80vh;
     }
     #col2 {
         width: 400px;
@@ -88,8 +90,8 @@
     <script src="script.js"></script>
     <script>
         
-        const canvasWidth = Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
-        const canvasHeight = Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
+        const canvasWidth = 2*Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
+        const canvasHeight = 2*Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
         
         document.documentElement.style.setProperty('--canvas-width', `${canvasWidth}px`);
         document.documentElement.style.setProperty('--canvas-height', `${canvasHeight}px`);
