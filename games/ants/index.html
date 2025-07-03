@@ -43,10 +43,7 @@
 </head>
 <body>
     <div id="canvas-container">
-        <canvas id="canvas" 
-                width="var(--canvas-width)" 
-                height="var(--canvas-height)"
-                style="width: var(--canvas-width); height: var(--canvas-height);"></canvas>
+        <canvas id="canvas"></canvas>
     </div>
     
     <div id="col2">
@@ -93,8 +90,8 @@
         const canvasWidth = 2*Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
         const canvasHeight = 2*Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
         
-        document.documentElement.style.setProperty('--canvas-width', `${canvasWidth}px`);
-        document.documentElement.style.setProperty('--canvas-height', `${canvasHeight}px`);
+        canvas.width = `${canvasWidth}px`;
+        canvas.height = `${canvasHeight}px`;
         init();
     </script>
 </body>
