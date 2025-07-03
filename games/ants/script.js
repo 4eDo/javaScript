@@ -811,7 +811,7 @@ function go(ant) {
             const dx = Math.abs(cell.x - ant.target.x);
             const dy = Math.abs(cell.y - ant.target.y);
             if ((!bestCell || (Math.abs(dx) + Math.abs(dy))
-                < (Math.abs(bestCell.x - ant.target.x) + Math.abs(bestCell.y - ant.target.y))
+                < (Math.abs(bestCell.x - ant.target.x) + Math.abs(bestCell.y - ant.target.y)))
                 && (cell.x == ant.x || cell.y == ant.y)
             ) {
                 bestCell = cell;
