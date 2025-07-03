@@ -45,26 +45,34 @@
     </div>
     
     <div id="col2">
+        <button onclick="step()">Шаг</button>
         <button onclick="startAnimation()">Старт</button>
         <button onclick="pauseAnimation()">Пауза</button>
         <label>Скорость: <input type="range" min="10" max="200" value="100" onInput='updateSpeed(this.value)' /></label>
         <br><br>
-        <button onclick="step()">Шаг</button>
+        
         <br><br>
-        <label>Дождь: <input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
-        <label>Добавить ресурсы:
-            <select id="drop-res">
-                <option value="leaf">Листья</option>
-                <option value="meat">Мясо</option>
-                <option value="trash">Мусор</option>
-                <option value="water">Вода</option>
-            </select>
-            %<input id="drop-p" type="number" min="0.01" max="1" step="0.01" value="0.01" />
-            min<input id="drop-min" type="number" min="0" max="150" step="1" value="10" />
-            max<input id="drop-max" type="number" min="1" max="150" step="1" value="50" />
-            <button onclick="dropRes()">Drop!</button>
-        </label>
-        <br>
+        <details><summary>Действия (тык)</summary>
+            <label><input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
+            <label>Добавить ресурсы:
+                <select id="drop-res">
+                    <option value="leaf">Листья</option>
+                    <option value="meat">Мясо</option>
+                    <option value="trash">Мусор</option>
+                    <option value="water">Вода</option>
+                </select><br>
+                %<input id="drop-p" type="number" min="0.01" max="1" step="0.01" value="0.01" />
+                min<input id="drop-min" type="number" min="0" max="150" step="1" value="10" />
+                max<input id="drop-max" type="number" min="1" max="150" step="1" value="50" />
+                <button onclick="dropRes()">Drop!</button>
+            </label>
+            <button onclick="addWarm()">Червяк!</button>
+            <button onclick="addAnt('worker')">Рабочий!</button>
+            <button onclick="addAnt('builder')">Строитель!</button>
+            <button onclick="addAnt('scout')">Разведчик!</button>
+        </details>
+        
+        
         <label>Следующий дождь: <input id="nextRain" type="range" min='0' readonly disabled/> </label>
         
         <h3>Статистика</h3>
