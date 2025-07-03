@@ -426,7 +426,7 @@ function step() {
     beforeRain--;
     document.getElementById('nextRain').value = rainPeriod - beforeRain;
     if(beforeRain == 0) {
-        doRain(0.01);
+        doRain(0.05);
         beforeRain = rainPeriod;
     }
 }
