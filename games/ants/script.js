@@ -557,11 +557,15 @@ function wormStep(worm) {
     let currentCell = cells[worm.y][worm.x];
 
     if(worm.hp <= 0) {
-        currentCell.resources["meat"].fill += worm.fill;
+        if(currentCell.type !== 'home') {
+            currentCell.resources["meat"].fill += worm.fill;
+        }
         worm.fill = 0;
         for(let i = 0; i < worm.tail.length; i++) {
-            if(cells[worm.tail[i][1]][worm.tail[i][0]] == "home") {continue;}
-            cells[worm.tail[i][1]][worm.tail[i][0]].resources["meat"].fill += 100;
+            let tailCell = cells[worm.tail[i][1]][worm.tail[i][0]];
+            if(tailCell.type !== 'home') {
+                tailCell.resources["meat"].fill += 100;
+            }
         }
         worms = worms.filter(obj => {
             return obj.id != worm.id
@@ -574,7 +578,7 @@ function wormStep(worm) {
         worm.last = null;
         worm.fill -= 100;
     } else {
-        const neighbors = getRoundCell(worm.x, worm.y, 1).filter(cell => cell.type !== 'wall'&&cell.type !== 'home');
+        const neighbors = getRoundCell(worm.x, worm.y, 1).filter(cell => cell.type != 'wall'&&cell.type != 'home');
         const oppositeDirections = {
             'up': 'down',
             'down': 'up',
@@ -984,9 +988,17 @@ function addResource(resource, resPercent, minCount, maxCount) {
 function addWorm() {
     let x=0;
     let y=0;
-    while(cells[y][x].type == 'wall' || cells[y][x].type == 'home') {
+    let isValid = false;
+    while(!isValid) {
         x = getRandomInt(1, sizeX-1);
         y = getRandomInt(1, sizeY-1);
+        isValid = cells[y][x].type !== 'wall' && cells[y][x].type !== 'home';
+        if(isValid) {
+            const neighbors = getRoundCell(x, y, 1);
+            if(neighbors.some(cell => cell.type === 'home')) {
+                isValid = false;
+            }
+        }
     }
 
     worms.push({
