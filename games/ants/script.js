@@ -29,6 +29,9 @@ var steps = 0;
 var rainPeriod = 5000;
 var beforeRain = 5000;
 
+var isEated = true;
+var isDrinked = true;
+
 var types = {
     "ground": {
         "color": "AntiqueWhite"
@@ -233,11 +236,18 @@ function drawStat() {
     document.getElementById('newHomeCost').innerHTML = newHomeCost;
     document.getElementById('steps').innerHTML = steps;
     
-    for(let res in homeRes) {
-        if (document.getElementById(res)) {
-            document.getElementById(res).innerHTML = 
-                `Fill: ${homeRes[res].fill}<br>Req: ${homeRes[res].req}<br>Reserve: ${homeRes[res].reserve}d`;
+     for (let res in homeRes) {
+        const el = document.getElementById(res);
+        if (!el) continue;
+
+        let warning = "";
+        if (foods.includes(res) && !isEated) {
+            warning = " ⚠️ Не ели!";
+        } else if (res === "water" && !isDrinked) {
+            warning = " ⚠️ Не пили!";
         }
+
+        el.innerHTML = `Fill: ${homeRes[res].fill}<br>Req: ${homeRes[res].req}<br>Reserve: ${homeRes[res].reserve}d${warning}`;
     }
 }
 
@@ -514,6 +524,7 @@ function calcHomeResRequired() {
 
 function eat() {
     homeRes["water"].fill -= Math.round((homeRes["water"].req) * 100) / 100;
+    isDrinked = homeRes["water"].fill > 0;
     let eated = false;
     for(let resId in foods) {
         let res = foods[resId];
@@ -526,6 +537,7 @@ function eat() {
         }
     }
     if(!eated) console.log("Need food :(");
+    isEated = eated;
 }
 
 function chooseTargetRes() {
