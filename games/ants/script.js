@@ -1032,6 +1032,10 @@ function init() {
     addResource("meat", 0.05, 5, 50);
     addResource("leaf", 0.15, 1, 50);
     addResource("trash", 0.1, 5, 50);
+    
+    addWorm();
+    addWorm();
+    addWorm();
 
     let HOME_X = getRandomInt(1, sizeX-1);
     let HOME_Y = getRandomInt(1, sizeY-1);
