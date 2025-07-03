@@ -65,6 +65,7 @@ var types = {
 };
 
 var foods = ["leaf", "meat"];
+var dirs = ["up", "down", "left", "right"];
 
 var antTypes = {
     "scout": {
@@ -565,6 +566,11 @@ function chooseTargetRes() {
     return target;
 }
 
+
+/****************************************************/
+/* MOVE                                             */
+/****************************************************/
+
 function wormStep(worm) {
     let currentCell = cells[worm.y][worm.x];
 
@@ -589,6 +595,7 @@ function wormStep(worm) {
         worm.tail.push(worm.last);
         worm.last = null;
         worm.fill -= 100;
+        worm.hp += 10;
     } else {
         const neighbors = getRoundCell(worm.x, worm.y, 1).filter(cell => cell.type != 'wall'&&cell.type != 'home');
         const oppositeDirections = {
@@ -887,6 +894,7 @@ function go(ant) {
         ant.dir = dir;
     }
 }
+
 /****************************************************/
 /* UTILS                                            */
 /****************************************************/
@@ -946,9 +954,10 @@ function doRain(rainPower = 0) {
     }
     addResourceField(waterPercent, "water");
     addResourceField(waterPercent, "leaf");
-    addWorm();
-    addWorm();
-    addWorm();
+    let wormCount = getRandomInt(2, 5);
+    for(let i = 0; i < wormCount; i++) {
+        addWorm();
+    }
 }
 
 function dropRes() {
@@ -1038,9 +1047,25 @@ function addWorm() {
     });
 }
 
+function addAnt(type) {
+    let home0 = randFromArr(homes);
+    ants.push({
+        id: ANT_ID_COUNTER++,
+        type:type,
+        dir:randFromArr(dirs)",
+        x:home0[0],
+        y:home0[1],
+        target: {},
+        cargo: {}
+    });
+}
+
+/****************************************************/
+/* INIT                                             */
+/****************************************************/
+
 function init() {
     let waterPercent = 0.04;
-    let needShowTestAnts = false;
 
     document.getElementById('nextRain').max = rainPeriod;
 
@@ -1081,65 +1106,14 @@ function init() {
 
     homes.push([HOME_X, HOME_Y]);
 
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"worker",
-        dir:"up",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {},
-        cargo: {}
-    });
-
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"worker",
-        dir:"up",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {},
-        cargo: {}
-    });
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"worker",
-        dir:"up",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {},
-        cargo: {}
-    });
-
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"worker",
-        dir:"up",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {},
-        cargo: {}
-    });
-
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"scout",
-        dir:"down",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {}
-    });
-
-    ants.push({
-        id: ANT_ID_COUNTER++,
-        type:"builder",
-        dir:"down",
-        x:HOME_X,
-        y:HOME_Y,
-        target: {},
-        cargo: {}
-    });
-
-    if (needShowTestAnts) showTestAnts();
+    
+    addAnt("worker");
+    addAnt("worker");
+    addAnt("worker");
+    addAnt("worker");
+    addAnt("scout");
+    addAnt("builder");
+   
     drawCanvas();
 }
 init();
