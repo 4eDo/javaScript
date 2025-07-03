@@ -82,10 +82,41 @@
             <tr><td colspan="2">Муравейник</td></tr>
             <tr><td>Целевой ресурс:</td><td id="targetRes"></td></tr>
             <tr><td>Стоимость расширения:</td><td id="newHomeCost"></td></tr>
-            <tr><td>Вода:</td><td id="water"></td></tr>
-            <tr><td>Листья:</td><td id="leaf"></td></tr>
-            <tr><td>Мясо:</td><td id="meat"></td></tr>
-            <tr><td>Мусор:</td><td id="trash"></td></tr>
+            <tr><td colspan="2">
+                <table class="subtable">
+                    <tr>
+                        <th>Ресурс</th>
+                        <th>Заполненность</th>
+                        <th>Требуется на шаг</th>
+                        <th>Резерв (шагов)</th>
+                    </tr>
+                    <tr>
+                        <td>Вода</td>
+                        <td id="water-fill"></td>
+                        <td id="water-req"></td>
+                        <td id="water-reserve"></td>
+                    </tr>
+                    <tr>
+                        <td>Листья</td>
+                        <td id="leaf-fill"></td>
+                        <td id="leaf-req"></td>
+                        <td id="leaf-reserve"></td>
+                    </tr>
+                    <tr>
+                        <td>Мясо</td>
+                        <td id="meat-fill"></td>
+                        <td id="meat-req"></td>
+                        <td id="meat-reserve"></td>
+                    </tr>
+                    <tr>
+                        <td>Мусор</td>
+                        <td id="trash-fill"></td>
+                        <td id="trash-req"></td>
+                        <td id="trash-reserve"></td>
+                    </tr>
+                </table>
+                <div id="warnings"></div>
+            </td></tr>
         </table>
     </div>
     
