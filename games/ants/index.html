@@ -4,160 +4,96 @@
     <meta charset="UTF-8">
     <title>Test ants</title>
     <style>
-    body {
+    body { 
         margin: 0;
         padding: 10px;
-        background-color: #fafafa;
+        background-color: #fafafa; 
         font-family: Arial, sans-serif;
         display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
     }
-    
     #canvas-container {
-        flex: 1;
-        min-width: 300px;
+        margin-right: 20px;
     }
-    
     canvas {
         background-color: #f0f0f0;
         display: block;
-        box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
-    
     #col2 {
         width: 400px;
-        min-width: 300px;
-        padding: 10px;
+        min-width: 400px;
     }
-    
     button {
         padding: 5px 10px;
         margin: 2px;
-        cursor: pointer;
     }
-    
-    input[type="range"] {
-        width: 150px;
-    }
-    
     table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
     }
-    
     td {
         padding: 5px;
         border-bottom: 1px solid #ddd;
     }
-    
-    tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    
-    tr:hover {
-        background-color: #f1f1f1;
-    }
-    
-    h3 {
-        margin-bottom: 5px;
-        color: #333;
-    }
-    
-    label {
-        display: inline-block;
-        margin: 5px 0;
-    }
     </style>
+    <script>
+        // Предварительный расчет размеров canvas до загрузки страницы
+        const cellSize = 15;
+        const canvasWidth = Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
+        const canvasHeight = Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
+        
+        // Установка размеров через CSS переменные
+        document.documentElement.style.setProperty('--canvas-width', `${canvasWidth}px`);
+        document.documentElement.style.setProperty('--canvas-height', `${canvasHeight}px`);
+    </script>
 </head>
 <body>
     <div id="canvas-container">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" 
+                width="var(--canvas-width)" 
+                height="var(--canvas-height)"
+                style="width: var(--canvas-width); height: var(--canvas-height);"></canvas>
     </div>
     
     <div id="col2">
-        <div class="controls">
-            <button onclick="startAnimation()">Старт</button>
-            <button onclick="pauseAnimation()">Пауза</button>
-            <label>Скорость: <input type="range" min="10" max="200" value="100" onInput='updateSpeed(this.value)' /></label>
-            <br><br>
-            <button onclick="step()">Шаг</button>
-            <br><br>
-            <label>Дождь: <input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
-            <label>Добавить ресурсы:
-                <select id="drop-res">
-                    <option value="leaf">Листья</option>
-                    <option value="meat">Мясо</option>
-                    <option value="trash">Мусор</option>
-                    <option value="water">Вода</option>
-                </select>
-                %<input id="drop-p" type="number" min="0.01" max="1" step="0.01" value="0.01" />
-                min<input id="drop-min" type="number" min="0" max="150" step="1" value="10" />
-                max<input id="drop-max" type="number" min="1" max="150" step="1" value="50" />
-                <button onclick="dropRes()">Drop!</button>
-            </label>
-            <br>
-            <label>Следующий дождь: <input id="nextRain" type="range" min='0' readonly disabled/> </label>
-        </div>
+        <button onclick="startAnimation()">Старт</button>
+        <button onclick="pauseAnimation()">Пауза</button>
+        <label>Скорость: <input type="range" min="10" max="200" value="100" onInput='updateSpeed(this.value)' /></label>
+        <br><br>
+        <button onclick="step()">Шаг</button>
+        <br><br>
+        <label>Дождь: <input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
+        <label>Добавить ресурсы:
+            <select id="drop-res">
+                <option value="leaf">Листья</option>
+                <option value="meat">Мясо</option>
+                <option value="trash">Мусор</option>
+                <option value="water">Вода</option>
+            </select>
+            %<input id="drop-p" type="number" min="0.01" max="1" step="0.01" value="0.01" />
+            min<input id="drop-min" type="number" min="0" max="150" step="1" value="10" />
+            max<input id="drop-max" type="number" min="1" max="150" step="1" value="50" />
+            <button onclick="dropRes()">Drop!</button>
+        </label>
+        <br>
+        <label>Следующий дождь: <input id="nextRain" type="range" min='0' readonly disabled/> </label>
         
         <h3>Статистика</h3>
         <table id="stat">
-            <tr>
-                <td>Шагов прожито:</td>
-                <td id="steps"></td>
-            </tr>
-            <tr><td colspan="2"><strong>Муравьи</strong></td></tr>
-            <tr>
-                <td>Всего:</td>
-                <td id="antsLen"></td>
-            </tr>
-            <tr><td colspan="2"><strong>Муравейник</strong></td></tr>
-            <tr>
-                <td>Необходимый ресурс:</td>
-                <td id="targetRes"></td>
-            </tr>
-            <tr>
-                <td>Стоимость расширения:</td>
-                <td id="newHomeCost"></td>
-            </tr>
-            <tr>
-                <td>Вода:</td>
-                <td id="water"></td>
-            </tr>
-            <tr>
-                <td>Листья:</td>
-                <td id="leaf"></td>
-            </tr>
-            <tr>
-                <td>Мясо:</td>
-                <td id="meat"></td>
-            </tr>
-            <tr>
-                <td>Мусор:</td>
-                <td id="trash"></td>
-            </tr>
+            <tr><td>Шагов прожито:</td><td id="steps"></td></tr>
+            <tr><td colspan="2">Муравьи</td></tr>
+            <tr><td>Всего:</td><td id="antsLen"></td></tr>
+            <tr><td colspan="2">Муравейник</td></tr>
+            <tr><td>Целевой ресурс:</td><td id="targetRes"></td></tr>
+            <tr><td>Стоимость расширения:</td><td id="newHomeCost"></td></tr>
+            <tr><td>Вода:</td><td id="water"></td></tr>
+            <tr><td>Листья:</td><td id="leaf"></td></tr>
+            <tr><td>Мясо:</td><td id="meat"></td></tr>
+            <tr><td>Мусор:</td><td id="trash"></td></tr>
         </table>
     </div>
     
     <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const canvas = document.getElementById('canvas');
-            const cellSize = 15;
-            
-            const size = Math.floor(Math.min(
-                window.innerWidth * 0.6, 
-                window.innerHeight * 0.8
-            ) / cellSize) * cellSize;
-            
-            canvas.width = size;
-            canvas.height = size;
-            
-            if (typeof init === 'function') {
-                init();
-            }
-        });
-    </script>
+    <script>init();</script>
 </body>
 </html>
