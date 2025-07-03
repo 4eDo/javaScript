@@ -613,6 +613,15 @@ function wormStep(worm) {
     }
 }
 
+function checkWarmInCell(cell) {
+    for (let worm of worms) {
+        for(let i = 0; i < worm.tail.length; i++) {
+            if(worm.tail[i][0] == cell.x && worm.tail[i][1] == cell.y) return worm;
+        }
+    }
+    return null;
+}
+
 function antStep(ant) {
     let currentCell = cells[ant.y][ant.x];
     rememberCurrentCell(currentCell);
