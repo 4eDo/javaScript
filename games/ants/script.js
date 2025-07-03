@@ -240,7 +240,7 @@ function drawStat() {
         let warnings = [];
         
         for (let res in homeRes) {
-            document.getElementById(`${res}-fill`).innerHTML = homeRes[res].fill;
+            document.getElementById(`${res}-fill`).innerHTML = Math.floor(homeRes[res].fill * 100) / 100 ;
             document.getElementById(`${res}-req`).innerHTML = homeRes[res].req;
             document.getElementById(`${res}-reserve`).innerHTML = homeRes[res].reserve + "d";
             
