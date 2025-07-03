@@ -153,16 +153,6 @@
             
             canvas.width = size;
             canvas.height = size;
-            canvas.style.width = size + 'px';
-            canvas.style.height = size + 'px';
-            
-            const scale = window.devicePixelRatio || 1;
-            if (scale > 1) {
-                canvas.width = size * scale;
-                canvas.height = size * scale;
-                const ctx = canvas.getContext('2d');
-                ctx.scale(scale, scale);
-            }
             
             if (typeof init === 'function') {
                 init();
