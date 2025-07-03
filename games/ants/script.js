@@ -613,6 +613,252 @@ function wormStep(worm) {
     }
 }
 
+function antStep(ant) {
+    let currentCell = cells[ant.y][ant.x];
+    rememberCurrentCell(currentCell);
+    let warm = checkWarmInCell(currentCell);
+    if(warm) {
+        warm.hp -= antTypes[ant.type].attack;
+    } else if(ant.type == "mother") {
+        if(ant.x == ant.target.x && ant.y == ant.target.y) {
+            buildNewHome(ant);
+        } else {
+            go(ant);
+        }
+    } else if (currentCell.type == "home") {
+        // Разгружаемся
+        if(ant.cargo&&ant.cargo.type&&ant.cargo.fill > 0) {
+            homeRes[ant.cargo.type].fill = ant.cargo.fill + Math.round(homeRes[ant.cargo.type].fill * 100) / 100;
+            ant.cargo = {}
+        }
+        // Выбираем новый целевой ресурс
+        switch(ant.type) {
+            case "builder": ant.target.type = "trash"; break;
+            case "scout": ant.target.type = "search"; break;
+            default: ant.target.type = homeTarget; break;
+        }
+        lookAroundFindTarget(ant);
+    } else if(
+        ant.cargo
+        && (!ant.cargo.fill || ant.cargo.fill < antTypes[ant.type].maxFill)
+        && ( notEmptyResInCell(currentCell).includes(ant.target.type)
+        || notEmptyResInCell(currentCell).includes(ant.cargo.type)
+        )
+    ) {
+        getCargo(ant, currentCell);
+    } else if(ant.type == "scout" && ant.target.x == ant.x && ant.target.y == ant.y) {
+        ant.target.x = null;
+        ant.target.y = null;
+    } else {
+        lookAroundFindTarget(ant);
+    }
+}
+
+function getCargo(ant, currentCell) {
+    let maxWeight = antTypes[ant.type].maxFill;
+    let needType = ant.cargo&&ant.cargo.type
+        ? ant.cargo.type
+        : ant.target.type != "search"
+            ? ant.target.type
+            : null;
+
+    if(!needType) {
+        let matchingKeys = [];
+        Object.keys(currentCell.resources).forEach(key => {
+            if (currentCell.resources[key] && currentCell.resources[key].fill > 0) {
+                matchingKeys.push(key);
+            }
+        });
+        if(matchingKeys.length == 0) {
+            ant.target.x = null;
+            ant.target.y = null;
+            lookAroundFindTarget(ant);
+            return;
+        }
+        needType = randFromArr(matchingKeys);
+    } else if (needType == "food") {
+        needType = randFromArr(getMatchesInArrs(notEmptyResInCell(currentCell), foods));
+    }
+
+    let cellFill = currentCell.resources[needType].fill;
+
+    if(!ant.cargo.type) {
+        ant.cargo.type = needType;
+        if(maxWeight <= cellFill) {
+            ant.cargo.size = 3;
+            ant.cargo.fill = maxWeight;
+            currentCell.resources[needType].fill -= maxWeight;
+        } else {
+            ant.cargo.size = cellFill < maxWeight/3 ? 2 : 1;
+            ant.cargo.fill = cellFill;
+            currentCell.resources[needType].fill = 0;
+        }
+        ant.target.x = null;
+        ant.target.y = null;
+    } else if(ant.cargo.fill < maxWeight) {
+        let needed = maxWeight - ant.cargo.fill;
+        let cancer = Math.min(needed, cellFill);
+        ant.cargo.fill += cancer;
+        currentCell.resources[needType].fill -= cancer;
+        ant.cargo.size = ant.cargo.fill == maxWeight
+            ? 3
+            : (ant.cargo.fill > maxWeight/3 ? 2 : 1);
+    }
+    ant.target.type = "home";
+    rememberCurrentCell(cells[ant.y][ant.x]);
+}
+
+function buildNewHome(ant) {
+    let HOME_X = ant.x;
+    let HOME_Y = ant.y;
+    cells[HOME_Y][HOME_X].type = "home";
+    cells[HOME_Y][HOME_X].resources = JSON.parse(JSON.stringify(initResources));
+    for(let rkey in knownRes) {
+        for(let rval of knownRes[rkey]) {
+            if(rval == ant.x+":"+ant.y) {
+                knownRes[rkey].delete(rval);
+            }
+        }
+    }
+    homes.push([HOME_X, HOME_Y]);
+    ant.type = Math.random() < 0.2 ? "builder" : "worker";
+}
+
+function lookAroundFindTarget(ant) {
+    if(ant.type == "scout" && !ant.target.x && !ant.target.y && !(ant.cargo&&ant.cargo.type)) {
+        ant.target.type = "search";
+        go(ant);
+        return;
+    }
+
+    let target = ant.target;
+    if(target.type == "home") {
+        let nearWay = sizeX + sizeY;
+        for(let home of homes) {
+            let way = Math.abs(ant.x - home[0]) + Math.abs(ant.y - home[1]);
+            if(way < nearWay) {
+                nearWay = way;
+                ant.target.x = home[0];
+                ant.target.y = home[1];
+            }
+        }
+    } else {
+        let maxFill = 0;
+        const around = getRoundCell(ant.x, ant.y, ant.dist);
+        around.forEach((cell, index) => {
+            const nx = cell.x;
+            const ny = cell.y;
+            rememberCurrentCell(cells[ny][nx]);
+        });
+
+        let targets = []
+        switch(target.type) {
+            case "food": targets = [...foods]; break;
+            case "search": targets = [...foods, ...Object.keys(homeRes)]; break;
+            default: targets.push(target.type);
+        }
+
+        let goodResKeys = getMatchesInArrs(Object.keys(knownRes), targets);
+        let nearWay = sizeX + sizeY;
+        let targetX, targetY;
+        for(let grk in goodResKeys) {
+            for(let coordStr of knownRes[goodResKeys[grk]]) {
+                let coord = coordStr.split(":");
+                let way = Math.abs(ant.x - coord[0]) + Math.abs(ant.y - coord[1]);
+                if(way < nearWay) {
+                    nearWay = way;
+                    targetX = coord[0];
+                    targetY = coord[1];
+                }
+            }
+        }
+        if(targetX) {
+            ant.target.x = targetX;
+            ant.target.y = targetY;
+        } else {
+            ant.target.x = null;
+            ant.target.y = null;
+        }
+    }
+    go(ant);
+}
+
+function rememberCurrentCell(cell) {
+    for(let res in cell.resources) {
+        if(!knownRes[res]) {
+            knownRes[res] = new Set();
+        }
+        if(cell.resources[res].fill > 1) {
+            knownRes[res].add(cell.x+":"+cell.y);
+        } else {
+            knownRes[res].delete(cell.x+":"+cell.y);
+        }
+    }
+}
+
+function go(ant) {
+    const neighbors = getRoundCell(ant.x, ant.y).filter(cell => cell.type !== 'wall');
+    const oppositeDirections = {
+        'up': 'down',
+        'down': 'up',
+        'left': 'right',
+        'right': 'left'
+    };
+
+    if (ant.target?.x != null && ant.target?.y != null) {
+        let bestCell = null;
+        neighbors.forEach(cell => {
+            const dx = Math.abs(cell.x - ant.target.x);
+            const dy = Math.abs(cell.y - ant.target.y);
+            if ((!bestCell || (Math.abs(dx) + Math.abs(dy))
+                < (Math.abs(bestCell.x - ant.target.x) + Math.abs(bestCell.y - ant.target.y))
+                && (cell.x == ant.x || cell.y == ant.y)
+            ) {
+                bestCell = cell;
+            }
+        });
+
+        if (bestCell) {
+            ant.dir = ant.x < bestCell.x
+                ? "right"
+                : ant.x > bestCell.x
+                    ? "left"
+                    : ant.y < bestCell.y
+                        ? "down"
+                        : "up";
+            ant.x = bestCell.x;
+            ant.y = bestCell.y;
+        }
+    } else {
+        const possibleDirs = ['up', 'down', 'left', 'right'].filter(dir => dir != oppositeDirections[ant.dir]);
+        const randomDirIndex = Math.floor(Math.random() * possibleDirs.length);
+        const dir = possibleDirs[randomDirIndex];
+
+        switch(dir) {
+            case 'up':
+                if (neighbors.some(cell => cell.y == ant.y - 1)) {
+                    ant.y--;
+                }
+                break;
+            case 'down':
+                if (neighbors.some(cell => cell.y == ant.y + 1)) {
+                    ant.y++;
+                }
+                break;
+            case 'left':
+                if (neighbors.some(cell => cell.x == ant.x - 1)) {
+                    ant.x--;
+                }
+                break;
+            case 'right':
+                if (neighbors.some(cell => cell.x == ant.x + 1)) {
+                    ant.x++;
+                }
+                break;
+        }
+        ant.dir = dir;
+    }
+}
 /****************************************************/
 /* UTILS                                            */
 /****************************************************/
