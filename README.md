@@ -1,6 +1,7 @@
 # javaScript
 
 - Змейка: https://github.com/4eDo/javaScript/tree/main/games/snake (+ демо)
+- Муравьи: https://4edo.github.io/javaScript/games/ants/ 
 
 - Плагин для расстановки красных строк: https://github.com/4eDo/javaScript/blob/main/plugins/postBeautifierPlugin.user.js
   - Инструкция: установить расширение Tampermonkey в браузер.
