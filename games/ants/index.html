@@ -14,17 +14,18 @@
         top: 0;
         background: white;
     }
-    #stat {
+    #settings, #stat {
         width: 400px;
         display: inline-block;
     }
     </style>
 </head>
 <body>
-    <div id="settings">
+    <canvas id="canvas" width="750px" height="750px"></canvas>
+    <div id="col2">
         <button onclick="startAnimation()">Старт</button>
         <button onclick="pauseAnimation()">Пауза</button>
-        <label>Speed: <input type="range" min="10" max="400" value="150" onInput='updateSpeed(this.value)' /></label>
+        <label>Скорость: <input type="range" min="10" max="200" value="100" onInput='updateSpeed(this.value)' /></label>
         <br>
         <br>
         <button onclick="step()">Шаг</button>
@@ -46,44 +47,44 @@
         </label>
         <br>
         <label>Следующий дождь: <input id="nextRain" type="range" min='0' readonly disabled/> </label><br>
-    </div>
-    <canvas id="canvas" width="750px" height="750px"></canvas>
-    <table id="stat">
-        <tr>
-            <td>Шагов прожито:</td>
-            <td id="steps"></td>
-        </tr>
-        <tr><td colspan="2">Муравьи</td></tr>
-        <tr>
-            <td>Всего:</td>
-            <td id="antsLen"></td>
-        </tr>
-        <tr><td colspan="2">Муравейник</td></tr>
-        <tr>
-            <td>Необходимый ресурс:</td>
-            <td id="targetRes"></td>
-        </tr>
-        <tr>
-            <td>Стоимость расширения:</td>
-            <td id="newHomeCost"></td>
-        </tr>
-        <tr>
-            <td>Вода:</td>
-            <td id="water"></td>
-        </tr>
-        <tr>
-            <td>Листья:</td>
-            <td id="leaf"></td>
-        </tr>
-        <tr>
-            <td>Мясо:</td>
-            <td id="meat"></td>
-        </tr>
-        <tr>
-            <td>Мусор:</td>
-            <td id="trash"></td>
-        </tr>
-    </table>
+        <h3>Статистика</h3>
+        <table id="stat">
+            <tr>
+                <td>Шагов прожито:</td>
+                <td id="steps"></td>
+            </tr>
+            <tr><td colspan="2">Муравьи</td></tr>
+            <tr>
+                <td>Всего:</td>
+                <td id="antsLen"></td>
+            </tr>
+            <tr><td colspan="2">Муравейник</td></tr>
+            <tr>
+                <td>Необходимый ресурс:</td>
+                <td id="targetRes"></td>
+            </tr>
+            <tr>
+                <td>Стоимость расширения:</td>
+                <td id="newHomeCost"></td>
+            </tr>
+            <tr>
+                <td>Вода:</td>
+                <td id="water"></td>
+            </tr>
+            <tr>
+                <td>Листья:</td>
+                <td id="leaf"></td>
+            </tr>
+            <tr>
+                <td>Мясо:</td>
+                <td id="meat"></td>
+            </tr>
+            <tr>
+                <td>Мусор:</td>
+                <td id="trash"></td>
+            </tr>
+        </table>
+            </div>
     <script src="script.js"></script>
 </body>
 </html>
