@@ -37,14 +37,6 @@
     }
     </style>
     <script>
-        // Предварительный расчет размеров canvas до загрузки страницы
-        const cellSize = 15;
-        const canvasWidth = Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
-        const canvasHeight = Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
-        
-        // Установка размеров через CSS переменные
-        document.documentElement.style.setProperty('--canvas-width', `${canvasWidth}px`);
-        document.documentElement.style.setProperty('--canvas-height', `${canvasHeight}px`);
     </script>
 </head>
 <body>
@@ -94,6 +86,14 @@
     </div>
     
     <script src="script.js"></script>
-    <script>init();</script>
+    <script>
+        
+        const canvasWidth = Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
+        const canvasHeight = Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
+        
+        document.documentElement.style.setProperty('--canvas-width', `${canvasWidth}px`);
+        document.documentElement.style.setProperty('--canvas-height', `${canvasHeight}px`);
+        init();
+    </script>
 </body>
 </html>
