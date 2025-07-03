@@ -1,12 +1,15 @@
+var cellSize = 15;
+var tempW = Math.floor((window.innerWidth - 450) / cellSize) * cellSize;
+var tempH = Math.floor((window.innerHeight - 40) / cellSize) * cellSize;
+
 var canvas = document.getElementById('canvas');
-canvas.style.width = canvas.width + "px";
-canvas.style.height = canvas.height + "px";
+canvas.style.width = tempW + "px";
+canvas.style.height = tempH + "px";
 var scale = 2;
-canvas.width = canvas.width * scale;
-canvas.height = canvas.height * scale;
+canvas.width = tempW * scale;
+canvas.height = tempH * scale;
 var ctx = canvas.getContext('2d');
 ctx.scale(scale, scale);
-var cellSize = 15;
 var sizeX = (canvas.width / scale) / cellSize;
 var sizeY = (canvas.height / scale) / cellSize;
 
