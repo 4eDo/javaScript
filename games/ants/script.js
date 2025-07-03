@@ -932,6 +932,19 @@ function doRain(rainPower = 0) {
             cells[i][j].resources["meat"]["fill"] = 0;
         }
     }
+    addResourceField(waterPercent, "water");
+    addResourceField(waterPercent, "leaf");
+    addWorm();
+    addWorm();
+    addWorm();
+}
+
+function dropRes() {
+    let resource = document.getElementById('drop-res').value;
+    let resPercent = document.getElementById('drop-p').value;
+    let minCount = document.getElementById('drop-min').value;
+    let maxCount = document.getElementById('drop-max').value;
+    addResource(resource, resPercent, minCount, maxCount);
 }
 
 function addResourceField(percent, type) {
@@ -1048,9 +1061,6 @@ function init() {
     addResource("leaf", 0.15, 1, 50);
     addResource("trash", 0.1, 5, 50);
     
-    addWorm();
-    addWorm();
-    addWorm();
 
     let HOME_X = getRandomInt(1, sizeX-1);
     let HOME_Y = getRandomInt(1, sizeY-1);
