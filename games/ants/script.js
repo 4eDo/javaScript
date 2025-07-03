@@ -1065,7 +1065,7 @@ function addAnt(type) {
         x:home0[0],
         y:home0[1],
         target: {},
-        cargo: {}
+        cargo: type == "scout" ? null : {}
     });
 }
 
