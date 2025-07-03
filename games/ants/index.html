@@ -51,7 +51,6 @@
         <label>Скорость: <input type="range" min="10" max="200" value="100" onInput='updateSpeed(this.value)' /></label>
         <br><br>
         
-        <br><br>
         <details><summary>Действия (тык)</summary>
             <label><input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
             <label>Добавить ресурсы:
@@ -66,7 +65,7 @@
                 max<input id="drop-max" type="number" min="1" max="150" step="1" value="50" />
                 <button onclick="dropRes()">Drop!</button>
             </label>
-            <button onclick="addWarm()">Червяк!</button>
+            <button onclick="addWorm()">Червяк!</button>
             <button onclick="addAnt('worker')">Рабочий!</button>
             <button onclick="addAnt('builder')">Строитель!</button>
             <button onclick="addAnt('scout')">Разведчик!</button>
