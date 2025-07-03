@@ -27,17 +27,17 @@
         <label>Speed: <input type="range" min="10" max="400" value="150" onInput='updateSpeed(this.value)' /></label>
         <br>
         <br>
-        <button onclick="step()">Mar</button>
+        <button onclick="step()">Шаг</button>
         <br>
         <br>
         <br>
-        <label>Do rain: <input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Rain!</button></label><br>
-        <label>Drop resource:
+        <label>Дождь: <input id="rain" type="number" min="0.01" max="1" step="0.05" value="0.01" /> <button onclick="doRain()">Дождь!</button></label><br>
+        <label>Добавить ресурсы:
             <select id="drop-res">
-                <option value="leaf">leaf</option>
-                <option value="meat">Meats</option>
-                <option value="trash">Trash</option>
-                <option value="water">Water?!</option>
+                <option value="leaf">Листья</option>
+                <option value="meat">Мясо</option>
+                <option value="trash">Мусор</option>
+                <option value="water">Вода</option>
             </select>
             %<input id="drop-p" type="number" min="0.01" max="1" step="0.01" value="0.01" />
             min<input id="drop-min" type="number" min="0" max="150" step="1" value="10" />
@@ -45,42 +45,42 @@
             <button onclick="dropRes()">Drop!</button>
         </label>
         <br>
-        <label>Next rain: <input id="nextRain" type="range" min='0' readonly disabled/> </label><br>
+        <label>Следующий дождь: <input id="nextRain" type="range" min='0' readonly disabled/> </label><br>
     </div>
-    <canvas id="canvas" width="810px" height="810px"></canvas>
+    <canvas id="canvas" width="750px" height="750px"></canvas>
     <table id="stat">
-        <tr><td colspan="2">Ants</td></tr>
         <tr>
-            <td>Total count:</td>
+            <td>Шагов прожито:</td>
+            <td id="steps"></td>
+        </tr>
+        <tr><td colspan="2">Муравьи</td></tr>
+        <tr>
+            <td>Всего:</td>
             <td id="antsLen"></td>
         </tr>
-        <tr><td colspan="2">Home res</td></tr>
+        <tr><td colspan="2">Муравейник</td></tr>
         <tr>
-            <td>Target resource:</td>
+            <td>Необходимый ресурс:</td>
             <td id="targetRes"></td>
         </tr>
         <tr>
-            <td>New home cost:</td>
+            <td>Стоимость расширения:</td>
             <td id="newHomeCost"></td>
         </tr>
         <tr>
-            <td>steps:</td>
-            <td id="steps"></td>
-        </tr>
-        <tr>
-            <td>Water:</td>
+            <td>Вода:</td>
             <td id="water"></td>
         </tr>
         <tr>
-            <td>Leaf:</td>
+            <td>Листья:</td>
             <td id="leaf"></td>
         </tr>
         <tr>
-            <td>Meat:</td>
+            <td>Мясо:</td>
             <td id="meat"></td>
         </tr>
         <tr>
-            <td>Trash:</td>
+            <td>Мусор:</td>
             <td id="trash"></td>
         </tr>
     </table>
