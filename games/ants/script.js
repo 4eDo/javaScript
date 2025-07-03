@@ -232,25 +232,34 @@ function drawWorms() {
 }
 
 function drawStat() {
-    document.getElementById('antsLen').innerHTML = ants.length;
-    document.getElementById('targetRes').innerHTML = homeTarget;
-    document.getElementById('newHomeCost').innerHTML = newHomeCost;
-    document.getElementById('steps').innerHTML = steps;
-    
-     for (let res in homeRes) {
-        const el = document.getElementById(res);
-        if (!el) continue;
-
-        let warning = "";
-        if (foods.includes(res) && !isEated) {
-            warning = " ⚠️ Не ели!";
-        } else if (res === "water" && !isDrinked) {
-            warning = " ⚠️ Не пили!";
+        document.getElementById('antsLen').innerHTML = ants.length;
+        document.getElementById('targetRes').innerHTML = homeTarget;
+        document.getElementById('newHomeCost').innerHTML = newHomeCost;
+        document.getElementById('steps').innerHTML = steps;
+        
+        let warnings = [];
+        
+        for (let res in homeRes) {
+            document.getElementById(`${res}-fill`).innerHTML = homeRes[res].fill;
+            document.getElementById(`${res}-req`).innerHTML = homeRes[res].req;
+            document.getElementById(`${res}-reserve`).innerHTML = homeRes[res].reserve + "d";
+            
+            if (foods.includes(res) && !isEated) {
+                warnings.push(`⚠️ Не ели ${res}!`);
+            } else if (res === "water" && !isDrinked) {
+                warnings.push(`⚠️ Не пили воду!`);
+            }
         }
-
-        el.innerHTML = `Fill: ${homeRes[res].fill}<br>Req: ${homeRes[res].req}<br>Reserve: ${homeRes[res].reserve}d${warning}`;
+        
+        const warningsEl = document.getElementById('warnings');
+        if (warnings.length > 0) {
+            warningsEl.innerHTML = warnings.join('<br>');
+            warningsEl.className = 'warning';
+        } else {
+            warningsEl.innerHTML = '';
+            warningsEl.className = '';
+        }
     }
-}
 
 function fillCell(cell, x, y) {
     ctx.fillStyle = types[cell.type].color;
