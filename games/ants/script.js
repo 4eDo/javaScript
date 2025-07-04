@@ -506,7 +506,7 @@ function calcHomeResRequired() {
         let knownCells = [...new Set([...Object.values(knownRes)].flatMap(set => [...set]))];
         for(let home_str of knownCells) {
             let home = home_str.split(":");
-            let way = Math.abs(home0[0] - home[0]) + Math.abs(home0[0] - home[1]);
+            let way = Math.abs(home0[0] - home[0]) + Math.abs(home0[1] - home[1]);
             if(way > longWay) {
                 longWay = way;
                 tgX = home[0];
