@@ -160,6 +160,7 @@ function loadAllChars() {
 	stat_cr.innerText = _stat_cr;
 	stat_mm.innerText = _stat_mm;
 	stat_n.innerText = _stat_n;
+	stat_jg.innerText = _stat_jg;
 
 }
 function getShortJob(job) {
