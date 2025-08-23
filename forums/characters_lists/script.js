@@ -14,6 +14,7 @@ let _stat_de = 0;
 let _stat_cr = 0;
 let _stat_mm = 0;
 let _stat_n = 0;
+let _stat_jg = 0;
 
 // URL страницы со списком карточек пользователей
 const url = '/pages/_characters_lists'; // Основной адрес
@@ -101,7 +102,7 @@ function loadAllChars() {
 		let sideClass = "";
 		let sideRu = "";
 		switch (
-			roles[i].side.toUpperCase() //de/cr/mm/n
+			roles[i].side.toUpperCase() //de/cr/mm/n/jg
 		) {
 			case "DE":
 				sideClass = "death";
@@ -122,6 +123,11 @@ function loadAllChars() {
 				sideClass = "neutral";
 				sideRu = "нейтралитет";
 				_stat_n++;
+				break;
+			case "JG":
+				sideClass = "jaeger";
+				sideRu = "йегеристы";
+				_stat_jg++;
 				break;
 		}
 		if (roles[i].sex == "m") {
