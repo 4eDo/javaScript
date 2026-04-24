@@ -1,4 +1,4 @@
-import { loadItemsDB, getItem, getRecipe, getAllRecipes, getItemCount } from './itemsDB.js';
+import { loadItemsDB, getItem, getRecipe, getAllRecipes, getItemCount, getAllItemIds } from './itemsDB.js';
 import { Character } from './character.js';
 import * as ui from './ui.js';
 
