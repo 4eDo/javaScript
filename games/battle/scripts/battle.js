@@ -192,7 +192,9 @@ function playerAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  const hitChance = Math.max(10, pStats.ACC - enemy.stats.AGI * 2);
+  // Шанс попадания = 100 - (AGI врага / ACC игрока) * 100
+  const dodgeChance = pStats.ACC > 0 ? (enemy.stats.AGI / pStats.ACC) * 100 : 100;
+  const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
   
   if (!hit) {
@@ -206,18 +208,15 @@ function playerAttack() {
     return;
   }
   
+  // Урон = случайный в диапазоне DAMAGE_MIN..DAMAGE_MAX + бонус силы
   const baseDamage = Math.floor(Math.random() * (pStats.DAMAGE_MAX - pStats.DAMAGE_MIN + 1)) + pStats.DAMAGE_MIN;
-  const strBonus = Math.floor(pStats.STR * 0.5);
+  const strBonus = pStats.STR;
   let rawDamage = baseDamage + strBonus;
   
-  const blocked = Math.min(enemy.stats.DEF || 0, Math.floor(rawDamage * 0.7));
-  let damage = rawDamage - blocked;
+  // Защита врага поглощает часть урона
+  const blocked = Math.min(enemy.stats.DEF || 0, rawDamage);
+  let damage = Math.max(1, rawDamage - blocked);
   
-  if (enemy.stats.damageReduce) {
-    damage = Math.round(damage * (1 - (enemy.stats.damageReduce || 0) / 100));
-  }
-  
-  damage = Math.max(1, damage);
   enemy.currentHP -= damage;
   
   if (blocked > 0) {
@@ -251,6 +250,7 @@ function enemyAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
+  // Регенерация игрока — раз в ход врага
   if (pStats.REG > 0 && battleState.playerHP < battleState.playerMaxHP) {
     const regenAmount = Math.min(pStats.REG, battleState.playerMaxHP - battleState.playerHP);
     battleState.playerHP += regenAmount;
@@ -260,7 +260,9 @@ function enemyAttack() {
     ui.addBattleLogEntry(msg, 'log-system');
   }
   
-  const hitChance = Math.max(10, enemy.stats.ACC - (pStats.dodge || 0));
+  // Шанс попадания = 100 - (AGI игрока / ACC врага) * 100
+  const dodgeChance = enemy.stats.ACC > 0 ? (pStats.AGI / enemy.stats.ACC) * 100 : 100;
+  const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
   
   if (!hit) {
@@ -273,18 +275,15 @@ function enemyAttack() {
     return;
   }
   
+  // Урон врага
   const baseDamage = Math.floor(Math.random() * (enemy.stats.DAMAGE_MAX - enemy.stats.DAMAGE_MIN + 1)) + enemy.stats.DAMAGE_MIN;
-  const strBonus = Math.floor(enemy.stats.STR * 0.5);
+  const strBonus = enemy.stats.STR;
   let rawDamage = baseDamage + strBonus;
   
-  const blocked = Math.min(pStats.DEF || 0, Math.floor(rawDamage * 0.7));
-  let damage = rawDamage - blocked;
+  // Защита игрока поглощает часть урона
+  const blocked = Math.min(pStats.DEF || 0, rawDamage);
+  let damage = Math.max(1, rawDamage - blocked);
   
-  if (pStats.damageReduce) {
-    damage = Math.round(damage * (1 - (pStats.damageReduce || 0) / 100));
-  }
-  
-  damage = Math.max(1, damage);
   battleState.playerHP -= damage;
   
   if (blocked > 0) {
@@ -413,18 +412,15 @@ function getPlayerStats() {
   
   return {
     ...base,
-    // HP и регенерация НЕ зависят от модификатора
     HP: base.HP,
     STR: Math.round(base.STR * mod * 10) / 10,
     CON: Math.round(base.CON * mod * 10) / 10,
     AGI: Math.round(base.AGI * mod * 10) / 10,
-    REG: base.REG, // регенерация тоже не меняется
-    ACC: Math.round(base.ACC * mod),
+    REG: base.REG,
+    ACC: Math.round(base.ACC * mod * 10) / 10,
     DEF: Math.round((base.DEF || 0) * mod),
     DAMAGE_MIN: Math.round((base.DAMAGE_MIN || 1) * mod),
-    DAMAGE_MAX: Math.round((base.DAMAGE_MAX || 5) * mod),
-    dodge: Math.round((base.dodge || 0) * mod),
-    damageReduce: Math.round((base.damageReduce || 0) * mod)
+    DAMAGE_MAX: Math.round((base.DAMAGE_MAX || 5) * mod)
   };
 }
 

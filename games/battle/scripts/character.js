@@ -232,9 +232,6 @@ export class Character {
     }
 
     const hp = CONFIG.BASE_HP + CON * CONFIG.HP_PER_CON;
-    const dodge = Math.min(AGI * CONFIG.DODGE_PER_AGI, CONFIG.MAX_DODGE);
-    const doubleAttack = Math.min(AGI * CONFIG.DOUBLE_PER_AGI, CONFIG.MAX_DOUBLE_ATTACK);
-    const damageReduce = Math.min(CON * CONFIG.REDUCE_PER_CON, CONFIG.MAX_DAMAGE_REDUCE);
 
     return {
       STR, CON, AGI, REG, ACC,
@@ -242,9 +239,6 @@ export class Character {
       DEF: this._getTotalDEF(),
       DAMAGE_MIN: this._getWeaponDamageMin(),
       DAMAGE_MAX: this._getWeaponDamageMax(),
-      dodge: Math.round(dodge),
-      doubleAttack: Math.round(doubleAttack),
-      damageReduce: Math.round(damageReduce),
       level: this.level,
       xp: this.xp
     };
