@@ -52,17 +52,30 @@ export class Character {
     // Проверка: предмет должен подходить к слоту
     if (!item.slots || !item.slots.includes(slotName)) return false;
 
+    // Проверка single: в этой части тела уже надет ЛЮБОЙ single-предмет
+    if (item.tags && item.tags.includes('single')) {
+      for (const [key, equippedId] of Object.entries(this.equipment)) {
+        const [eqSlot] = key.split('-');
+        if (eqSlot !== slotName) continue;
+        if (key === slotKey) continue; // тот же слот — можно заменить
+        const equippedItem = getItemById(equippedId);
+        if (equippedItem?.tags?.includes('single')) {
+          // В другом слоте этой же части тела уже надет single-предмет
+          return false;
+        }
+      }
+    }
+
     // Запоминаем старые предметы для возврата в инвентарь
     const oldItems = [];
 
     // Двуручное оружие
     if (item.tags && item.tags.includes('twoHanded') && slotName === 'weapon') {
-      // Снимаем всё из обоих слотов оружия
       const w0 = this.equipment['weapon-0'];
       const w1 = this.equipment['weapon-1'];
       
       if (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded')) {
-        oldItems.push(w0); // двуручное — один экземпляр
+        oldItems.push(w0);
       } else {
         if (w0) oldItems.push(w0);
         if (w1) oldItems.push(w1);
@@ -77,11 +90,10 @@ export class Character {
     // Одноручное в слот оружия, когда надето двуручное
     else if (slotName === 'weapon' && this._isTwoHandedEquipped()) {
       const w0 = this.equipment['weapon-0'];
-      oldItems.push(w0); // двуручное — один экземпляр
+      oldItems.push(w0);
       delete this.equipment['weapon-0'];
       delete this.equipment['weapon-1'];
       
-      // Проверка single для оружия
       const otherIdx = index === 0 ? 1 : 0;
       const otherKey = `weapon-${otherIdx}`;
       const otherId = this.equipment[otherKey];
@@ -91,7 +103,6 @@ export class Character {
         delete this.equipment[otherKey];
       }
       
-      // Снимаем старый предмет из целевого слота
       if (this.equipment[slotKey]) {
         oldItems.push(this.equipment[slotKey]);
       }
@@ -104,14 +115,15 @@ export class Character {
         oldItems.push(this.equipment[slotKey]);
       }
       
-      // Проверка single
       if (item.tags && item.tags.includes('single')) {
         for (const [key, equippedId] of Object.entries(this.equipment)) {
           const [eqSlot] = key.split('-');
-          if (eqSlot === 'belt' && equippedId === itemId && key !== slotKey) {
-            oldItems.push(equippedId);
-            delete this.equipment[key];
-            break;
+          if (eqSlot === 'belt' && key !== slotKey) {
+            const equippedItem = getItemById(equippedId);
+            if (equippedItem?.tags?.includes('single')) {
+              oldItems.push(equippedId);
+              delete this.equipment[key];
+            }
           }
         }
       }
@@ -125,14 +137,15 @@ export class Character {
         oldItems.push(this.equipment[slotKey]);
       }
       
-      // Проверка single
       if (item.tags && item.tags.includes('single')) {
         for (const [key, equippedId] of Object.entries(this.equipment)) {
           const [eqSlot] = key.split('-');
-          if (eqSlot === slotName && equippedId === itemId && key !== slotKey) {
-            oldItems.push(equippedId);
-            delete this.equipment[key];
-            break;
+          if (eqSlot === slotName && key !== slotKey) {
+            const equippedItem = getItemById(equippedId);
+            if (equippedItem?.tags?.includes('single')) {
+              oldItems.push(equippedId);
+              delete this.equipment[key];
+            }
           }
         }
       }

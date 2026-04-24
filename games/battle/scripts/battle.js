@@ -407,11 +407,12 @@ function getPlayerStats() {
   
   return {
     ...base,
-    HP: Math.round(base.HP * mod),
+    // HP и регенерация НЕ зависят от модификатора
+    HP: base.HP,
     STR: Math.round(base.STR * mod * 10) / 10,
     CON: Math.round(base.CON * mod * 10) / 10,
     AGI: Math.round(base.AGI * mod * 10) / 10,
-    REG: Math.round(base.REG * mod * 10) / 10,
+    REG: base.REG, // регенерация тоже не меняется
     ACC: Math.round(base.ACC * mod),
     DEF: Math.round((base.DEF || 0) * mod),
     DAMAGE_MIN: Math.round((base.DAMAGE_MIN || 1) * mod),
