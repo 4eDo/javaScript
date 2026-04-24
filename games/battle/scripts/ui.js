@@ -635,6 +635,17 @@ function getDiffString(baseValue, compareValue) {
   return ` (${sign}${diff})`;
 }
 
+export function updateXPBar() {
+  const s = character.getStats();
+  const xpForLevel = s.level * 100;
+  const percent = Math.min(100, (s.xp / xpForLevel) * 100);
+  
+  const fill = document.querySelector('.level-bar-fill');
+  const text = document.querySelector('.level-bar-text');
+  if (fill) fill.style.width = percent + '%';
+  if (text) text.textContent = `${s.xp} / ${xpForLevel}`;
+}
+
 // ========== ХАРАКТЕРИСТИКИ ==========
 export function renderStats() {
   const s = character.getStats();

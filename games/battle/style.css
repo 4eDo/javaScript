@@ -533,6 +533,7 @@ battle-log {
   max-height: 200px;
 }
 
+
 .log-entry {
   padding: 3px 0;
   border-bottom: 1px dotted #eee;
@@ -550,6 +551,37 @@ battle-log {
 
 #battle-char .stat-row {
   padding: 4px 0;
+}
+
+/* ============ ИНФОРМАЦИЯ О ВРАГЕ ============ */
+#enemy-info {
+  display: none;
+  padding: 10px;
+  border: 1px solid #000;
+  margin-bottom: 10px;
+  background: #fafafa;
+}
+
+#enemy-info h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#enemy-info dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 12px;
+}
+
+#enemy-info dt {
+  font-weight: bold;
+}
+
+#enemy-info ul {
+  margin-top: 6px;
+  font-size: 11px;
+  padding-left: 15px;
 }
 
 /* ============ МОДАЛЬНЫЕ ОКНА ============ */
