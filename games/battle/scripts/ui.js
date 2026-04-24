@@ -644,6 +644,20 @@ export function renderStats() {
   updateXPBar();
 }
 
+export function renderStats() {
+  const s = character.getStats();
+  
+  document.getElementById('stat-str').textContent = s.STR;
+  document.getElementById('stat-con').textContent = s.CON;
+  document.getElementById('stat-agi').textContent = s.AGI;
+  document.getElementById('stat-reg').textContent = s.REG;
+  document.getElementById('stat-acc').textContent = s.ACC;
+  document.getElementById('stat-hp').textContent = s.HP;
+  document.getElementById('stat-def').textContent = s.DEF;
+  
+  updateXPBar();
+}
+
 export function updateBattleCharacterStats(stats = null, currentHP = null) {
   const s = stats || character.getStats();
   const hp = currentHP !== null ? currentHP : s.HP;
@@ -816,33 +830,6 @@ export function addBattleLogEntry(message, className = '') {
   entry.textContent = message;
   log.appendChild(entry);
   log.scrollTop = log.scrollHeight;
-}
-
-export function updateBattleCharacterStats(stats = null, currentHP = null) {
-  const s = stats || character.getStats();
-  const hp = currentHP !== null ? currentHP : s.HP;
-  
-  const hpEl = document.getElementById('stat-hp');
-  if (hpEl) {
-    hpEl.textContent = hp + (currentHP !== null ? `/${s.HP}` : '');
-    if (currentHP !== null && currentHP < s.HP * 0.3) {
-      hpEl.classList.add('hp-critical');
-    } else {
-      hpEl.classList.remove('hp-critical');
-    }
-  }
-  
-  document.getElementById('stat-str').textContent = s.STR;
-  document.getElementById('stat-con').textContent = s.CON;
-  document.getElementById('stat-agi').textContent = s.AGI;
-  document.getElementById('stat-reg').textContent = s.REG;
-  document.getElementById('stat-acc').textContent = s.ACC;
-  document.getElementById('stat-def').textContent = s.DEF;
-  document.getElementById('stat-dodge').textContent = s.dodge + '%';
-  document.getElementById('stat-double').textContent = s.doubleAttack + '%';
-  document.getElementById('stat-reduce').textContent = s.damageReduce + '%';
-  
-  updateXPBar();
 }
 
 export function showBattleResult(title, message) {
