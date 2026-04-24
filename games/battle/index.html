@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<game-interface>
+  
+  <!-- НАВИГАЦИЯ -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="character">Персонаж</button>
+    <button class="tab" data-tab="battle">Бой</button>
+  </nav>
+
+  <!-- ============ РАЗДЕЛ: ПЕРСОНАЖ ============ -->
+  <main class="tab-content active" id="tab-character">
+    
+    <!-- Левая панель -->
+    <aside class="panel-left">
+      
+      <!-- Переключатели -->
+      <nav class="view-switcher">
+        <button id="btn-show-equip" class="view-btn active">Экипировка</button>
+        <button id="btn-show-stats" class="view-btn">Характеристики</button>
+      </nav>
+      
+      <button id="btn-upgrade" class="btn-full">Прокачка за пост</button>
+      
+      <!-- Экипировка -->
+      <section id="equip-view" class="view active" aria-label="Экипировка">
+        <h2 class="tabTitle">Экипировка</h2>
+        
+        <equipment-part data-label="Голова">
+          <div class="slot" data-slot="head" data-index="0"></div>
+          <div class="slot" data-slot="head" data-index="1"></div>
+          <div class="slot" data-slot="head" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Тело">
+          <div class="slot" data-slot="body" data-index="0"></div>
+          <div class="slot" data-slot="body" data-index="1"></div>
+          <div class="slot" data-slot="body" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Ноги">
+          <div class="slot" data-slot="legs" data-index="0"></div>
+          <div class="slot" data-slot="legs" data-index="1"></div>
+          <div class="slot" data-slot="legs" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Оружие">
+          <div class="slot" data-slot="weapon" data-index="0"></div>
+          <div class="slot" data-slot="weapon" data-index="1"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Левая рука">
+          <div class="slot" data-slot="arm_l" data-index="0"></div>
+          <div class="slot" data-slot="arm_l" data-index="1"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Правая рука">
+          <div class="slot" data-slot="arm_r" data-index="0"></div>
+          <div class="slot" data-slot="arm_r" data-index="1"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Левая ступня">
+          <div class="slot" data-slot="feet_l" data-index="0"></div>
+          <div class="slot" data-slot="feet_l" data-index="1"></div>
+          <div class="slot" data-slot="feet_l" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Правая ступня">
+          <div class="slot" data-slot="feet_r" data-index="0"></div>
+          <div class="slot" data-slot="feet_r" data-index="1"></div>
+          <div class="slot" data-slot="feet_r" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part data-label="Пояс">
+          <div class="slot" data-slot="belt" data-index="0"></div>
+          <div class="slot" data-slot="belt" data-index="1"></div>
+          <div class="slot" data-slot="belt" data-index="2"></div>
+        </equipment-part>
+        
+        <equipment-part id="consumable-part" data-label="Расходники" style="display:none;">
+        </equipment-part>
+
+        <button class="btn-save">Сохранить</button>
+      </section>
+      
+      <!-- Характеристики -->
+      <section id="stats-view" class="view" aria-label="Характеристики">
+        <h2 class="tabTitle">Характеристики</h2>
+        
+        <dl class="stats-list">
+          <dt class="stat-level">
+            <span>Текущий уровень</span>
+            <span class="stat-value">1</span>
+          </dt>
+          <dd class="level-bar-container">
+            <div class="level-bar-fill" style="width: 45%;"></div>
+            <span class="level-bar-text">45 / 100</span>
+          </dd>
+          
+          <div class="stat-row"><dt>Здоровье (HP)</dt><dd id="stat-hp">100</dd></div>
+          <div class="stat-row"><dt>Выносливость</dt><dd id="stat-stamina">80</dd></div>
+          <div class="stat-row"><dt>Сила (STR)</dt><dd id="stat-str">1</dd></div>
+          <div class="stat-row"><dt>Стойкость (CON)</dt><dd id="stat-con">1</dd></div>
+          <div class="stat-row"><dt>Ловкость (AGI)</dt><dd id="stat-agi">1</dd></div>
+          <div class="stat-row"><dt>Исцеление (REG)</dt><dd id="stat-reg">1</dd></div>
+          <div class="stat-row"><dt>Меткость (ACC)</dt><dd id="stat-acc">1</dd></div>
+        </dl>
+        
+        <dl class="stats-list dynamic-stats">
+          <dt class="dynamic-title">Прочие параметры</dt>
+          <div class="stat-row"><dt>Уклонение</dt><dd id="stat-dodge">0%</dd></div>
+          <div class="stat-row"><dt>Шанс двойной атаки</dt><dd id="stat-double">0%</dd></div>
+          <div class="stat-row"><dt>Снижение урона</dt><dd id="stat-reduce">0%</dd></div>
+        </dl>
+      </section>
+      
+    </aside>
+
+    <!-- Правая панель: Инвентарь -->
+    <section id="inventory" aria-label="Инвентарь">
+      <h2 class="tabTitle">Инвентарь</h2>
+      
+      <!-- Вкладки инвентаря -->
+      <nav class="inv-tabs">
+        <button class="inv-tab active" data-invtab="items">Предметы</button>
+        <button class="inv-tab" data-invtab="engineering">Инженерия</button>
+      </nav>
+      
+      <!-- Вкладка: Предметы -->
+      <section class="inv-content active" id="inv-items">
+        <filter-bar>
+          <label>Тип
+            <select id="filter-type">
+              <option value="">Все</option>
+              <option value="weapon">Оружие</option>
+              <option value="armor">Броня</option>
+              <option value="consumable">Расходник</option>
+            </select>
+          </label>
+          <label>Уровень
+            <select id="filter-level">
+              <option value="">Все</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <label>Слот
+            <select id="filter-slot">
+              <option value="">Все</option>
+              <option value="head">Голова</option>
+              <option value="body">Тело</option>
+              <option value="legs">Ноги</option>
+              <option value="weapon">Оружие</option>
+              <option value="arm_l">Левая рука</option>
+              <option value="arm_r">Правая рука</option>
+              <option value="feet_l">Левая ступня</option>
+              <option value="feet_r">Правая ступня</option>
+              <option value="belt">Пояс</option>
+            </select>
+          </label>
+        </filter-bar>
+        
+        <inventory-grid id="items" aria-label="Сетка предметов">
+        </inventory-grid>
+      </section>
+      
+      <!-- Вкладка: Инженерия -->
+      <section class="inv-content" id="inv-engineering">
+        <filter-bar>
+          <label>Тип
+            <select id="eng-filter-type">
+              <option value="">Все</option>
+              <option value="weapon">Оружие</option>
+              <option value="armor">Броня</option>
+              <option value="consumable">Расходник</option>
+            </select>
+          </label>
+          <label>Уровень
+            <select id="eng-filter-level">
+              <option value="">Все</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <label>Слот
+            <select id="eng-filter-slot">
+              <option value="">Все</option>
+              <option value="head">Голова</option>
+              <option value="body">Тело</option>
+              <option value="legs">Ноги</option>
+              <option value="weapon">Оружие</option>
+              <option value="arm_l">Левая рука</option>
+              <option value="arm_r">Правая рука</option>
+              <option value="feet_l">Левая ступня</option>
+              <option value="feet_r">Правая ступня</option>
+              <option value="belt">Пояс</option>
+            </select>
+          </label>
+          <label>Доступно
+            <select id="eng-filter-available">
+              <option value="">Все</option>
+              <option value="yes">Можно создать</option>
+              <option value="no">Не хватает</option>
+            </select>
+          </label>
+        </filter-bar>
+        
+        <inventory-grid id="engineering-recipes" aria-label="Рецепты">
+        </inventory-grid>
+      </section>
+      
+      <item-info id="info">
+        <div id="info-left">
+          <h3 id="itemTitle">Выберите предмет</h3>
+          <dl id="properties"></dl>
+          <button id="btn-unequip-left" class="btn-unequip" style="display:none;">Снять предмет</button>
+        </div>
+        <div id="info-right" style="display:none;">
+          <h3 id="itemTitleHover"></h3>
+          <dl id="propertiesHover"></dl>
+        </div>
+      </item-info>
+    </section>
+
+  </main>
+
+  <!-- ============ РАЗДЕЛ: БОЙ ============ -->
+  <main class="tab-content" id="tab-battle">
+    
+    <aside class="panel-left" id="enemy-list" aria-label="Список противников">
+      <h2 class="tabTitle">Противники</h2>
+      
+      <enemy-entry class="enemy" data-hp="100">
+        <span class="enemy-name">Гоблин</span>
+        <span class="enemy-hp">100/100</span>
+      </enemy-entry>
+      
+      <enemy-entry class="enemy" data-hp="75">
+        <span class="enemy-name">Скелет</span>
+        <span class="enemy-hp">75/150</span>
+      </enemy-entry>
+      
+      <enemy-entry class="enemy" data-hp="200">
+        <span class="enemy-name">Тролль</span>
+        <span class="enemy-hp">200/200</span>
+      </enemy-entry>
+    </aside>
+
+    <section id="battlefield" aria-label="Поле боя">
+      <div id="battle-actions">
+        <button id="btn-attack">Атаковать</button>
+        <button id="btn-flee">Убежать</button>
+      </div>
+      
+      <battle-log id="battle-log" aria-label="Лог боя">
+        <p class="log-entry">Бой начался!</p>
+        <p class="log-entry">Вы атакуете Гоблина — 15 урона.</p>
+        <p class="log-entry">Гоблин атакует вас — 5 урона.</p>
+        <p class="log-entry log-system">— Ожидание действия —</p>
+      </battle-log>
+    </section>
+
+    <aside class="panel-right" id="battle-char" aria-label="Персонаж">
+      <h2 class="tabTitle">Персонаж</h2>
+      <dl class="stats-list">
+        <div class="stat-row"><dt>Здоровье</dt><dd id="battle-hp">95/100</dd></div>
+        <div class="stat-row"><dt>Выносливость</dt><dd id="battle-stamina">60/80</dd></div>
+        <div class="stat-row"><dt>Сила</dt><dd id="battle-str">12</dd></div>
+        <div class="stat-row"><dt>Ловкость</dt><dd id="battle-agi">10</dd></div>
+        <div class="stat-row"><dt>Меткость</dt><dd id="battle-acc">85%</dd></div>
+      </dl>
+    </aside>
+
+  </main>
+
+</game-interface>
+
+<!-- ============ МОДАЛЬНОЕ ОКНО: ПРОКАЧКА ЗА ПОСТ ============ -->
+<modal-overlay id="modal-upgrade" class="modal">
+  <modal-window>
+    <h2 class="tabTitle">Прокачка за пост</h2>
+    <label>Ссылка на пост</label>
+    <input type="text" placeholder="https://forum.example.com/post/12345">
+    <button id="btn-submit-post" class="btn-full">Получить</button>
+    <output class="result-success">Успех! Получено: Меч Правды (x1), Зелье лечения (x3)</output>
+    <output class="result-fail">Ошибка: пост не найден или уже использован.</output>
+    <button class="btn-close" data-close="modal-upgrade">Закрыть</button>
+  </modal-window>
+</modal-overlay>
+
+<!-- ============ МОДАЛЬНОЕ ОКНО: ПОБЕДА / ПОРАЖЕНИЕ ============ -->
+<modal-overlay id="modal-result" class="modal">
+  <modal-window>
+    <h2 class="tabTitle" id="result-title">Победа!</h2>
+    <p id="result-text">Вы победили Гоблина! Получено 50 опыта.</p>
+    <button class="btn-full" data-close="modal-result">Продолжить</button>
+  </modal-window>
+</modal-overlay>
+
+<!-- ============ МОДАЛЬНОЕ ОКНО: ПРЕДУПРЕЖДЕНИЕ О НАДЕТЫХ ПРЕДМЕТАХ ============ -->
+<modal-overlay id="modal-equipped-warning" class="modal">
+  <modal-window>
+    <h2 class="tabTitle">Внимание!</h2>
+    <p>Следующие предметы сейчас надеты и будут сняты:</p>
+    <ul id="equipped-warning-list"></ul>
+    <p>Продолжить?</p>
+    <button id="btn-confirm-craft" class="btn-full">Создать</button>
+    <button class="btn-close" data-close="modal-equipped-warning">Отмена</button>
+  </modal-window>
+</modal-overlay>
+
+<!-- Скрипты -->
+<script type="module" src="scripts/main.js"></script>
+
+</body>
+</html>
