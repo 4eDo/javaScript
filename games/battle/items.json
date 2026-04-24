@@ -107,7 +107,7 @@
         "slots": ["weapon"],
         "properties": {
             "STR": 4,
-            "ACC": -1,
+            "ACC": 4,
             "DAMAGE_MIN": 8,
             "DAMAGE_MAX": 15
         },
@@ -213,8 +213,186 @@
         "properties": {
             "CON": 5,
             "AGI": -2,
-            "ACC": -2
+            "ACC": -4
         },
         "img": "https://placehold.jp/0/708090/ffffff/30x30.png"
+    },
+    {
+        "id": "knuckles_0",
+        "name": "Кастет из пивной жестянки",
+        "descr": "Это вышло случайно.",
+        "level": 0,
+        "tags": ["weapon"],
+        "slots": ["weapon"],
+        "properties": {
+            "STR": 1,
+            "ACC": -1,
+            "DAMAGE_MIN": 3,
+            "DAMAGE_MAX": 5
+        },
+        "img": "https://placehold.jp/0/808080/ffffff/30x30.png"
+    },
+    {
+        "id": "knuckles_1",
+        "name": "Кастет трезвого человека",
+        "descr": "Честно отобранный у кого-то с улицы.",
+        "level": 1,
+        "tags": ["weapon"],
+        "slots": ["weapon"],
+        "properties": {
+            "STR": 2,
+            "ACC": 1,
+            "DAMAGE_MIN": 5,
+            "DAMAGE_MAX": 8
+        },
+        "img": "https://placehold.jp/0/C0C0C0/ffffff/30x30.png"
+    },
+    {
+        "id": "knuckles_2",
+        "name": "Кастет панка",
+        "descr": "Вижу шипы, а это... Что, нож? Реально? И штопор? Как этим драться?",
+        "level": 2,
+        "tags": ["weapon"],
+        "slots": ["weapon"],
+        "properties": {
+            "STR": 5,
+            "AGI": 2,
+            "ACC": 2,
+            "DAMAGE_MIN": 15,
+            "DAMAGE_MAX": 25
+        },
+        "img": "https://placehold.jp/0/4682B4/ffffff/30x30.png"
+    },
+    {
+        "id": "shirt_0",
+        "name": "Тога из занавески",
+        "descr": "Чешется адски и просвечивает.",
+        "level": 0,
+        "tags": ["clothes"],
+        "slots": ["body"],
+        "properties": {
+            "CON": 1,
+            "AGI": -3
+        },
+        "img": "https://placehold.jp/0/8B4513/ffffff/30x30.png"
+    },
+    {
+        "id": "shirt_1",
+        "name": "Футболка сотрудника супермаркета",
+        "descr": "Заношенное безразмерное нечто, зато яркое.",
+        "level": 1,
+        "tags": ["clothes"],
+        "slots": ["body"],
+        "properties": {
+            "CON": 2,
+            "AGI": -1
+        },
+        "img": "https://placehold.jp/0/556B2F/ffffff/30x30.png"
+    },
+    {
+        "id": "shirt_2",
+        "name": "Домашняя футболка",
+        "descr": "Максмум комфорта, минимум приличия.",
+        "level": 2,
+        "tags": ["clothes"],
+        "slots": ["body"],
+        "properties": {
+            "CON": 4
+        },
+        "img": "https://placehold.jp/0/B0C4DE/ffffff/30x30.png"
+    },
+    {
+        "id": "shoes_0",
+        "name": "Шлёпки",
+        "descr": "Шлёп-шлёп. Смотри, не навернись!",
+        "level": 0,
+        "tags": ["clothes"],
+        "slots": ["feet_l", "feet_r"],
+        "properties": {
+            "AGI": -3,
+            "CON": 1,
+            "ACC": -1
+        },
+        "img": "https://placehold.jp/0/00FFFF/ffffff/30x30.png"
+    },
+    {
+        "id": "shoes_1",
+        "name": "Кроксы",
+        "descr": "Идиократия была права.",
+        "level": 1,
+        "tags": ["clothes"],
+        "slots": ["feet_l", "feet_r"],
+        "properties": {
+            "AGI": -1,
+            "CON": 1
+        },
+        "img": "https://placehold.jp/0/00FFBB/ffffff/30x30.png"
+    },
+    {
+        "id": "shoes_2",
+        "name": "Кеды",
+        "descr": "Нестареющая классика.",
+        "level": 2,
+        "tags": ["clothes"],
+        "slots": ["feet_l", "feet_r"],
+        "properties": {
+            "AGI": 2,
+            "CON": 1
+        },
+        "img": "https://placehold.jp/0/00FFBB/ffffff/30x30.png"
+    },
+    {
+        "id": "shoes_3",
+        "name": "Берцы",
+        "descr": "Тяжёлые, надёжные. Можно смело ходить по граблям.",
+        "level": 3,
+        "tags": ["clothes"],
+        "slots": ["feet_l", "feet_r"],
+        "properties": {
+            "CON": 2,
+            "STR": 3
+        },
+        "img": "https://placehold.jp/0/2F4F4F/ffffff/30x30.png"
+    },
+    {
+        "id": "hat_0",
+        "name": "Платочек",
+        "descr": "Защищает от погоды макушку и самолюбие. Враги в замешательстве.",
+        "level": 0,
+        "tags": ["clothes"],
+        "slots": ["head"],
+        "properties": {
+            "CON": 1,
+            "ACC": 1,
+            "AGI": 1
+        },
+        "img": "https://placehold.jp/0/FF1493/ffffff/30x30.png"
+    },
+    {
+        "id": "hat_1",
+        "name": "Бейсболка",
+        "descr": "Что может быть стандартнее? Спасает глаза от солнца.",
+        "level": 1,
+        "tags": ["clothes"],
+        "slots": ["head"],
+        "properties": {
+            "CON": 1,
+            "ACC": 3,
+            "AGI": 1
+        },
+        "img": "https://placehold.jp/0/F31890/ffffff/30x30.png"
+    },
+    {
+        "id": "helm_1",
+        "name": "Каска",
+        "descr": "Строительная. Сзади нарисован маркером смайлик.",
+        "level": 1,
+        "tags": ["clothes", "single"],
+        "slots": ["head"],
+        "properties": {
+            "CON": 5,
+            "ACC": -1
+        },
+        "img": "https://placehold.jp/0/FFD700/ffffff/30x30.png"
     }
 ]
