@@ -2,9 +2,9 @@
     {
         "id": "pants_0",
         "name": "Драные трусы",
-        "descr": "descr",
+        "descr": "Немного прикрывают задницу",
 		"level": 0,
-        "tags": [""],
+        "tags": ["clothes"],
         "slots": ["legs", "head"],
         "properties": {
             "AGI": 0,
@@ -17,9 +17,9 @@
 	{
         "id": "pants_1",
         "name": "Грязные трусы",
-        "descr": "descr",
+        "descr": "Покрепче драных, но как стрёмно-то!",
 		"level": 1,
-        "tags": [""],
+        "tags": ["clothes"],
         "slots": ["legs", "head"],
         "properties": {
             "AGI": 0,
@@ -32,9 +32,9 @@
 	{
         "id": "pants_2",
         "name": "Стандартные трусы",
-        "descr": "descr",
+        "descr": "Это никак не комментируется.",
 		"level": 2,
-        "tags": [""],
+        "tags": ["clothes"],
         "slots": ["legs", "head"],
         "properties": {
             "AGI": 0,
@@ -45,9 +45,9 @@
 	{
         "id": "pants_3",
         "name": "Удобные трусы",
-        "descr": "descr",
+        "descr": "Хм, а ведь вполне! Не жмёт, не давит.",
 		"level": 3,
-        "tags": [""],
+        "tags": ["clothes"],
         "slots": ["legs", "head"],
         "properties": {
             "AGI": 1,
@@ -58,14 +58,59 @@
 	{
         "id": "pants_4",
         "name": "Кевларовые трусы",
-        "descr": "descr",
+        "descr": "Поверх них даже броня не нужна. Прикрывают, правда, не так много.",
 		"level": 4,
-        "tags": [""],
+        "tags": ["clothes"],
         "slots": ["legs", "head"],
         "properties": {
             "AGI": 2,
             "CON": 3
         },
         "img": "https://placehold.jp/0/05098a/ffffff/30x30.png"
+    },
+	{
+        "id": "branch_0",
+        "name": "Прутик",
+        "descr": "Тонкий, но хлёсткий. Больше унижения, чем урона.",
+		"level": 0,
+        "tags": ["weapon"],
+        "slots": ["arm_l", "arm_r"],
+        "properties": {
+            "AGI": 1,
+            "ACC": 2,
+            "DAMAGE_MIN": 2,
+            "DAMAGE_MAX": 4
+        },
+        "img": "https://placehold.jp/0/D2B48C/ffffff/30x30.png"
+    },
+	{
+        "id": "branch_1",
+        "name": "Ветка",
+        "descr": "Опасное оружие!",
+		"level": 1,
+        "tags": ["weapon"],
+        "slots": ["arm_l", "arm_r"],
+        "properties": {
+            "STR": 1,
+            "ACC": 1,
+            "DAMAGE_MIN": 4,
+            "DAMAGE_MAX": 8
+        },
+        "img": "https://placehold.jp/0/CD853F/ffffff/30x30.png"
+    },
+	{
+        "id": "broom_0",
+        "name": "Старая метла",
+        "descr": "Это только кажется, что она вот-вот сломается!",
+		"level": 0,
+        "tags": ["weapon", "twoHanded"],
+        "slots": ["arm_l", "arm_r"],
+        "properties": {
+            "STR": 2,
+            "AGI": 2,
+            "DAMAGE_MIN": 5,
+            "DAMAGE_MAX": 10
+        },
+        "img": "https://placehold.jp/0/DAA520/ffffff/30x30.png"
     }
 ]

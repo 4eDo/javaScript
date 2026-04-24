@@ -1,0 +1,45 @@
+[
+    {
+      "result": "pants_1",
+      "count": 1,
+      "ingredients": [
+        { "id": "pants_0", "count": 3 }
+      ]
+    },
+    {
+      "result": "pants_2",
+      "count": 1,
+      "ingredients": [
+        { "id": "pants_1", "count": 3 }
+      ]
+    },
+    {
+      "result": "pants_3",
+      "count": 1,
+      "ingredients": [
+        { "id": "pants_2", "count": 3 }
+      ]
+    },
+    {
+      "result": "pants_4",
+      "count": 1,
+      "ingredients": [
+        { "id": "pants_3", "count": 3 }
+      ]
+    },
+    {
+      "result": "branch_1",
+      "count": 1,
+      "ingredients": [
+        { "id": "branch_0", "count": 3 }
+      ]
+    },
+    {
+      "result": "broom_0",
+      "count": 1,
+      "ingredients": [
+        { "id": "branch_0", "count": 3 },
+        { "id": "branch_1", "count": 1 }
+      ]
+    }
+]
