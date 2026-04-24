@@ -1,0 +1,71 @@
+[
+    {
+        "id": "pants_0",
+        "name": "Драные трусы",
+        "descr": "descr",
+		"level": 0,
+        "tags": [""],
+        "slots": ["legs", "head"],
+        "properties": {
+            "AGI": 0,
+            "CON": 0.5,
+            "ACC": -1,
+            "REG": 2,
+        },
+        "img": "https://placehold.jp/0/636479/ffffff/30x30.png"
+    },
+	{
+        "id": "pants_1",
+        "name": "Грязные трусы",
+        "descr": "descr",
+		"level": 1,
+        "tags": [""],
+        "slots": ["legs", "head"],
+        "properties": {
+            "AGI": 0,
+            "CON": 1,
+            "ACC": -0.5,
+            "REG": 1,
+        },
+        "img": "https://placehold.jp/0/54567d/ffffff/30x30.png"
+    },
+	{
+        "id": "pants_2",
+        "name": "Стандартные трусы",
+        "descr": "descr",
+		"level": 2,
+        "tags": [""],
+        "slots": ["legs", "head"],
+        "properties": {
+            "AGI": 0,
+            "CON": 1.5,
+        },
+        "img": "https://placehold.jp/0/35387e/ffffff/30x30.png"
+    },
+	{
+        "id": "pants_3",
+        "name": "Удобные трусы",
+        "descr": "descr",
+		"level": 3,
+        "tags": [""],
+        "slots": ["legs", "head"],
+        "properties": {
+            "AGI": 1,
+            "CON": 2,
+        },
+        "img": "https://placehold.jp/0/212483/ffffff/30x30.png"
+    },
+	{
+        "id": "pants_4",
+        "name": "Кевларовые трусы",
+        "descr": "descr",
+		"level": 4,
+        "tags": [""],
+        "slots": ["legs", "head"],
+        "properties": {
+            "AGI": 2,
+            "CON": 3,
+        },
+        "img": "https://placehold.jp/0/05098a/ffffff/30x30.png"
+    }
+]
