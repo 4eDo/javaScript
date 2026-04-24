@@ -245,20 +245,6 @@
     <aside class="panel-left" id="enemy-list" aria-label="Список противников">
       <h2 class="tabTitle">Противники</h2>
       
-      <enemy-entry class="enemy" data-hp="100">
-        <span class="enemy-name">Гоблин</span>
-        <span class="enemy-hp">100/100</span>
-      </enemy-entry>
-      
-      <enemy-entry class="enemy" data-hp="75">
-        <span class="enemy-name">Скелет</span>
-        <span class="enemy-hp">75/150</span>
-      </enemy-entry>
-      
-      <enemy-entry class="enemy" data-hp="200">
-        <span class="enemy-name">Тролль</span>
-        <span class="enemy-hp">200/200</span>
-      </enemy-entry>
     </aside>
 
     <section id="battlefield" aria-label="Поле боя">
@@ -267,21 +253,13 @@
         <button id="btn-search">Искать врагов</button>
         <button id="btn-explore">Исследовать окрестности</button>
       </div>
+      
       <battle-log id="battle-log" aria-label="Лог боя">
         <p class="log-entry log-system">— Ожидание действий —</p>
       </battle-log>
     </section>
 
-    <aside class="panel-right" id="battle-char" aria-label="Персонаж">
-      <h2 class="tabTitle">Персонаж</h2>
-      <dl class="stats-list">
-        <div class="stat-row"><dt>Здоровье</dt><dd id="battle-hp">100/100</dd></div>
-        <div class="stat-row"><dt>Выносливость</dt><dd id="battle-stamina">80</dd></div>
-        <div class="stat-row"><dt>Сила</dt><dd id="battle-str">12</dd></div>
-        <div class="stat-row"><dt>Ловкость</dt><dd id="battle-agi">10</dd></div>
-        <div class="stat-row"><dt>Меткость</dt><dd id="battle-acc">85%</dd></div>
-        <div class="stat-row"><dt>Защита</dt><dd id="battle-def">0</dd></div>
-      </dl>
+    <aside class="panel-right" id="battle-stats-container" aria-label="Характеристики">
     </aside>
 
   </main>

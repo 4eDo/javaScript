@@ -57,33 +57,21 @@ export class Character {
       return true;
     }
     
-    // Проверка: если надеваемый предмет — single, а в соседнем слоте уже висит любой single
+    // Проверка: надеваемый предмет — single, а в соседнем слоте уже висит любой single
     if (item.tags?.includes('single')) {
       for (const [key, equippedId] of Object.entries(this.equipment)) {
         const [eqSlot] = key.split('-');
         if (eqSlot !== slotName) continue;
-        if (key === slotKey) continue; // тот же слот — можно заменить
+        if (key === slotKey) continue;
         
         const equippedItem = getItemById(equippedId);
         if (equippedItem?.tags?.includes('single')) {
-          return false;
+          return false; // рядом уже есть single, второй нельзя
         }
       }
     }
     
-    // Проверка: если в соседнем слоте уже надет single-предмет (любой),
-    // то этот слот недоступен для любых предметов
-    for (const [key, equippedId] of Object.entries(this.equipment)) {
-      const [eqSlot] = key.split('-');
-      if (eqSlot !== slotName) continue;
-      if (key === slotKey) continue;
-      
-      const equippedItem = getItemById(equippedId);
-      if (equippedItem?.tags?.includes('single')) {
-        return false;
-      }
-    }
-    
+    // В остальных случаях — можно
     return true;
   }
 

@@ -19,7 +19,7 @@ function showIdleState() {
   ui.hideEnemyInfo();
   
   const stats = getPlayerStats();
-  ui.updateBattleCharacterStats(stats, stats.HP, stats.HP);
+  ui.updateBattleCharacterStats(stats);
   
   ui.renderBattleActions(`
     <button id="btn-search">Искать врагов</button>
@@ -426,5 +426,10 @@ function updateStats() {
   const stats = getPlayerStats();
   const hp = battleState ? battleState.playerHP : stats.HP;
   const maxHP = stats.HP;
-  ui.updateBattleCharacterStats(stats, hp, maxHP);
+  
+  // Обновляем HP с учётом текущего состояния
+  document.getElementById('stat-hp').textContent = `${hp}/${maxHP}`;
+  
+  // Все остальные статы — с модификатором
+  ui.updateBattleCharacterStats(stats);
 }

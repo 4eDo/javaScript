@@ -122,24 +122,31 @@ export function renderEquipment() {
     }
   }
 
-  // Блокировка слотов, где рядом надет single
+  // Блокировка слотов: пустой слот недоступен только если выбран single-предмет,
+  // а рядом уже надет single
   allSlots.forEach(el => {
     const slotName = el.dataset.slot;
     const index = el.dataset.index;
     const key = `${slotName}-${index}`;
     
-    // Пропускаем занятые слоты
+    // Занятые слоты не блокируем
     if (character.equipment[key]) return;
     
-    // Проверяем, не заблокирован ли слот из-за соседнего single
-    for (const [eqKey, equippedId] of Object.entries(character.equipment)) {
-      const [eqSlot] = eqKey.split('-');
-      if (eqSlot !== slotName || eqKey === key) continue;
-      
-      const equippedItem = getItemById(equippedId);
-      if (equippedItem?.tags?.includes('single')) {
-        el.classList.add('single-disabled');
-        break;
+    // Если выбран предмет и он single
+    if (selectedItemId) {
+      const selectedItem = getItemById(selectedItemId);
+      if (selectedItem?.tags?.includes('single')) {
+        // Проверяем, нет ли рядом надетого single
+        for (const [eqKey, equippedId] of Object.entries(character.equipment)) {
+          const [eqSlot] = eqKey.split('-');
+          if (eqSlot !== slotName || eqKey === key) continue;
+          
+          const equippedItem = getItemById(equippedId);
+          if (equippedItem?.tags?.includes('single')) {
+            el.classList.add('single-disabled');
+            break;
+          }
+        }
       }
     }
   });
@@ -790,23 +797,22 @@ export function addBattleLogEntry(message, className = '') {
   log.scrollTop = log.scrollHeight;
 }
 
-export function updateBattleCharacterStats(stats, playerHP, maxHP) {
-  const hpEl = document.getElementById('battle-hp');
-  const staminaEl = document.getElementById('battle-stamina');
-  const strEl = document.getElementById('battle-str');
-  const agiEl = document.getElementById('battle-agi');
-  const accEl = document.getElementById('battle-acc');
-  const defEl = document.getElementById('battle-def');
+export function updateBattleCharacterStats(stats = null) {
+  // Если статы не переданы — берём чистые из персонажа
+  const s = stats || character.getStats();
   
-  if (hpEl) {
-    hpEl.textContent = `${playerHP}/${maxHP}`;
-    hpEl.className = playerHP < maxHP * 0.3 ? 'hp-critical' : '';
-  }
-  if (staminaEl) staminaEl.textContent = maxHP;
-  if (strEl) strEl.textContent = stats.STR;
-  if (agiEl) agiEl.textContent = stats.AGI;
-  if (accEl) accEl.textContent = stats.ACC + '%';
-  if (defEl) defEl.textContent = stats.DEF;
+  document.getElementById('stat-hp').textContent = s.HP;
+  document.getElementById('stat-str').textContent = s.STR;
+  document.getElementById('stat-con').textContent = s.CON;
+  document.getElementById('stat-agi').textContent = s.AGI;
+  document.getElementById('stat-reg').textContent = s.REG;
+  document.getElementById('stat-acc').textContent = s.ACC;
+  document.getElementById('stat-def').textContent = s.DEF;
+  document.getElementById('stat-dodge').textContent = s.dodge + '%';
+  document.getElementById('stat-double').textContent = s.doubleAttack + '%';
+  document.getElementById('stat-reduce').textContent = s.damageReduce + '%';
+  
+  updateXPBar();
 }
 
 export function showBattleResult(title, message) {

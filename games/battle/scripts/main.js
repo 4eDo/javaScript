@@ -76,8 +76,7 @@ function onEquipSlotClick(slotName, index) {
     if (ui.getSelectedSlotKey() === 'weapon-0' && !ui.getSelectedItemId()) {
       ui.clearSelection();
     } else if (ui.getSelectedItemId()) {
-      const item = getItemById(ui.getSelectedItemId());
-      if (item?.slots?.includes('weapon')) {
+      if (player.canEquipInSlot(ui.getSelectedItemId(), 'weapon-0')) {
         player.equip(ui.getSelectedItemId(), 'weapon-0');
         ui.clearSelection();
       } else {
@@ -95,23 +94,24 @@ function onEquipSlotClick(slotName, index) {
   if (ui.getSelectedSlotKey() === key && !ui.getSelectedItemId()) {
     ui.clearSelection();
   } else if (ui.getSelectedItemId()) {
-    const item = getItemById(ui.getSelectedItemId());
-    if (item?.slots?.includes(slotName)) {
+    if (player.canEquipInSlot(ui.getSelectedItemId(), key)) {
       player.equip(ui.getSelectedItemId(), key);
       ui.clearSelection();
     }
   } else {
     // Проверяем, можно ли выделить пустой слот
-    // Пустой слот с соседним single — не выделяем
     let blockedBySingle = false;
-    if (!player.equipment[key]) {
-      for (const [eqKey, equippedId] of Object.entries(player.equipment)) {
-        const [eqSlot] = eqKey.split('-');
-        if (eqSlot !== slotName || eqKey === key) continue;
-        const equippedItem = getItemById(equippedId);
-        if (equippedItem?.tags?.includes('single')) {
-          blockedBySingle = true;
-          break;
+    if (!player.equipment[key] && ui.getSelectedItemId()) {
+      const selectedItem = getItemById(ui.getSelectedItemId());
+      if (selectedItem?.tags?.includes('single')) {
+        for (const [eqKey, equippedId] of Object.entries(player.equipment)) {
+          const [eqSlot] = eqKey.split('-');
+          if (eqSlot !== slotName || eqKey === key) continue;
+          const equippedItem = getItemById(equippedId);
+          if (equippedItem?.tags?.includes('single')) {
+            blockedBySingle = true;
+            break;
+          }
         }
       }
     }
@@ -239,12 +239,43 @@ function setupOtherEvents() {
     }
   });
 
+  // Табы Персонаж / Бой
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      
+      const statsView = document.getElementById('stats-view');
+      const battleStatsContainer = document.getElementById('battle-stats-container');
+      
+      if (tab.dataset.tab === 'battle') {
+        // Перемещаем stats-view в правую панель боя
+        if (statsView && battleStatsContainer) {
+          battleStatsContainer.appendChild(statsView);
+          statsView.classList.add('active');
+          document.getElementById('btn-show-equip')?.classList.remove('active');
+          document.getElementById('btn-show-stats')?.classList.add('active');
+        }
+        ui.updateBattleCharacterStats();
+      } else if (tab.dataset.tab === 'character') {
+        // Возвращаем stats-view на место (внутрь panel-left, после view-switcher)
+        const panelLeft = document.querySelector('#tab-character .panel-left');
+        const viewSwitcher = panelLeft?.querySelector('.view-switcher');
+        if (statsView && viewSwitcher) {
+          viewSwitcher.after(statsView);
+          // Показываем ту вкладку, которая была активна
+          const equipActive = document.getElementById('btn-show-equip')?.classList.contains('active');
+          if (equipActive) {
+            document.getElementById('equip-view')?.classList.add('active');
+            statsView.classList.remove('active');
+          } else {
+            statsView.classList.add('active');
+            document.getElementById('equip-view')?.classList.remove('active');
+          }
+        }
+      }
     });
   });
 
