@@ -648,7 +648,7 @@ export function renderStats() {
   document.getElementById('stat-dodge').textContent = s.dodge + '%';
   document.getElementById('stat-double').textContent = s.doubleAttack + '%';
   document.getElementById('stat-reduce').textContent = s.damageReduce + '%';
-  document.getElementById('stat-def')?.textContent = s.DEF;
+  document.getElementById('stat-def').textContent = s.DEF;
 }
 
 export function renderAll() {
