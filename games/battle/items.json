@@ -306,7 +306,7 @@
         "name": "Шлёпки",
         "descr": "Шлёп-шлёп. Смотри, не навернись!",
         "level": 0,
-        "tags": ["clothes"],
+        "tags": ["clothes", "single"],
         "slots": ["feet_l", "feet_r"],
         "properties": {
             "AGI": -3,
@@ -320,7 +320,7 @@
         "name": "Кроксы",
         "descr": "Идиократия была права.",
         "level": 1,
-        "tags": ["clothes"],
+        "tags": ["clothes", "single"],
         "slots": ["feet_l", "feet_r"],
         "properties": {
             "AGI": -1,
@@ -333,7 +333,7 @@
         "name": "Кеды",
         "descr": "Нестареющая классика.",
         "level": 2,
-        "tags": ["clothes"],
+        "tags": ["clothes", "single"],
         "slots": ["feet_l", "feet_r"],
         "properties": {
             "AGI": 2,
@@ -346,7 +346,7 @@
         "name": "Берцы",
         "descr": "Тяжёлые, надёжные. Можно смело ходить по граблям.",
         "level": 3,
-        "tags": ["clothes"],
+        "tags": ["clothes", "single"],
         "slots": ["feet_l", "feet_r"],
         "properties": {
             "CON": 2,
