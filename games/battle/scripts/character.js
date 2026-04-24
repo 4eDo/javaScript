@@ -5,6 +5,8 @@ export class Character {
   constructor() {
     this.inventory = [];
     this.equipment = {};
+    this.xp = 0;
+    this.level = 1;
   }
 
   // ========== ИНВЕНТАРЬ ==========
@@ -198,9 +200,14 @@ export class Character {
     return {
       STR, CON, AGI, REG, ACC,
       HP: Math.round(hp),
+      DEF: this._getTotalDEF(),
+      DAMAGE_MIN: this._getWeaponDamageMin(),
+      DAMAGE_MAX: this._getWeaponDamageMax(),
       dodge: Math.round(dodge),
       doubleAttack: Math.round(doubleAttack),
       damageReduce: Math.round(damageReduce),
+      level: this.level,
+      xp: this.xp
     };
   }
 
@@ -293,6 +300,41 @@ export class Character {
 
     for (let i = capacity; i < consumableItems.length; i++) {
       this.addItem(consumableItems[i]);
+    }
+  }
+
+  _getTotalDEF() {
+    let def = 0;
+    const countedTwoHanded = new Set();
+    for (const [key, itemId] of Object.entries(this.equipment)) {
+      if (!itemId) continue;
+      const [slotName] = key.split('-');
+      if (slotName === 'weapon' && getItemById(itemId)?.tags?.includes('twoHanded')) {
+        if (countedTwoHanded.has(itemId)) continue;
+        countedTwoHanded.add(itemId);
+      }
+      def += getItemById(itemId)?.properties?.DEF || 0;
+    }
+    return def;
+  }
+
+  _getWeaponDamageMin() {
+    const weapon = this.getEquippedItem('weapon', 0) || this.getEquippedItem('weapon', 1);
+    return weapon?.properties?.DAMAGE_MIN || 1;
+  }
+
+  _getWeaponDamageMax() {
+    const weapon = this.getEquippedItem('weapon', 0) || this.getEquippedItem('weapon', 1);
+    return weapon?.properties?.DAMAGE_MAX || 5;
+  }
+
+  addXP(amount) {
+    this.xp += amount;
+    // Упрощённая система уровней, можно доработать
+    const xpForLevel = this.level * 100;
+    while (this.xp >= xpForLevel) {
+      this.xp -= xpForLevel;
+      this.level++;
     }
   }
 

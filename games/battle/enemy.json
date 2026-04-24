@@ -1,0 +1,118 @@
+[
+  {
+    "id": "zombie_basic",
+    "name": "Зомби",
+    "baseStats": {
+      "HP": 60,
+      "STR": 2,
+      "CON": 2,
+      "AGI": 1,
+      "REG": 0,
+      "ACC": 75,
+      "DEF": 0,
+      "DAMAGE_MIN": 3,
+      "DAMAGE_MAX": 7,
+      "xp": 30
+    },
+    "levelUps": {
+      "HP": 15,
+      "STR": 8,
+      "CON": 8,
+      "AGI": 5,
+      "ACC": 2,
+      "DEF": 5,
+      "DAMAGE_MIN": 6,
+      "DAMAGE_MAX": 6,
+      "xp": 12
+    },
+    "equipSlots": ["head", "body", "legs", "arm_l", "arm_r", "feet_l", "feet_r", "belt"],
+    "dropChance": 0.15
+  },
+  {
+    "id": "zombie_dog",
+    "name": "Зомби-пёс",
+    "baseStats": {
+      "HP": 40,
+      "STR": 3,
+      "CON": 1,
+      "AGI": 4,
+      "REG": 0,
+      "ACC": 65,
+      "DEF": 0,
+      "DAMAGE_MIN": 4,
+      "DAMAGE_MAX": 9,
+      "xp": 25
+    },
+    "levelUps": {
+      "HP": 10,
+      "STR": 10,
+      "CON": 5,
+      "AGI": 8,
+      "ACC": 1,
+      "DEF": 3,
+      "DAMAGE_MIN": 8,
+      "DAMAGE_MAX": 8,
+      "xp": 10
+    },
+    "equipSlots": ["head", "body", "legs"],
+    "dropChance": 0.12
+  },
+  {
+    "id": "zombie_bear",
+    "name": "Зомби-медведь",
+    "baseStats": {
+      "HP": 120,
+      "STR": 6,
+      "CON": 5,
+      "AGI": 1,
+      "REG": 1,
+      "ACC": 50,
+      "DEF": 2,
+      "DAMAGE_MIN": 7,
+      "DAMAGE_MAX": 14,
+      "xp": 60
+    },
+    "levelUps": {
+      "HP": 25,
+      "STR": 12,
+      "CON": 10,
+      "AGI": 3,
+      "ACC": 1,
+      "DEF": 8,
+      "DAMAGE_MIN": 10,
+      "DAMAGE_MAX": 10,
+      "xp": 25
+    },
+    "equipSlots": ["head", "body", "legs", "arm_l", "arm_r"],
+    "dropChance": 0.2
+  },
+  {
+    "id": "zombie_rat_swarm",
+    "name": "Стая зомби-крыс",
+    "baseStats": {
+      "HP": 30,
+      "STR": 1,
+      "CON": 1,
+      "AGI": 5,
+      "REG": 2,
+      "ACC": 80,
+      "DEF": 0,
+      "DAMAGE_MIN": 1,
+      "DAMAGE_MAX": 3,
+      "xp": 15
+    },
+    "levelUps": {
+      "HP": 5,
+      "STR": 3,
+      "CON": 2,
+      "AGI": 10,
+      "ACC": 2,
+      "DEF": 1,
+      "DAMAGE_MIN": 2,
+      "DAMAGE_MAX": 2,
+      "xp": 5
+    },
+    "equipSlots": [],
+    "dropChance": 0.05
+  }
+]

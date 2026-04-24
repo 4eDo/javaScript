@@ -1,7 +1,8 @@
 import { loadItemsDB, getItemById, getRecipeByIndex, getAllItemIds } from './itemsDB.js';
 import { Character } from './character.js';
 import * as ui from './ui.js';
-import { setupBattle } from './battle.js';
+import { setupBattle, setBattleEndCallback } from './battle.js';
+import { loadEnemyTemplates } from './enemy.js';
 
 const player = new Character();
 ui.setCharacter(player);
@@ -289,9 +290,10 @@ function setupOtherEvents() {
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 async function init() {
   await loadItemsDB();
+  await loadEnemyTemplates();
   setupDelegatedEvents();
   setupOtherEvents();
-  setupBattle();
+  setupBattle(player, ui);
   
   const allIds = getAllItemIds();
   player.testFillInventory(allIds);
