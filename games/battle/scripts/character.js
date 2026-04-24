@@ -1,10 +1,10 @@
-import { getItem } from './itemsDB.js';
+import { getItemById } from './itemsDB.js';
 import { CONFIG } from './config.js';
 
 export class Character {
   constructor() {
     this.inventory = [];
-    this.equipment = {}; // { 'head-0': itemId, ... }
+    this.equipment = {};
   }
 
   // ========== ИНВЕНТАРЬ ==========
@@ -22,9 +22,15 @@ export class Character {
   }
 
   // ========== ЭКИПИРОВКА ==========
-  getEquipped(slotKey) {
+  getEquippedItem(slotName, index) {
+    const key = `${slotName}-${index}`;
+    const itemId = this.equipment[key];
+    return itemId ? getItemById(itemId) : null;
+  }
+
+  getEquippedItemByKey(slotKey) {
     const itemId = this.equipment[slotKey];
-    return itemId ? getItem(itemId) : null;
+    return itemId ? getItemById(itemId) : null;
   }
 
   isEquipped(itemId) {
@@ -32,59 +38,132 @@ export class Character {
   }
 
   equip(itemId, slotKey) {
-    const item = getItem(itemId);
+    const item = getItemById(itemId);
     if (!item) return false;
 
     const [slotName, indexStr] = slotKey.split('-');
     const index = parseInt(indexStr);
 
+    // Если слот уже содержит этот предмет — ничего не делаем
+    if (this.equipment[slotKey] === itemId) return false;
+
+    // Проверка: предмет должен подходить к слоту
+    if (!item.slots || !item.slots.includes(slotName)) return false;
+
+    // Запоминаем старые предметы для возврата в инвентарь
+    const oldItems = [];
+
     // Двуручное оружие
-    if (item.isTwoHanded && slotName === 'weapon') {
-      this._unequipSlotRaw('weapon-0');
-      this._unequipSlotRaw('weapon-1');
+    if (item.tags && item.tags.includes('twoHanded') && slotName === 'weapon') {
+      // Снимаем всё из обоих слотов оружия
+      const w0 = this.equipment['weapon-0'];
+      const w1 = this.equipment['weapon-1'];
+      
+      if (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded')) {
+        oldItems.push(w0); // двуручное — один экземпляр
+      } else {
+        if (w0) oldItems.push(w0);
+        if (w1) oldItems.push(w1);
+      }
+      
+      delete this.equipment['weapon-0'];
+      delete this.equipment['weapon-1'];
+      
       this.equipment['weapon-0'] = itemId;
       this.equipment['weapon-1'] = itemId;
     }
-    // Одноручное в слот оружия при надетом двуручном
+    // Одноручное в слот оружия, когда надето двуручное
     else if (slotName === 'weapon' && this._isTwoHandedEquipped()) {
-      this._unequipSlotRaw('weapon-0');
-      this._unequipSlotRaw('weapon-1');
-      this._handleSingleConflict(item, slotName, index, slotKey);
+      const w0 = this.equipment['weapon-0'];
+      oldItems.push(w0); // двуручное — один экземпляр
+      delete this.equipment['weapon-0'];
+      delete this.equipment['weapon-1'];
+      
+      // Проверка single для оружия
+      const otherIdx = index === 0 ? 1 : 0;
+      const otherKey = `weapon-${otherIdx}`;
+      const otherId = this.equipment[otherKey];
+      
+      if (item.tags && item.tags.includes('single') && otherId === itemId) {
+        if (otherId) oldItems.push(otherId);
+        delete this.equipment[otherKey];
+      }
+      
+      // Снимаем старый предмет из целевого слота
+      if (this.equipment[slotKey]) {
+        oldItems.push(this.equipment[slotKey]);
+      }
+      
       this.equipment[slotKey] = itemId;
     }
     // Пояс
     else if (slotName === 'belt') {
-      this._unequipSlotRaw(slotKey);
-      this._handleSingleConflict(item, slotName, index, slotKey);
+      if (this.equipment[slotKey]) {
+        oldItems.push(this.equipment[slotKey]);
+      }
+      
+      // Проверка single
+      if (item.tags && item.tags.includes('single')) {
+        for (const [key, equippedId] of Object.entries(this.equipment)) {
+          const [eqSlot] = key.split('-');
+          if (eqSlot === 'belt' && equippedId === itemId && key !== slotKey) {
+            oldItems.push(equippedId);
+            delete this.equipment[key];
+            break;
+          }
+        }
+      }
+      
       this.equipment[slotKey] = itemId;
       this._redistributeConsumables();
     }
     // Обычный слот
     else {
-      this._unequipSlotRaw(slotKey);
-      this._handleSingleConflict(item, slotName, index, slotKey);
+      if (this.equipment[slotKey]) {
+        oldItems.push(this.equipment[slotKey]);
+      }
+      
+      // Проверка single
+      if (item.tags && item.tags.includes('single')) {
+        for (const [key, equippedId] of Object.entries(this.equipment)) {
+          const [eqSlot] = key.split('-');
+          if (eqSlot === slotName && equippedId === itemId && key !== slotKey) {
+            oldItems.push(equippedId);
+            delete this.equipment[key];
+            break;
+          }
+        }
+      }
+      
       this.equipment[slotKey] = itemId;
     }
 
+    // Возвращаем старые предметы в инвентарь
+    oldItems.forEach(id => this.addItem(id));
+
+    // Удаляем надетый предмет из инвентаря
     this.removeItem(itemId);
     return true;
   }
 
   unequip(slotKey) {
-    const [slotName] = slotKey.split('-');
     const itemId = this.equipment[slotKey];
     if (!itemId) return;
 
-    if (slotName === 'weapon' && getItem(itemId)?.isTwoHanded) {
-      this._unequipSlotRaw('weapon-0');
-      this._unequipSlotRaw('weapon-1');
+    const [slotName] = slotKey.split('-');
+    const item = getItemById(itemId);
+
+    if (slotName === 'weapon' && item?.tags?.includes('twoHanded')) {
+      // Снимаем двуручное (один экземпляр в инвентарь)
+      delete this.equipment['weapon-0'];
+      delete this.equipment['weapon-1'];
       this.addItem(itemId);
     } else if (slotName === 'belt') {
-      this._unequipSlotRaw(slotKey);
+      delete this.equipment[slotKey];
       this.addItem(itemId);
       this._redistributeConsumables();
     } else {
-      this._unequipSlotRaw(slotKey);
+      delete this.equipment[slotKey];
       this.addItem(itemId);
     }
   }
@@ -98,12 +177,12 @@ export class Character {
       if (!itemId) continue;
       const [slotName] = key.split('-');
 
-      if (slotName === 'weapon' && getItem(itemId)?.isTwoHanded) {
+      if (slotName === 'weapon' && getItemById(itemId)?.tags?.includes('twoHanded')) {
         if (countedTwoHanded.has(itemId)) continue;
         countedTwoHanded.add(itemId);
       }
 
-      const props = getItem(itemId)?.properties || {};
+      const props = getItemById(itemId)?.properties || {};
       STR += props.STR || 0;
       CON += props.CON || 0;
       AGI += props.AGI || 0;
@@ -130,7 +209,7 @@ export class Character {
     let capacity = 0;
     for (const [key, itemId] of Object.entries(this.equipment)) {
       if (!key.startsWith('belt-') || !itemId) continue;
-      capacity += getItem(itemId)?.properties?.CAPACITY || 0;
+      capacity += getItemById(itemId)?.properties?.CAPACITY || 0;
     }
     return capacity;
   }
@@ -143,7 +222,7 @@ export class Character {
       if (id !== itemId) continue;
       const [slotName] = key.split('-');
       if (slotName === 'consumable') continue;
-      if (slotName === 'weapon' && getItem(id)?.isTwoHanded) {
+      if (slotName === 'weapon' && getItemById(id)?.tags?.includes('twoHanded')) {
         if (countedTwoHanded.has(id)) continue;
         countedTwoHanded.add(id);
       }
@@ -152,30 +231,46 @@ export class Character {
     return count;
   }
 
-  // ========== ПРИВАТНЫЕ МЕТОДЫ ==========
-  _unequipSlotRaw(slotKey) {
-    const itemId = this.equipment[slotKey];
-    if (itemId) {
-      this.addItem(itemId);
-      delete this.equipment[slotKey];
+  getEquippedIngredients(recipe) {
+    const equippedList = [];
+    
+    for (const ing of recipe.ingredients) {
+      let remaining = ing.count;
+      const invCount = this.inventory.filter(id => id === ing.id).length;
+      remaining -= invCount;
+      
+      if (remaining > 0) {
+        const countedTwoHanded = new Set();
+        for (const [key, itemId] of Object.entries(this.equipment)) {
+          if (itemId === ing.id && remaining > 0) {
+            const [slotName, index] = key.split('-');
+            if (slotName === 'consumable') continue;
+            
+            if (slotName === 'weapon' && getItemById(itemId)?.tags?.includes('twoHanded')) {
+              if (countedTwoHanded.has(itemId)) continue;
+              countedTwoHanded.add(itemId);
+            }
+            
+            equippedList.push({
+              itemId: ing.id,
+              slot: slotName,
+              index: index,
+              key: key
+            });
+            remaining--;
+          }
+        }
+      }
     }
+    
+    return equippedList;
   }
 
+  // ========== ПРИВАТНЫЕ МЕТОДЫ ==========
   _isTwoHandedEquipped() {
     const w0 = this.equipment['weapon-0'];
     const w1 = this.equipment['weapon-1'];
-    return w0 && w1 && w0 === w1 && getItem(w0)?.isTwoHanded;
-  }
-
-  _handleSingleConflict(newItem, slotName, targetIndex, targetKey) {
-    if (!newItem.isSingle) return;
-    for (const [key, equippedId] of Object.entries(this.equipment)) {
-      const [eqSlot, eqIdx] = key.split('-');
-      if (eqSlot === slotName && equippedId === newItem.id && key !== targetKey) {
-        this._unequipSlotRaw(key);
-        break;
-      }
-    }
+    return w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded');
   }
 
   _redistributeConsumables() {
@@ -202,13 +297,14 @@ export class Character {
   }
 
   // ========== ТЕСТОВОЕ НАПОЛНЕНИЕ ==========
-  testFillInventory(itemList) {
+  testFillInventory(allIds) {
     this.inventory = [];
     this.equipment = {};
     const count = Math.floor(Math.random() * 20) + 15;
     for (let i = 0; i < count; i++) {
-      const randomId = itemList[Math.floor(Math.random() * itemList.length)];
-      this.addItem(randomId);
+      const randomIndex = Math.floor(Math.random() * allIds.length);
+      this.addItem(allIds[randomIndex]);
     }
+    console.log('Инвентарь наполнен:', this.inventory.length, 'предметов');
   }
 }

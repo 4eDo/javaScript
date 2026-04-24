@@ -12,11 +12,11 @@ export async function loadItemsDB() {
   recipes = await recipesResp.json();
 }
 
-export function getItem(id) {
+export function getItemById(id) {
   return items.find(item => item.id === id) || null;
 }
 
-export function getRecipe(index) {
+export function getRecipeByIndex(index) {
   return recipes[index] || null;
 }
 
@@ -24,10 +24,14 @@ export function getAllRecipes() {
   return recipes;
 }
 
-export function getItemCount() {
-  return items.length;
+export function getAllItems() {
+  return items;
 }
 
 export function getAllItemIds() {
   return items.map(item => item.id);
+}
+
+export function getItemsCount() {
+  return items.length;
 }

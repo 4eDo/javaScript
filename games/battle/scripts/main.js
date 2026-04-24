@@ -1,17 +1,18 @@
-import { loadItemsDB, getItem, getRecipe, getAllRecipes, getItemCount, getAllItemIds } from './itemsDB.js';
+import { loadItemsDB, getItemById, getRecipeByIndex, getAllItemIds } from './itemsDB.js';
 import { Character } from './character.js';
 import * as ui from './ui.js';
 
 const player = new Character();
 ui.setCharacter(player);
 
-// ========== ОБРАБОТЧИКИ КЛИКОВ (делегирование) ==========
+// ========== ДЕЛЕГИРОВАНИЕ СОБЫТИЙ ==========
 function setupDelegatedEvents() {
-  // Клик по слотам экипировки (статические + consumable динамические)
+  // Клик по слотам экипировки
   document.getElementById('equip-view').addEventListener('click', e => {
     const slot = e.target.closest('.slot');
     if (!slot || !slot.dataset.slot) return;
     if (slot.classList.contains('twohanded-disabled')) return;
+    if (slot.classList.contains('single-disabled')) return;
     onEquipSlotClick(slot.dataset.slot, parseInt(slot.dataset.index));
   });
 
@@ -19,7 +20,7 @@ function setupDelegatedEvents() {
   document.getElementById('items').addEventListener('click', e => {
     const slot = e.target.closest('.slot');
     if (!slot?.dataset.id) return;
-    onInventoryClick(slot.dataset.id);
+    onInventoryItemClick(slot.dataset.id);
   });
 
   // Клик по рецептам
@@ -29,9 +30,23 @@ function setupDelegatedEvents() {
     onRecipeClick(parseInt(slot.dataset.recipeIndex));
   });
 
-  // Клик «Создать»
+  // Клик по кнопке «Создать»
   document.getElementById('inv-engineering').addEventListener('click', e => {
     if (e.target.id === 'btn-create-item') onCraftClick();
+  });
+
+  // Правый клик — снятие предмета
+  document.getElementById('equip-view').addEventListener('contextmenu', e => {
+    const slot = e.target.closest('.slot');
+    if (!slot?.dataset.slot) return;
+    e.preventDefault();
+    const key = `${slot.dataset.slot}-${slot.dataset.index}`;
+    if (player.equipment[key]) {
+      player.unequip(key);
+      ui.clearSelection();
+      ui.renderAll();
+      ui.updateItemInfo();
+    }
   });
 }
 
@@ -39,12 +54,13 @@ function setupDelegatedEvents() {
 function onEquipSlotClick(slotName, index) {
   const key = `${slotName}-${index}`;
 
-  // Двуручное в слоте 0 — клик по любому слоту оружия
+  // Двуручное оружие надето
   if (slotName === 'weapon' && player._isTwoHandedEquipped()) {
     if (ui.getSelectedSlotKey() === 'weapon-0' && !ui.getSelectedItemId()) {
       ui.clearSelection();
     } else if (ui.getSelectedItemId()) {
-      if (getItem(ui.getSelectedItemId())?.slots?.includes('weapon')) {
+      const item = getItemById(ui.getSelectedItemId());
+      if (item?.slots?.includes('weapon')) {
         player.equip(ui.getSelectedItemId(), 'weapon-0');
         ui.clearSelection();
       } else {
@@ -62,7 +78,8 @@ function onEquipSlotClick(slotName, index) {
   if (ui.getSelectedSlotKey() === key && !ui.getSelectedItemId()) {
     ui.clearSelection();
   } else if (ui.getSelectedItemId()) {
-    if (getItem(ui.getSelectedItemId())?.slots?.includes(slotName)) {
+    const item = getItemById(ui.getSelectedItemId());
+    if (item?.slots?.includes(slotName)) {
       player.equip(ui.getSelectedItemId(), key);
       ui.clearSelection();
     }
@@ -73,10 +90,11 @@ function onEquipSlotClick(slotName, index) {
   ui.updateItemInfo();
 }
 
-function onInventoryClick(itemId) {
+function onInventoryItemClick(itemId) {
   if (ui.getSelectedSlotKey()) {
     const [slotName] = ui.getSelectedSlotKey().split('-');
-    if (getItem(itemId)?.slots?.includes(slotName)) {
+    const item = getItemById(itemId);
+    if (item?.slots?.includes(slotName)) {
       player.equip(itemId, ui.getSelectedSlotKey());
       ui.clearSelection();
       ui.renderAll();
@@ -84,6 +102,7 @@ function onInventoryClick(itemId) {
       return;
     }
   }
+
   if (ui.getSelectedItemId() === itemId) {
     ui.clearSelection();
   } else {
@@ -94,19 +113,21 @@ function onInventoryClick(itemId) {
 }
 
 function onRecipeClick(index) {
-  const recipe = getRecipe(index);
+  const recipe = getRecipeByIndex(index);
   if (!recipe) return;
 
-  const item = getItem(recipe.result);
-  document.getElementById('itemTitle').textContent = item?.name || recipe.result;
+  const resultItem = getItemById(recipe.result);
+  
+  document.getElementById('itemTitle').textContent = resultItem ? resultItem.name : recipe.result;
   const props = document.getElementById('properties');
   props.innerHTML = '';
-  if (item) {
-    addPropLocal(props, 'Уровень', item.level, '');
-    if (item.slots) addPropLocal(props, 'Слоты', item.slots.join(', '), '');
-    if (item.isTwoHanded) addPropLocal(props, 'Особенность', 'Двуручное', '');
-    if (item.properties) {
-      for (const [k, v] of Object.entries(item.properties)) {
+
+  if (resultItem) {
+    addPropLocal(props, 'Уровень', resultItem.level, '');
+    if (resultItem.slots) addPropLocal(props, 'Слоты', resultItem.slots.join(', '), '');
+    if (resultItem.tags?.includes('twoHanded')) addPropLocal(props, 'Особенность', 'Двуручное', '');
+    if (resultItem.properties) {
+      for (const [k, v] of Object.entries(resultItem.properties)) {
         addPropLocal(props, k, v > 0 ? '+' + v : v, '');
       }
     }
@@ -118,7 +139,7 @@ function onRecipeClick(index) {
   props.appendChild(dt);
 
   recipe.ingredients.forEach(ing => {
-    const ingItem = getItem(ing.id);
+    const ingItem = getItemById(ing.id);
     const avail = player.countAvailable(ing.id);
     const dd = document.createElement('dd');
     dd.textContent = `${ingItem?.name || ing.id}: ${avail}/${ing.count}`;
@@ -127,20 +148,22 @@ function onRecipeClick(index) {
   });
 
   document.getElementById('btn-unequip-left').style.display = 'none';
-  const canCraft = recipe.ingredients.every(ing => player.countAvailable(ing.id) >= ing.count);
-  ui.setPendingRecipe(canCraft ? recipe : null);
+  
+  const can = recipe.ingredients.every(ing => player.countAvailable(ing.id) >= ing.count);
+  ui.setPendingRecipe(can ? recipe : null);
 }
 
 function onCraftClick() {
   const recipe = ui.getPendingRecipe();
   if (!recipe) return;
 
-  const equipped = ui.getEquippedIngredients(recipe);
+  const equipped = player.getEquippedIngredients(recipe);
+  
   if (equipped.length > 0) {
     const list = document.getElementById('equipped-warning-list');
     list.innerHTML = '';
     equipped.forEach(eq => {
-      const item = getItem(eq.itemId);
+      const item = getItemById(eq.itemId);
       const li = document.createElement('li');
       li.textContent = `${item?.name || eq.itemId} — слот: ${eq.slot}[${eq.index}]`;
       list.appendChild(li);
@@ -171,26 +194,12 @@ function addPropLocal(container, key, value, className) {
   container.appendChild(dd);
 }
 
-// ========== СНЯТИЕ ПРЕДМЕТА (кнопка и правая кнопка) ==========
-document.getElementById('btn-unequip-left').addEventListener('click', () => {
-  if (ui.getSelectedSlotKey()) {
-    player.unequip(ui.getSelectedSlotKey());
-    ui.clearSelection();
-    ui.renderAll();
-    ui.updateItemInfo();
-  }
-});
-
-// ========== ОБРАБОТЧИКИ ПРОЧЕГО ==========
+// ========== ПРОЧИЕ ОБРАБОТЧИКИ ==========
 function setupOtherEvents() {
-  // Снятие по правому клику на слот экипировки
-  document.getElementById('equip-view').addEventListener('contextmenu', e => {
-    const slot = e.target.closest('.slot');
-    if (!slot?.dataset.slot) return;
-    e.preventDefault();
-    const key = `${slot.dataset.slot}-${slot.dataset.index}`;
-    if (player.equipment[key]) {
-      player.unequip(key);
+  // Снятие через кнопку
+  document.getElementById('btn-unequip-left').addEventListener('click', () => {
+    if (ui.getSelectedSlotKey()) {
+      player.unequip(ui.getSelectedSlotKey());
       ui.clearSelection();
       ui.renderAll();
       ui.updateItemInfo();
@@ -214,6 +223,7 @@ function setupOtherEvents() {
     document.getElementById('equip-view').classList.add('active');
     document.getElementById('stats-view').classList.remove('active');
   });
+
   document.getElementById('btn-show-stats').addEventListener('click', () => {
     document.getElementById('btn-show-stats').classList.add('active');
     document.getElementById('btn-show-equip').classList.remove('active');
@@ -250,12 +260,13 @@ function setupOtherEvents() {
       document.getElementById(btn.dataset.close).classList.remove('open');
     });
   });
+
   document.querySelectorAll('modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', e => {
       if (e.target === overlay) overlay.classList.remove('open');
     });
   });
-  // Предотвращаем всплытие с modal-window
+
   document.querySelectorAll('modal-window').forEach(win => {
     win.addEventListener('click', e => e.stopPropagation());
   });
@@ -268,7 +279,7 @@ function setupOtherEvents() {
     document.getElementById(id)?.addEventListener('change', () => ui.renderRecipes());
   });
 
-  // Бой (заглушка)
+  // Бой
   document.getElementById('btn-attack').addEventListener('click', () => {
     const log = document.getElementById('battle-log');
     const entry = document.createElement('p');
@@ -276,6 +287,7 @@ function setupOtherEvents() {
     entry.textContent = 'Вы атакуете — ' + Math.floor(Math.random() * 20 + 5) + ' урона.';
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
+    
     if (Math.random() < 0.3) {
       setTimeout(() => {
         document.getElementById('result-title').textContent = 'Победа!';
@@ -284,6 +296,7 @@ function setupOtherEvents() {
       }, 500);
     }
   });
+
   document.getElementById('btn-flee').addEventListener('click', () => {
     const log = document.getElementById('battle-log');
     const entry = document.createElement('p');
@@ -291,12 +304,14 @@ function setupOtherEvents() {
     entry.textContent = 'Вы пытаетесь убежать...';
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
+    
     setTimeout(() => {
       document.getElementById('result-title').textContent = 'Побег!';
       document.getElementById('result-text').textContent = 'Вы успешно сбежали с поля боя.';
       document.getElementById('modal-result').classList.add('open');
     }, 800);
   });
+
   document.querySelectorAll('.enemy').forEach(enemy => {
     enemy.addEventListener('click', () => {
       document.querySelectorAll('.enemy').forEach(e => e.style.outline = '');
@@ -305,19 +320,14 @@ function setupOtherEvents() {
   });
 }
 
-// ========== ТЕСТОВОЕ НАПОЛНЕНИЕ ==========
-function testFillInventory() {
-  const allIds = getAllItemIds();
-  player.testFillInventory(allIds);
-}
-
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 async function init() {
   await loadItemsDB();
   setupDelegatedEvents();
   setupOtherEvents();
   
-  testFillInventory();
+  const allIds = getAllItemIds();
+  player.testFillInventory(allIds);
   
   ui.renderAll();
   ui.updateItemInfo();

@@ -1,6 +1,6 @@
-import { getItem, getRecipe, getAllRecipes } from './itemsDB.js';
+import { getItemById, getRecipeByIndex, getAllRecipes } from './itemsDB.js';
 
-// UI-состояние (только для отображения)
+// UI-состояние
 let selectedItemId = null;
 let selectedSlotKey = null;
 let pendingRecipe = null;
@@ -13,7 +13,6 @@ export function clearSelection() { selectedItemId = null; selectedSlotKey = null
 export function setPendingRecipe(r) { pendingRecipe = r; }
 export function getPendingRecipe() { return pendingRecipe; }
 
-// Ссылка на персонажа (устанавливается извне)
 let character = null;
 export function setCharacter(ch) { character = ch; }
 
@@ -29,33 +28,45 @@ export function renderInventory() {
 
   const grouped = {};
   character.inventory.forEach(id => {
-    const item = getItem(id);
+    const item = getItemById(id);
     if (!item) return;
-    if (filterType && !item.tags.includes(filterType)) return;
+    
+    // Фильтрация по тегам
+    if (filterType && (!item.tags || !item.tags.includes(filterType))) return;
     if (filterLevel !== '' && item.level !== parseInt(filterLevel)) return;
     if (filterSlot && (!item.slots || !item.slots.includes(filterSlot))) return;
 
-    if (!grouped[id]) grouped[id] = { item, count: 0 };
+    if (!grouped[id]) {
+      grouped[id] = { item, count: 0 };
+    }
     grouped[id].count++;
   });
 
   Object.values(grouped).forEach(({ item, count }) => {
-    const slot = document.createElement('div');
+    const slot = document.createElement('item-slot');
     slot.className = 'slot';
     if (item.img) {
       slot.classList.add('filled');
       slot.style.backgroundImage = `url(${item.img})`;
     }
-    if (count > 1) slot.dataset.count = count;
+    if (count > 1) {
+      slot.dataset.count = count;
+    }
     slot.dataset.id = item.id;
 
+    // Подсветка при выбранном слоте
     if (selectedSlotKey && !selectedItemId) {
       const [slotName] = selectedSlotKey.split('-');
-      if (item.slots?.includes(slotName)) slot.classList.add('highlight-inv');
+      if (item.slots && item.slots.includes(slotName)) {
+        slot.classList.add('highlight-inv');
+      }
     }
 
-    if (selectedItemId === item.id) slot.classList.add('selected');
+    if (selectedItemId === item.id) {
+      slot.classList.add('selected');
+    }
 
+    // Сравнение при наведении
     slot.addEventListener('mouseenter', () => {
       if (selectedItemId && selectedItemId !== item.id && isInvItemsTabActive()) {
         showComparisonInfo(selectedItemId, item);
@@ -63,7 +74,10 @@ export function renderInventory() {
         showItemInfo(item, 'info-right', 'itemTitleHover', 'propertiesHover');
       }
     });
-    slot.addEventListener('mouseleave', () => hideInfoRight());
+    slot.addEventListener('mouseleave', () => {
+      hideItemInfo('info-right');
+    });
+
     grid.appendChild(slot);
   });
 }
@@ -78,26 +92,42 @@ export function renderEquipment() {
     el.style.opacity = '1';
   });
 
-  // Заполняем надетые
+  // Заполняем надетые предметы
   for (const [key, itemId] of Object.entries(character.equipment)) {
+    if (!itemId) continue;
     const [slotName, index] = key.split('-');
-    const item = getItem(itemId);
+    const item = getItemById(itemId);
     if (!item) continue;
-    const el = document.querySelector(`.slot[data-slot="${slotName}"][data-index="${index}"]`);
-    if (el) {
-      el.classList.add('filled');
-      if (item.img) el.style.backgroundImage = `url(${item.img})`;
+
+    const slotEl = document.querySelector(`.slot[data-slot="${slotName}"][data-index="${index}"]`);
+    if (slotEl) {
+      slotEl.classList.add('filled');
+      if (item.img) {
+        slotEl.style.backgroundImage = `url(${item.img})`;
+      }
     }
   }
 
   // Блокировка двуручного
-  if (character._isTwoHandedEquipped()) {
-    const w0 = character.equipment['weapon-0'];
-    if (selectedSlotKey?.startsWith('weapon-')) {
-      // Разблокированы оба
+  const w0 = character.equipment['weapon-0'];
+  const w1 = character.equipment['weapon-1'];
+  const twoHandedEquipped = (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded'));
+
+  if (twoHandedEquipped) {
+    const slot0 = document.querySelector('.slot[data-slot="weapon"][data-index="0"]');
+    const slot1 = document.querySelector('.slot[data-slot="weapon"][data-index="1"]');
+
+    if (selectedSlotKey && selectedSlotKey.startsWith('weapon-')) {
+      if (slot0) slot0.classList.remove('twohanded-disabled');
+      if (slot1) slot1.classList.remove('twohanded-disabled');
     } else {
-      const slot1 = document.querySelector('.slot[data-slot="weapon"][data-index="1"]');
-      if (slot1) slot1.classList.add('twohanded-disabled');
+      if (w0 && !w1) {
+        if (slot1) slot1.classList.add('twohanded-disabled');
+      } else if (!w0 && w1) {
+        if (slot0) slot0.classList.add('twohanded-disabled');
+      } else if (w0 && w1 && w0 === w1) {
+        if (slot1) slot1.classList.add('twohanded-disabled');
+      }
     }
   }
 
@@ -107,12 +137,26 @@ export function renderEquipment() {
     allSlots.forEach(el => {
       if (el.dataset.slot !== slotName) return;
       const key = `${slotName}-${el.dataset.index}`;
-      if (character.equipment[key]) return; // занят — не блокируем
-      let block = true;
-      if (selectedSlotKey === key && !selectedItemId) block = false;
-      if (selectedItemId && !itemIds.has(selectedItemId)) block = false;
-      if (selectedItemId && itemIds.has(selectedItemId)) block = true;
-      if (block) el.classList.add('single-disabled');
+      
+      if (!character.equipment[key]) {
+        let shouldBlock = true;
+        
+        if (selectedSlotKey === key && !selectedItemId) {
+          shouldBlock = false;
+        }
+        
+        if (selectedItemId && !itemIds.has(selectedItemId)) {
+          shouldBlock = false;
+        }
+        
+        if (selectedItemId && itemIds.has(selectedItemId)) {
+          shouldBlock = true;
+        }
+        
+        if (shouldBlock) {
+          el.classList.add('single-disabled');
+        }
+      }
     });
   }
 
@@ -120,28 +164,40 @@ export function renderEquipment() {
   if (selectedSlotKey && !selectedItemId) {
     const [sName, sIdx] = selectedSlotKey.split('-');
     const itemId = character.equipment[selectedSlotKey];
-    if (sName === 'weapon' && itemId && getItem(itemId)?.isTwoHanded) {
+    
+    if (sName === 'weapon' && itemId && getItemById(itemId)?.tags?.includes('twoHanded')) {
       ['0', '1'].forEach(i => {
         const el = document.querySelector(`.slot[data-slot="weapon"][data-index="${i}"]`);
-        if (el) { el.classList.add('selected'); el.style.pointerEvents = 'auto'; el.style.opacity = '1'; }
+        if (el) {
+          el.classList.add('selected');
+          el.classList.remove('twohanded-disabled', 'single-disabled');
+          el.style.pointerEvents = 'auto';
+          el.style.opacity = '1';
+        }
       });
     } else {
       const el = document.querySelector(`.slot[data-slot="${sName}"][data-index="${sIdx}"]`);
-      if (el) { el.classList.add('selected'); el.style.pointerEvents = 'auto'; el.style.opacity = '1'; }
+      if (el) {
+        el.classList.add('selected');
+        el.classList.remove('twohanded-disabled', 'single-disabled');
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+      }
     }
   }
 
-  // Подсветка слотов под выбранный предмет
+  // Подсветка слотов при выбранном предмете
   if (selectedItemId && !selectedSlotKey) {
-    const item = getItem(selectedItemId);
-    if (item?.slots) {
+    const item = getItemById(selectedItemId);
+    if (item && item.slots) {
       allSlots.forEach(el => {
         if (!item.slots.includes(el.dataset.slot)) return;
         const key = `${el.dataset.slot}-${el.dataset.index}`;
+        
         if (character.equipment[key]) {
           el.classList.add('highlight-slot');
-        } else if (item.isSingle && singleBySlot[el.dataset.slot]?.has(selectedItemId)) {
-          // заблокирован, не подсвечиваем
+        } else if (item.tags?.includes('single') && singleBySlot[el.dataset.slot]?.has(selectedItemId)) {
+          // заблокирован single
         } else {
           el.classList.add('highlight-slot');
         }
@@ -157,8 +213,8 @@ function _getSingleEquippedBySlot() {
   for (const [key, itemId] of Object.entries(character.equipment)) {
     if (!itemId) continue;
     const [slotName] = key.split('-');
-    const item = getItem(itemId);
-    if (item?.isSingle) {
+    const item = getItemById(itemId);
+    if (item?.tags?.includes('single')) {
       if (!map[slotName]) map[slotName] = new Set();
       map[slotName].add(itemId);
     }
@@ -169,30 +225,41 @@ function _getSingleEquippedBySlot() {
 function updateConsumableSlots() {
   const part = document.getElementById('consumable-part');
   if (!part) return;
+  
   const capacity = character.getConsumableCapacity();
-  if (capacity === 0) {
+  
+  if (capacity > 0) {
+    part.style.display = 'block';
+    part.innerHTML = '';
+    
+    for (let i = 0; i < capacity; i++) {
+      const key = `consumable-${i}`;
+      const itemId = character.equipment[key];
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.slot = 'consumable';
+      slot.dataset.index = i;
+      
+      if (itemId) {
+        const item = getItemById(itemId);
+        slot.classList.add('filled');
+        if (item?.img) {
+          slot.style.backgroundImage = `url(${item.img})`;
+        }
+      }
+      
+      if (selectedSlotKey === key && !selectedItemId) {
+        slot.classList.add('selected');
+      }
+      
+      if (selectedItemId && !selectedSlotKey && getItemById(selectedItemId)?.slots?.includes('consumable')) {
+        slot.classList.add('highlight-slot');
+      }
+      
+      part.appendChild(slot);
+    }
+  } else {
     part.style.display = 'none';
-    return;
-  }
-  part.style.display = 'block';
-  part.innerHTML = '';
-  for (let i = 0; i < capacity; i++) {
-    const key = `consumable-${i}`;
-    const itemId = character.equipment[key];
-    const slot = document.createElement('div');
-    slot.className = 'slot';
-    slot.dataset.slot = 'consumable';
-    slot.dataset.index = i;
-    if (itemId) {
-      const item = getItem(itemId);
-      slot.classList.add('filled');
-      if (item?.img) slot.style.backgroundImage = `url(${item.img})`;
-    }
-    if (selectedSlotKey === key && !selectedItemId) slot.classList.add('selected');
-    if (selectedItemId && !selectedSlotKey && getItem(selectedItemId)?.slots?.includes('consumable')) {
-      slot.classList.add('highlight-slot');
-    }
-    part.appendChild(slot);
   }
 }
 
@@ -207,31 +274,41 @@ export function renderRecipes() {
   const filterSlot = document.getElementById('eng-filter-slot')?.value || '';
   const filterAvail = document.getElementById('eng-filter-available')?.value || '';
 
-  getAllRecipes().forEach((recipe, idx) => {
-    const item = getItem(recipe.result);
-    if (!item) return;
-    if (filterType && !item.tags.includes(filterType)) return;
-    if (filterLevel !== '' && item.level !== parseInt(filterLevel)) return;
-    if (filterSlot && (!item.slots || !item.slots.includes(filterSlot))) return;
+  getAllRecipes().forEach((recipe, index) => {
+    const resultItem = getItemById(recipe.result);
+    if (!resultItem) return;
 
-    const can = canCraft(recipe);
-    if (filterAvail === 'yes' && !can) return;
-    if (filterAvail === 'no' && can) return;
+    if (filterType && (!resultItem.tags || !resultItem.tags.includes(filterType))) return;
+    if (filterLevel !== '' && resultItem.level !== parseInt(filterLevel)) return;
+    if (filterSlot && (!resultItem.slots || !resultItem.slots.includes(filterSlot))) return;
 
-    const slot = document.createElement('div');
+    const canCraft = canCraftRecipe(recipe);
+    if (filterAvail === 'yes' && !canCraft) return;
+    if (filterAvail === 'no' && canCraft) return;
+
+    const slot = document.createElement('recipe-slot');
     slot.className = 'slot';
-    if (item.img) {
+    if (resultItem.img) {
       slot.classList.add('filled');
-      slot.style.backgroundImage = `url(${item.img})`;
+      slot.style.backgroundImage = `url(${resultItem.img})`;
     }
-    slot.dataset.recipeIndex = idx;
-    if (!can) slot.classList.add('unavailable');
-    slot.addEventListener('mouseenter', () => showRecipeInfo(recipe));
-    slot.addEventListener('mouseleave', () => hideInfoRight());
+    slot.dataset.recipeIndex = index;
+
+    if (!canCraft) {
+      slot.classList.add('unavailable');
+    }
+
+    slot.addEventListener('mouseenter', () => {
+      showRecipeInfo(recipe);
+    });
+    slot.addEventListener('mouseleave', () => {
+      hideItemInfo('info-right');
+    });
+
     grid.appendChild(slot);
   });
 
-  // Кнопка создать
+  // Кнопка «Создать»
   let btn = document.getElementById('btn-create-item');
   if (!btn) {
     btn = document.createElement('button');
@@ -243,61 +320,50 @@ export function renderRecipes() {
   }
 }
 
-// ========== КРАФТ ==========
-function canCraft(recipe) {
+// ========== ПРОВЕРКА КРАФТА ==========
+function canCraftRecipe(recipe) {
   return recipe.ingredients.every(ing => character.countAvailable(ing.id) >= ing.count);
 }
 
-export function getEquippedIngredients(recipe) {
-  const list = [];
-  for (const ing of recipe.ingredients) {
-    let remaining = ing.count - character.inventory.filter(id => id === ing.id).length;
-    if (remaining <= 0) continue;
-    const counted = new Set();
-    for (const [key, itemId] of Object.entries(character.equipment)) {
-      if (itemId !== ing.id || remaining <= 0) continue;
-      const [slotName] = key.split('-');
-      if (slotName === 'consumable') continue;
-      if (slotName === 'weapon' && getItem(itemId)?.isTwoHanded) {
-        if (counted.has(itemId)) continue;
-        counted.add(itemId);
-      }
-      list.push({ itemId: ing.id, slot: slotName, index: key.split('-')[1], key });
-      remaining--;
-    }
-  }
-  return list;
-}
-
+// ========== ВЫПОЛНЕНИЕ КРАФТА ==========
 export function executeCraft(recipe) {
   for (const ing of recipe.ingredients) {
     let remaining = ing.count;
+    
+    // Сначала из инвентаря
     while (remaining > 0 && character.hasItem(ing.id)) {
       character.removeItem(ing.id);
       remaining--;
     }
+    
+    // Потом из экипировки
     if (remaining > 0) {
-      const toRemove = [];
-      const counted = new Set();
+      const keysToRemove = [];
+      const countedTwoHanded = new Set();
+      
       for (const [key, itemId] of Object.entries(character.equipment)) {
         if (itemId !== ing.id || remaining <= 0) continue;
         const [slotName] = key.split('-');
         if (slotName === 'consumable') continue;
-        if (slotName === 'weapon' && getItem(itemId)?.isTwoHanded) {
-          if (counted.has(itemId)) continue;
-          counted.add(itemId);
-          toRemove.push('weapon-0', 'weapon-1');
+        
+        if (slotName === 'weapon' && getItemById(itemId)?.tags?.includes('twoHanded')) {
+          if (countedTwoHanded.has(itemId)) continue;
+          countedTwoHanded.add(itemId);
+          keysToRemove.push('weapon-0', 'weapon-1');
         } else {
-          toRemove.push(key);
+          keysToRemove.push(key);
         }
         remaining--;
       }
-      toRemove.forEach(k => delete character.equipment[k]);
-      if (toRemove.some(k => k.startsWith('belt-'))) {
+      
+      keysToRemove.forEach(k => delete character.equipment[k]);
+      
+      if (keysToRemove.some(k => k.startsWith('belt-'))) {
         character._redistributeConsumables();
       }
     }
   }
+  
   for (let i = 0; i < (recipe.count || 1); i++) {
     character.addItem(recipe.result);
   }
@@ -307,19 +373,23 @@ export function executeCraft(recipe) {
 export function updateItemInfo() {
   document.getElementById('itemTitle').textContent = 'Выберите предмет';
   document.getElementById('properties').innerHTML = '';
-  hideInfoRight();
+  hideItemInfo('info-right');
   document.getElementById('btn-unequip-left').style.display = 'none';
 
   if (selectedItemId) {
-    const item = getItem(selectedItemId);
-    if (item) showItemInfo(item, 'info-left', 'itemTitle', 'properties');
+    const item = getItemById(selectedItemId);
+    if (item) {
+      showItemInfoStatic(item, 'info-left', 'itemTitle', 'properties');
+    }
   } else if (selectedSlotKey) {
     const [sName, sIdx] = selectedSlotKey.split('-');
-    const item = character.getEquipped(selectedSlotKey);
+    const item = character.getEquippedItemByKey(selectedSlotKey);
+    
     if (item) {
-      showItemInfo(item, 'info-left', 'itemTitle', 'properties');
-      const suffix = item.isTwoHanded ? ' (надето, двуручное)' : ' (надето)';
+      showItemInfoStatic(item, 'info-left', 'itemTitle', 'properties');
+      const suffix = item.tags?.includes('twoHanded') ? ' (надето, двуручное)' : ' (надето)';
       document.getElementById('itemTitle').textContent = item.name + suffix;
+      
       document.getElementById('btn-unequip-left').style.display = 'block';
     } else {
       document.getElementById('itemTitle').textContent = `Слот: ${sName} [${sIdx}] (пусто)`;
@@ -328,101 +398,152 @@ export function updateItemInfo() {
 }
 
 function showItemInfo(item, containerId, titleId, propsId) {
-  document.getElementById(containerId).style.display = 'block';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.style.display = 'block';
+  
   document.getElementById(titleId).textContent = item.name;
+  
   const props = document.getElementById(propsId);
   props.innerHTML = '';
+  
   addProp(props, 'Уровень', item.level, '');
-  if (item.slots) addProp(props, 'Слоты', item.slots.join(', '), '');
-  if (item.isTwoHanded) addProp(props, 'Особенность', 'Двуручное', '');
+  
+  if (item.slots) {
+    addProp(props, 'Слоты', item.slots.join(', '), '');
+  }
+  
+  if (item.tags && item.tags.includes('twoHanded')) {
+    addProp(props, 'Особенность', 'Двуручное', '');
+  }
+  
   if (item.properties) {
-    for (const [k, v] of Object.entries(item.properties)) {
-      addProp(props, k, v > 0 ? '+' + v : v, '');
+    for (const [key, value] of Object.entries(item.properties)) {
+      addProp(props, key, value > 0 ? '+' + value : value, '');
     }
   }
 }
 
+function showItemInfoStatic(item, containerId, titleId, propsId) {
+  showItemInfo(item, containerId, titleId, propsId);
+}
+
 function showComparisonInfo(selectedId, hoveredItem) {
-  const selected = getItem(selectedId);
-  if (!selected) return;
-  document.getElementById('info-right').style.display = 'block';
+  const selectedItem = getItemById(selectedId);
+  if (!selectedItem) return;
+  
+  const container = document.getElementById('info-right');
+  if (!container) return;
+  container.style.display = 'block';
+  
   document.getElementById('itemTitleHover').textContent = hoveredItem.name;
+  
   const props = document.getElementById('propertiesHover');
   props.innerHTML = '';
-
-  addProp(props, 'Уровень', hoveredItem.level + _diffStr(selected.level, hoveredItem.level), _cmpClass(selected.level, hoveredItem.level));
-  if (hoveredItem.slots) addProp(props, 'Слоты', hoveredItem.slots.join(', '), '');
-
-  const allKeys = new Set([
-    ...Object.keys(selected.properties || {}),
-    ...Object.keys(hoveredItem.properties || {}),
-  ]);
-  allKeys.forEach(key => {
-    const sv = selected.properties?.[key] || 0;
-    const hv = hoveredItem.properties?.[key] || 0;
-    const cls = _cmpClass(sv, hv);
-    const diff = hv - sv;
-    const sign = diff > 0 ? '+' : '';
-    const val = (hv > 0 ? '+' : '') + hv + (diff !== 0 ? ` (${sign}${diff})` : '');
-    addProp(props, key, val, cls);
-  });
+  
+  const levelClass = getCompareClass(selectedItem.level, hoveredItem.level);
+  const levelDiff = getDiffString(selectedItem.level, hoveredItem.level);
+  addProp(props, 'Уровень', hoveredItem.level + levelDiff, levelClass);
+  
+  if (hoveredItem.slots) {
+    addProp(props, 'Слоты', hoveredItem.slots.join(', '), '');
+  }
+  
+  if (hoveredItem.tags && hoveredItem.tags.includes('twoHanded')) {
+    addProp(props, 'Особенность', 'Двуручное', '');
+  }
+  
+  if (hoveredItem.properties) {
+    const allKeys = new Set([
+      ...Object.keys(selectedItem.properties || {}),
+      ...Object.keys(hoveredItem.properties || {})
+    ]);
+    
+    allKeys.forEach(key => {
+      const selectedVal = selectedItem.properties?.[key] || 0;
+      const hoveredVal = hoveredItem.properties?.[key] || 0;
+      const cls = getCompareClass(selectedVal, hoveredVal);
+      const diff = hoveredVal - selectedVal;
+      const sign = diff > 0 ? '+' : '';
+      const diffText = diff !== 0 ? ` (${sign}${diff})` : '';
+      const displayVal = (hoveredVal > 0 ? '+' : '') + hoveredVal + diffText;
+      
+      addProp(props, key, displayVal, cls);
+    });
+  }
 }
 
 function showRecipeInfo(recipe) {
-  const item = getItem(recipe.result);
-  if (!item) return;
-  document.getElementById('info-right').style.display = 'block';
-  document.getElementById('itemTitleHover').textContent = item.name;
+  const resultItem = getItemById(recipe.result);
+  if (!resultItem) return;
+  
+  const container = document.getElementById('info-right');
+  if (!container) return;
+  container.style.display = 'block';
+  
+  document.getElementById('itemTitleHover').textContent = resultItem.name;
+  
   const props = document.getElementById('propertiesHover');
   props.innerHTML = '';
-  addProp(props, 'Уровень', item.level, '');
-  if (item.slots) addProp(props, 'Слоты', item.slots.join(', '), '');
-
+  
+  addProp(props, 'Уровень', resultItem.level, '');
+  if (resultItem.slots) addProp(props, 'Слоты', resultItem.slots.join(', '), '');
+  
+  if (resultItem.tags && resultItem.tags.includes('twoHanded')) {
+    addProp(props, 'Особенность', 'Двуручное', '');
+  }
+  
   const dt = document.createElement('dt');
   dt.textContent = 'Требуется:';
   dt.style.marginTop = '6px';
   props.appendChild(dt);
-
+  
   recipe.ingredients.forEach(ing => {
-    const ingItem = getItem(ing.id);
-    const avail = character.countAvailable(ing.id);
+    const ingItem = getItemById(ing.id);
+    const available = character.countAvailable(ing.id);
+    
     const dd = document.createElement('dd');
-    dd.textContent = `${ingItem?.name || ing.id}: ${avail}/${ing.count}`;
-    dd.style.color = avail >= ing.count ? '#008000' : '#800000';
+    dd.textContent = `${ingItem ? ingItem.name : ing.id}: ${available}/${ing.count}`;
+    dd.style.color = available >= ing.count ? '#008000' : '#800000';
     props.appendChild(dd);
   });
 }
 
-function hideInfoRight() {
-  document.getElementById('info-right').style.display = 'none';
+function hideItemInfo(containerId) {
+  const container = document.getElementById(containerId);
+  if (container) container.style.display = 'none';
 }
 
 function addProp(container, key, value, className) {
   const dt = document.createElement('dt');
   dt.textContent = key;
   if (className) dt.className = className;
+  
   const dd = document.createElement('dd');
   dd.textContent = value;
   if (className) dd.className = className;
+  
   container.appendChild(dt);
   container.appendChild(dd);
 }
 
-function _cmpClass(a, b) {
-  if (b > a) return 'prop-better';
-  if (b < a) return 'prop-worse';
+function getCompareClass(baseValue, compareValue) {
+  if (compareValue > baseValue) return 'prop-better';
+  if (compareValue < baseValue) return 'prop-worse';
   return 'prop-equal';
 }
 
-function _diffStr(a, b) {
-  const d = b - a;
-  if (d === 0) return '';
-  return ` (${d > 0 ? '+' : ''}${d})`;
+function getDiffString(baseValue, compareValue) {
+  const diff = compareValue - baseValue;
+  if (diff === 0) return '';
+  const sign = diff > 0 ? '+' : '';
+  return ` (${sign}${diff})`;
 }
 
 // ========== ХАРАКТЕРИСТИКИ ==========
 export function renderStats() {
   const s = character.getStats();
+  
   document.getElementById('stat-str').textContent = s.STR;
   document.getElementById('stat-con').textContent = s.CON;
   document.getElementById('stat-agi').textContent = s.AGI;
@@ -442,6 +563,6 @@ export function renderAll() {
 }
 
 function isInvItemsTabActive() {
-  const tab = document.querySelector('.inv-tab.active');
-  return tab?.dataset.invtab === 'items';
+  const activeTab = document.querySelector('.inv-tab.active');
+  return activeTab && activeTab.dataset.invtab === 'items';
 }

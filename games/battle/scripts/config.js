@@ -1,4 +1,3 @@
-// Все изменяемые настройки здесь
 export const CONFIG = {
   ITEMS_URL: 'https://4edo.github.io/javaScript/games/battle/items.json',
   RECIPES_URL: 'https://4edo.github.io/javaScript/games/battle/itemsUpgrade.json',
