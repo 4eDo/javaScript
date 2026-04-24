@@ -3,27 +3,27 @@
     "id": "zombie_basic",
     "name": "Зомби",
     "baseStats": {
-      "HP": 65,
-      "STR": 4,
-      "CON": 3,
-      "AGI": 1,
+      "HP": 70,
+      "STR": 5,
+      "CON": 4,
+      "AGI": 2,
       "REG": 0,
-      "ACC": 2,
-      "DEF": 1,
-      "DAMAGE_MIN": 3,
-      "DAMAGE_MAX": 7,
-      "xp": 25
+      "ACC": 3,
+      "DEF": 2,
+      "DAMAGE_MIN": 4,
+      "DAMAGE_MAX": 8,
+      "xp": 30
     },
     "levelUps": {
-      "HP": 14,
-      "STR": 8,
-      "CON": 7,
-      "AGI": 4,
-      "ACC": 6,
-      "DEF": 5,
-      "DAMAGE_MIN": 7,
-      "DAMAGE_MAX": 7,
-      "xp": 12
+      "HP": 15,
+      "STR": 9,
+      "CON": 8,
+      "AGI": 5,
+      "ACC": 7,
+      "DEF": 6,
+      "DAMAGE_MIN": 8,
+      "DAMAGE_MAX": 8,
+      "xp": 14
     },
     "equipSlots": ["head", "body", "legs"],
     "dropChance": 0.15
@@ -32,21 +32,108 @@
     "id": "zombie_builder",
     "name": "Зомби-строитель",
     "baseStats": {
-      "HP": 100,
-      "STR": 8,
-      "CON": 6,
+      "HP": 120,
+      "STR": 9,
+      "CON": 8,
       "AGI": 1,
       "REG": 0,
       "ACC": 2,
-      "DEF": 4,
-      "DAMAGE_MIN": 6,
-      "DAMAGE_MAX": 12,
-      "xp": 45
+      "DEF": 6,
+      "DAMAGE_MIN": 8,
+      "DAMAGE_MAX": 14,
+      "xp": 55
     },
     "levelUps": {
-      "HP": 20,
+      "HP": 22,
+      "STR": 12,
+      "CON": 10,
+      "AGI": 3,
+      "ACC": 5,
+      "DEF": 9,
+      "DAMAGE_MIN": 9,
+      "DAMAGE_MAX": 9,
+      "xp": 22
+    },
+    "equipSlots": ["head", "body", "legs", "arm_l", "arm_r"],
+    "dropChance": 0.22
+  },
+  {
+    "id": "zombie_gymnast",
+    "name": "Зомби-гимнаст",
+    "baseStats": {
+      "HP": 55,
+      "STR": 3,
+      "CON": 2,
+      "AGI": 8,
+      "REG": 1,
+      "ACC": 4,
+      "DEF": 1,
+      "DAMAGE_MIN": 3,
+      "DAMAGE_MAX": 6,
+      "xp": 35
+    },
+    "levelUps": {
+      "HP": 11,
+      "STR": 6,
+      "CON": 4,
+      "AGI": 12,
+      "ACC": 8,
+      "DEF": 3,
+      "DAMAGE_MIN": 6,
+      "DAMAGE_MAX": 6,
+      "xp": 16
+    },
+    "equipSlots": ["legs", "feet_l", "feet_r"],
+    "dropChance": 0.15
+  },
+  {
+    "id": "zombie_runner",
+    "name": "Зомби-бегун",
+    "baseStats": {
+      "HP": 60,
+      "STR": 6,
+      "CON": 3,
+      "AGI": 6,
+      "REG": 0,
+      "ACC": 3,
+      "DEF": 1,
+      "DAMAGE_MIN": 5,
+      "DAMAGE_MAX": 9,
+      "xp": 35
+    },
+    "levelUps": {
+      "HP": 12,
+      "STR": 8,
+      "CON": 6,
+      "AGI": 10,
+      "ACC": 7,
+      "DEF": 4,
+      "DAMAGE_MIN": 8,
+      "DAMAGE_MAX": 8,
+      "xp": 16
+    },
+    "equipSlots": ["legs", "feet_l", "feet_r", "head"],
+    "dropChance": 0.17
+  },
+  {
+    "id": "zombie_fat",
+    "name": "Толстый зомби",
+    "baseStats": {
+      "HP": 150,
+      "STR": 7,
+      "CON": 10,
+      "AGI": 1,
+      "REG": 3,
+      "ACC": 2,
+      "DEF": 4,
+      "DAMAGE_MIN": 5,
+      "DAMAGE_MAX": 10,
+      "xp": 50
+    },
+    "levelUps": {
+      "HP": 28,
       "STR": 10,
-      "CON": 9,
+      "CON": 13,
       "AGI": 2,
       "ACC": 4,
       "DEF": 8,
@@ -54,92 +141,63 @@
       "DAMAGE_MAX": 8,
       "xp": 20
     },
-    "equipSlots": ["head", "body", "legs", "arm_l", "arm_r"],
-    "dropChance": 0.2
-  },
-  {
-    "id": "zombie_gymnast",
-    "name": "Зомби-гимнаст",
-    "baseStats": {
-      "HP": 50,
-      "STR": 3,
-      "CON": 2,
-      "AGI": 7,
-      "REG": 1,
-      "ACC": 3,
-      "DEF": 0,
-      "DAMAGE_MIN": 2,
-      "DAMAGE_MAX": 5,
-      "xp": 30
-    },
-    "levelUps": {
-      "HP": 10,
-      "STR": 5,
-      "CON": 4,
-      "AGI": 10,
-      "ACC": 7,
-      "DEF": 2,
-      "DAMAGE_MIN": 5,
-      "DAMAGE_MAX": 5,
-      "xp": 14
-    },
-    "equipSlots": ["legs", "feet_l", "feet_r"],
-    "dropChance": 0.15
-  },
-  {
-    "id": "zombie_fat",
-    "name": "Толстый зомби",
-    "baseStats": {
-      "HP": 130,
-      "STR": 6,
-      "CON": 8,
-      "AGI": 1,
-      "REG": 2,
-      "ACC": 1,
-      "DEF": 3,
-      "DAMAGE_MIN": 4,
-      "DAMAGE_MAX": 9,
-      "xp": 40
-    },
-    "levelUps": {
-      "HP": 25,
-      "STR": 9,
-      "CON": 11,
-      "AGI": 2,
-      "ACC": 3,
-      "DEF": 7,
-      "DAMAGE_MIN": 7,
-      "DAMAGE_MAX": 7,
-      "xp": 18
-    },
     "equipSlots": ["body", "belt"],
     "dropChance": 0.2
+  },
+  {
+    "id": "zombie_soldier",
+    "name": "Зомби-солдат",
+    "baseStats": {
+      "HP": 85,
+      "STR": 7,
+      "CON": 5,
+      "AGI": 3,
+      "REG": 0,
+      "ACC": 5,
+      "DEF": 3,
+      "DAMAGE_MIN": 6,
+      "DAMAGE_MAX": 11,
+      "xp": 45
+    },
+    "levelUps": {
+      "HP": 17,
+      "STR": 10,
+      "CON": 8,
+      "AGI": 6,
+      "ACC": 8,
+      "DEF": 7,
+      "DAMAGE_MIN": 8,
+      "DAMAGE_MAX": 8,
+      "xp": 18
+    },
+    "equipSlots": ["head", "body", "legs", "arm_l", "arm_r"],
+    "dropChance": 0.18
   },
   {
     "id": "zombie_dog",
     "name": "Зомби-пёс",
     "baseStats": {
-      "HP": 25,
-      "STR": 2,
-      "CON": 1,
-      "AGI": 3,
+      "HP": 40,
+      "STR": 4,
+      "CON": 2,
+      "AGI": 5,
       "REG": 0,
-      "ACC": 55,
+      "ACC": 3,
       "DEF": 0,
       "DAMAGE_MIN": 3,
-      "DAMAGE_MAX": 6,
-      "xp": 15
+      "DAMAGE_MAX": 7,
+      "xp": 20
     },
     "levelUps": {
-      "HP": 8,
-      "STR": 8,
-      "CON": 4,
-      "AGI": 6,
-      "ACC": 1,
-      "DEF": 2,
-      "DAMAGE_MIN": 6,
-      "DAMAGE_MAX": 6,
-      "xp": 8
+      "HP": 9,
+      "STR": 9,
+      "CON": 5,
+      "AGI": 7,
+      "ACC": 6,
+      "DEF": 3,
+      "DAMAGE_MIN": 7,
+      "DAMAGE_MAX": 7,
+      "xp": 10
     },
     "equipSlots": [],
     "dropChance": 0.12
@@ -148,58 +206,29 @@
     "id": "zombie_bear",
     "name": "Зомби-медведь",
     "baseStats": {
-      "HP": 80,
-      "STR": 4,
-      "CON": 3,
-      "AGI": 1,
+      "HP": 100,
+      "STR": 8,
+      "CON": 6,
+      "AGI": 2,
       "REG": 1,
-      "ACC": 40,
-      "DEF": 1,
-      "DAMAGE_MIN": 5,
-      "DAMAGE_MAX": 10,
-      "xp": 40
+      "ACC": 2,
+      "DEF": 2,
+      "DAMAGE_MIN": 7,
+      "DAMAGE_MAX": 13,
+      "xp": 50
     },
     "levelUps": {
-      "HP": 18,
-      "STR": 10,
-      "CON": 8,
-      "AGI": 2,
-      "ACC": 1,
-      "DEF": 5,
-      "DAMAGE_MIN": 8,
-      "DAMAGE_MAX": 8,
-      "xp": 20
+      "HP": 20,
+      "STR": 12,
+      "CON": 9,
+      "AGI": 3,
+      "ACC": 5,
+      "DEF": 6,
+      "DAMAGE_MIN": 9,
+      "DAMAGE_MAX": 9,
+      "xp": 22
     },
     "equipSlots": ["head", "body"],
     "dropChance": 0.2
-  },
-  {
-    "id": "zombie_rat_swarm",
-    "name": "Стая зомби-крыс",
-    "baseStats": {
-      "HP": 15,
-      "STR": 1,
-      "CON": 1,
-      "AGI": 4,
-      "REG": 1,
-      "ACC": 70,
-      "DEF": 0,
-      "DAMAGE_MIN": 1,
-      "DAMAGE_MAX": 2,
-      "xp": 10
-    },
-    "levelUps": {
-      "HP": 4,
-      "STR": 2,
-      "CON": 1,
-      "AGI": 8,
-      "ACC": 1,
-      "DEF": 1,
-      "DAMAGE_MIN": 1,
-      "DAMAGE_MAX": 1,
-      "xp": 4
-    },
-    "equipSlots": [],
-    "dropChance": 0.05
   }
 ]

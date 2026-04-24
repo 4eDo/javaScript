@@ -640,6 +640,7 @@ export function renderStats() {
   document.getElementById('stat-acc').textContent = s.ACC;
   document.getElementById('stat-hp').textContent = s.HP;
   document.getElementById('stat-def').textContent = s.DEF;
+  document.getElementById('stat-damage').textContent = `${s.DAMAGE_MIN}-${s.DAMAGE_MAX}`;
   
   updateXPBar();
 }
@@ -664,6 +665,7 @@ export function updateBattleCharacterStats(stats = null, currentHP = null) {
   document.getElementById('stat-reg').textContent = s.REG;
   document.getElementById('stat-acc').textContent = s.ACC;
   document.getElementById('stat-def').textContent = s.DEF;
+  document.getElementById('stat-damage').textContent = `${s.DAMAGE_MIN}-${s.DAMAGE_MAX}`;
   
   updateXPBar();
 }
