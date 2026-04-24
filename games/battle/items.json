@@ -10,7 +10,7 @@
             "AGI": 0,
             "CON": 0.5,
             "ACC": -1,
-            "REG": 2
+            "REG_HP": 2
         },
         "img": "https://placehold.jp/0/636479/ffffff/30x30.png"
     },
@@ -25,7 +25,7 @@
             "AGI": 0,
             "CON": 1,
             "ACC": -0.5,
-            "REG": 1
+            "REG_HP": 1
         },
         "img": "https://placehold.jp/0/54567d/ffffff/30x30.png"
     },
@@ -133,10 +133,11 @@
         "name": "Подорожник",
         "descr": "Поплюй и прижми.",
 		"level": 0,
-        "tags": ["consumable"],
-        "slots": ["consumable"],
+        "tags": ["consumable", "clothes"],
+        "slots": ["consumable", "legs"],
         "properties": {
-            "HP": 5
+            "HP": 5,
+            "REG_HP": 1
         },
         "img": "https://placehold.jp/0/90EE90/ffffff/30x30.png"
     },
@@ -145,10 +146,11 @@
         "name": "Пластырь",
         "descr": "Держится крепко!",
 		"level": 1,
-        "tags": ["consumable"],
-        "slots": ["consumable"],
+        "tags": ["consumable", "clothes"],
+        "slots": ["consumable", "body"],
         "properties": {
-            "HP": 10
+            "HP": 10,
+            "REG_HP": 2
         },
         "img": "https://placehold.jp/0/00FA9A/ffffff/30x30.png"
     },
@@ -200,5 +202,19 @@
             "CAPACITY": 3
         },
         "img": "https://placehold.jp/0/FFEFD5/ffffff/30x30.png"
+    },
+	{
+        "id": "helm_0",
+        "name": "Ведро",
+        "descr": "Мощная защита! А видимость так себе.",
+		"level": 0,
+        "tags": ["clothes", "single"],
+        "slots": ["head"],
+        "properties": {
+            "CON": 5,
+            "AGI": -2,
+            "ACC": -2
+        },
+        "img": "https://placehold.jp/0/708090/ffffff/30x30.png"
     }
 ]
