@@ -35,6 +35,13 @@
       ]
     },
     {
+      "result": "branch_2",
+      "count": 1,
+      "ingredients": [
+        { "id": "branch_1", "count": 5 }
+      ]
+    },
+    {
       "result": "broom_0",
       "count": 1,
       "ingredients": [

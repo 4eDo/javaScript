@@ -74,7 +74,7 @@
         "descr": "Тонкий, но хлёсткий. Больше унижения, чем урона.",
 		"level": 0,
         "tags": ["weapon"],
-        "slots": ["arm_l", "arm_r"],
+        "slots": ["weapon"],
         "properties": {
             "AGI": 1,
             "ACC": 2,
@@ -89,7 +89,7 @@
         "descr": "Опасное оружие!",
 		"level": 1,
         "tags": ["weapon"],
-        "slots": ["arm_l", "arm_r"],
+        "slots": ["weapon"],
         "properties": {
             "STR": 1,
             "ACC": 1,
@@ -99,12 +99,27 @@
         "img": "https://placehold.jp/0/CD853F/ffffff/30x30.png"
     },
 	{
+        "id": "branch_2",
+        "name": "Дубина",
+        "descr": "Ульта же ж.",
+		"level": 2,
+        "tags": ["weapon", "twoHanded"],
+        "slots": ["weapon"],
+        "properties": {
+            "STR": 4,
+            "ACC": -1,
+            "DAMAGE_MIN": 8,
+            "DAMAGE_MAX": 15
+        },
+        "img": "https://placehold.jp/0/CD853F/ffffff/30x30.png"
+    },
+	{
         "id": "broom_0",
         "name": "Старая метла",
         "descr": "Это только кажется, что она вот-вот сломается!",
 		"level": 0,
         "tags": ["weapon", "twoHanded"],
-        "slots": ["arm_l", "arm_r"],
+        "slots": ["weapon"],
         "properties": {
             "STR": 2,
             "AGI": 2,
@@ -112,5 +127,29 @@
             "DAMAGE_MAX": 10
         },
         "img": "https://placehold.jp/0/DAA520/ffffff/30x30.png"
+    },
+	{
+        "id": "patch_0",
+        "name": "Подорожник",
+        "descr": "Поплюй и прижми.",
+		"level": 0,
+        "tags": ["consumable"],
+        "slots": ["consumable"],
+        "properties": {
+            "HP": 5
+        },
+        "img": "https://placehold.jp/0/90EE90/ffffff/30x30.png"
+    },
+	{
+        "id": "patch_1",
+        "name": "Пластырь",
+        "descr": "Держится крепко!",
+		"level": 1,
+        "tags": ["consumable"],
+        "slots": ["consumable"],
+        "properties": {
+            "HP": 10
+        },
+        "img": "https://placehold.jp/0/00FA9A/ffffff/30x30.png"
     }
 ]
