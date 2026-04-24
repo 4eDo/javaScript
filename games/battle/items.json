@@ -151,5 +151,54 @@
             "HP": 10
         },
         "img": "https://placehold.jp/0/00FA9A/ffffff/30x30.png"
+    },
+	{
+        "id": "rope_0",
+        "name": "Шнурочек",
+        "descr": "Ну... Авось и не свалится привязанное.",
+		"level": 0,
+        "tags": ["clothes"],
+        "slots": ["belt"],
+        "properties": {
+            "CAPACITY": 1
+        },
+        "img": "https://placehold.jp/0/F0E68C/ffffff/30x30.png"
+    },
+	{
+        "id": "rope_1",
+        "name": "Верёвка",
+        "descr": "Да ладно, вполне крепко!",
+		"level": 0,
+        "tags": ["clothes"],
+        "slots": ["belt"],
+        "properties": {
+            "CAPACITY": 2
+        },
+        "img": "https://placehold.jp/0/BDB76B/ffffff/30x30.png"
+    },
+	{
+        "id": "pouch_0",
+        "name": "Авоська",
+        "descr": "Главное чтобы в дырочку не улетело...",
+		"level": 0,
+        "tags": ["clothes"],
+        "slots": ["belt"],
+        "properties": {
+            "CAPACITY": 5,
+            "AGI": -2
+        },
+        "img": "https://placehold.jp/0/FFEFD5/ffffff/30x30.png"
+    },
+	{
+        "id": "bag_0",
+        "name": "Мешочек",
+        "descr": "Не смотри, из чего сделан. Не надо.",
+		"level": 0,
+        "tags": ["clothes"],
+        "slots": ["belt"],
+        "properties": {
+            "CAPACITY": 3
+        },
+        "img": "https://placehold.jp/0/FFEFD5/ffffff/30x30.png"
     }
 ]

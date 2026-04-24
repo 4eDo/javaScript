@@ -48,5 +48,27 @@
         { "id": "branch_0", "count": 3 },
         { "id": "branch_1", "count": 1 }
       ]
+    },
+    {
+      "result": "rope_1",
+      "count": 1,
+      "ingredients": [
+        { "id": "rope_0", "count": 3 }
+      ]
+    },
+    {
+      "result": "pouch_0",
+      "count": 1,
+      "ingredients": [
+        { "id": "rope_0", "count": 5 }
+      ]
+    },
+    {
+      "result": "bag_0",
+      "count": 1,
+      "ingredients": [
+        { "id": "pants_1", "count": 3 },
+        { "id": "rope_0", "count": 2 }
+      ]
     }
 ]
