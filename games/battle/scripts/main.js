@@ -1,7 +1,7 @@
 import { loadItemsDB, getItemById, getRecipeByIndex, getAllItemIds } from './itemsDB.js';
 import { Character } from './character.js';
 import * as ui from './ui.js';
-import { setupBattle, setBattleEndCallback } from './battle.js';
+import { setupBattle } from './battle.js';
 import { loadEnemyTemplates } from './enemy.js';
 
 const player = new Character();
