@@ -311,12 +311,10 @@ export function renderRecipes() {
   }
 }
 
-// ========== ПРОВЕРКА КРАФТА ==========
 function canCraftRecipe(recipe) {
   return recipe.ingredients.every(ing => character.countAvailable(ing.id) >= ing.count);
 }
 
-// ========== ВЫПОЛНЕНИЕ КРАФТА ==========
 export function executeCraft(recipe) {
   for (const ing of recipe.ingredients) {
     let remaining = ing.count;
@@ -386,13 +384,12 @@ export function updateItemInfo() {
   }
 }
 
-// ========== ВСПЛЫВАЮЩИЕ ПОДСКАЗКИ (правая панель) ==========
+// ========== ВСПЛЫВАЮЩИЕ ПОДСКАЗКИ ==========
 export function showEquipSlotTooltip(slotName, index) {
   const key = `${slotName}-${index}`;
   const itemId = character.equipment[key];
   
   if (!itemId) {
-    // Пустой слот
     if (selectedItemId) {
       const selectedItem = getItemById(selectedItemId);
       if (selectedItem?.slots?.includes(slotName)) {
@@ -406,13 +403,11 @@ export function showEquipSlotTooltip(slotName, index) {
   if (!item) return;
   
   if (selectedItemId && selectedItemId !== itemId) {
-    // Сравнение выбранного предмета с надетым
     const selectedItem = getItemById(selectedItemId);
     if (selectedItem) {
       showComparisonWithEquipped(selectedItem, item);
     }
   } else if (!selectedItemId) {
-    // Просто показываем надетый предмет
     showEquippedItemTooltip(item);
   }
 }
@@ -635,17 +630,6 @@ function getDiffString(baseValue, compareValue) {
   return ` (${sign}${diff})`;
 }
 
-export function updateXPBar() {
-  const s = character.getStats();
-  const xpForLevel = s.level * 100;
-  const percent = Math.min(100, (s.xp / xpForLevel) * 100);
-  
-  const fill = document.querySelector('.level-bar-fill');
-  const text = document.querySelector('.level-bar-text');
-  if (fill) fill.style.width = percent + '%';
-  if (text) text.textContent = `${s.xp} / ${xpForLevel}`;
-}
-
 // ========== ХАРАКТЕРИСТИКИ ==========
 export function renderStats() {
   const s = character.getStats();
@@ -656,10 +640,26 @@ export function renderStats() {
   document.getElementById('stat-reg').textContent = s.REG;
   document.getElementById('stat-acc').textContent = s.ACC;
   document.getElementById('stat-hp').textContent = s.HP;
+  document.getElementById('stat-def').textContent = s.DEF;
   document.getElementById('stat-dodge').textContent = s.dodge + '%';
   document.getElementById('stat-double').textContent = s.doubleAttack + '%';
   document.getElementById('stat-reduce').textContent = s.damageReduce + '%';
-  document.getElementById('stat-def').textContent = s.DEF;
+  
+  updateXPBar();
+}
+
+export function updateXPBar() {
+  const s = character.getStats();
+  const xpForLevel = s.level * 100;
+  const percent = Math.min(100, (s.xp / xpForLevel) * 100);
+  
+  const fill = document.querySelector('.level-bar-fill');
+  const text = document.querySelector('.level-bar-text');
+  const levelValue = document.querySelector('.stat-value');
+  
+  if (fill) fill.style.width = percent + '%';
+  if (text) text.textContent = `${s.xp} / ${xpForLevel}`;
+  if (levelValue) levelValue.textContent = s.level;
 }
 
 export function renderAll() {
@@ -672,4 +672,167 @@ export function renderAll() {
 function isInvItemsTabActive() {
   const activeTab = document.querySelector('.inv-tab.active');
   return activeTab && activeTab.dataset.invtab === 'items';
+}
+
+// ========== БОЕВЫЕ ФУНКЦИИ ОТОБРАЖЕНИЯ ==========
+
+export function renderEnemyList(enemies, currentIndex, isFighting) {
+  const container = document.getElementById('enemy-list');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  enemies.forEach((enemy, index) => {
+    const entry = document.createElement('enemy-entry');
+    entry.className = 'enemy';
+    entry.dataset.index = index;
+    
+    if (enemy.currentHP <= 0) {
+      entry.classList.add('dead');
+    }
+    
+    if (index === currentIndex && isFighting && enemy.currentHP > 0) {
+      entry.classList.add('fighting');
+    }
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'enemy-name';
+    nameSpan.textContent = `${enemy.name} [ур.${enemy.level}]`;
+    
+    const hpSpan = document.createElement('span');
+    hpSpan.className = 'enemy-hp';
+    hpSpan.textContent = `${enemy.currentHP}/${enemy.stats.HP}`;
+    
+    entry.appendChild(nameSpan);
+    entry.appendChild(hpSpan);
+    container.appendChild(entry);
+  });
+}
+
+export function renderEnemyInfo(enemy) {
+  const container = document.getElementById('enemy-info');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  container.classList.add('visible');
+  
+  const title = document.createElement('h3');
+  title.textContent = `${enemy.name} [уровень ${enemy.level}]`;
+  container.appendChild(title);
+  
+  const statsDl = document.createElement('dl');
+  statsDl.className = 'enemy-stats';
+  
+  const statsData = [
+    { label: 'HP', value: `${enemy.currentHP}/${enemy.stats.HP}`, critical: enemy.currentHP < enemy.stats.HP * 0.3 },
+    { label: 'Сила', value: enemy.stats.STR },
+    { label: 'Стойкость', value: enemy.stats.CON },
+    { label: 'Ловкость', value: enemy.stats.AGI },
+    { label: 'Меткость', value: enemy.stats.ACC },
+    { label: 'Защита', value: enemy.stats.DEF },
+    { label: 'Урон', value: `${enemy.stats.DAMAGE_MIN}-${enemy.stats.DAMAGE_MAX}` },
+    { label: 'Опыт', value: enemy.stats.xp }
+  ];
+  
+  statsData.forEach(stat => {
+    const dt = document.createElement('dt');
+    dt.textContent = stat.label;
+    
+    const dd = document.createElement('dd');
+    dd.textContent = stat.value;
+    if (stat.critical) {
+      dd.classList.add('hp-critical');
+    }
+    
+    statsDl.appendChild(dt);
+    statsDl.appendChild(dd);
+  });
+  
+  container.appendChild(statsDl);
+  
+  if (enemy.equipment && Object.keys(enemy.equipment).length > 0) {
+    const eqTitle = document.createElement('p');
+    eqTitle.className = 'enemy-equipment';
+    eqTitle.textContent = 'Экипировка:';
+    container.appendChild(eqTitle);
+    
+    const eqList = document.createElement('ul');
+    eqList.className = 'enemy-equipment-list';
+    
+    Object.entries(enemy.equipment).forEach(([slot, itemId]) => {
+      const item = getItemById(itemId);
+      const li = document.createElement('li');
+      li.textContent = `${slot}: ${item ? item.name : itemId}`;
+      eqList.appendChild(li);
+    });
+    
+    container.appendChild(eqList);
+  }
+}
+
+export function hideEnemyInfo() {
+  const container = document.getElementById('enemy-info');
+  if (container) {
+    container.innerHTML = '';
+    container.classList.remove('visible');
+  }
+}
+
+export function renderBattleActions(html) {
+  const container = document.getElementById('battle-actions');
+  if (container) container.innerHTML = html;
+}
+
+export function renderBattleLog(html) {
+  const log = document.getElementById('battle-log');
+  if (log) log.innerHTML = html;
+}
+
+export function addBattleLogEntry(message, className = '') {
+  const log = document.getElementById('battle-log');
+  if (!log) return;
+  
+  const entry = document.createElement('p');
+  entry.className = 'log-entry' + (className ? ' ' + className : '');
+  entry.textContent = message;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+export function updateBattleCharacterStats(stats, playerHP, maxHP) {
+  const hpEl = document.getElementById('battle-hp');
+  const staminaEl = document.getElementById('battle-stamina');
+  const strEl = document.getElementById('battle-str');
+  const agiEl = document.getElementById('battle-agi');
+  const accEl = document.getElementById('battle-acc');
+  const defEl = document.getElementById('battle-def');
+  
+  if (hpEl) {
+    hpEl.textContent = `${playerHP}/${maxHP}`;
+    hpEl.className = playerHP < maxHP * 0.3 ? 'hp-critical' : '';
+  }
+  if (staminaEl) staminaEl.textContent = maxHP;
+  if (strEl) strEl.textContent = stats.STR;
+  if (agiEl) agiEl.textContent = stats.AGI;
+  if (accEl) accEl.textContent = stats.ACC + '%';
+  if (defEl) defEl.textContent = stats.DEF;
+}
+
+export function showBattleResult(title, message) {
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-text').textContent = message;
+  document.getElementById('modal-result').classList.add('open');
+}
+
+export function highlightEnemy(index) {
+  document.querySelectorAll('.enemy').forEach(e => {
+    e.classList.remove('selected');
+  });
+  const enemy = document.querySelector(`.enemy[data-index="${index}"]`);
+  if (enemy) enemy.classList.add('selected');
+}
+
+export function disableEnemyClicks() {
+  document.querySelectorAll('.enemy').forEach(e => {
+    e.style.pointerEvents = 'none';
+  });
 }
