@@ -644,20 +644,6 @@ export function renderStats() {
   updateXPBar();
 }
 
-export function renderStats() {
-  const s = character.getStats();
-  
-  document.getElementById('stat-str').textContent = s.STR;
-  document.getElementById('stat-con').textContent = s.CON;
-  document.getElementById('stat-agi').textContent = s.AGI;
-  document.getElementById('stat-reg').textContent = s.REG;
-  document.getElementById('stat-acc').textContent = s.ACC;
-  document.getElementById('stat-hp').textContent = s.HP;
-  document.getElementById('stat-def').textContent = s.DEF;
-  
-  updateXPBar();
-}
-
 export function updateBattleCharacterStats(stats = null, currentHP = null) {
   const s = stats || character.getStats();
   const hp = currentHP !== null ? currentHP : s.HP;
