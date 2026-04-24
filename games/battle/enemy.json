@@ -32,19 +32,19 @@
     "id": "zombie_builder",
     "name": "Зомби-строитель",
     "baseStats": {
-      "HP": 120,
+      "HP": 250,
       "STR": 9,
       "CON": 8,
       "AGI": 1,
       "REG": 0,
-      "ACC": 2,
+      "ACC": 5,
       "DEF": 6,
       "DAMAGE_MIN": 8,
       "DAMAGE_MAX": 14,
       "xp": 55
     },
     "levelUps": {
-      "HP": 22,
+      "HP": 25,
       "STR": 12,
       "CON": 10,
       "AGI": 3,
@@ -64,9 +64,9 @@
       "HP": 55,
       "STR": 3,
       "CON": 2,
-      "AGI": 8,
+      "AGI": 10,
       "REG": 1,
-      "ACC": 4,
+      "ACC": 6,
       "DEF": 1,
       "DAMAGE_MIN": 3,
       "DAMAGE_MAX": 6,
@@ -87,51 +87,22 @@
     "dropChance": 0.15
   },
   {
-    "id": "zombie_runner",
-    "name": "Зомби-бегун",
-    "baseStats": {
-      "HP": 60,
-      "STR": 6,
-      "CON": 3,
-      "AGI": 6,
-      "REG": 0,
-      "ACC": 3,
-      "DEF": 1,
-      "DAMAGE_MIN": 5,
-      "DAMAGE_MAX": 9,
-      "xp": 35
-    },
-    "levelUps": {
-      "HP": 12,
-      "STR": 8,
-      "CON": 6,
-      "AGI": 10,
-      "ACC": 7,
-      "DEF": 4,
-      "DAMAGE_MIN": 8,
-      "DAMAGE_MAX": 8,
-      "xp": 16
-    },
-    "equipSlots": ["legs", "feet_l", "feet_r", "head"],
-    "dropChance": 0.17
-  },
-  {
     "id": "zombie_fat",
     "name": "Толстый зомби",
     "baseStats": {
-      "HP": 150,
+      "HP": 300,
       "STR": 7,
       "CON": 10,
       "AGI": 1,
       "REG": 3,
       "ACC": 2,
       "DEF": 4,
-      "DAMAGE_MIN": 5,
-      "DAMAGE_MAX": 10,
+      "DAMAGE_MIN": 10,
+      "DAMAGE_MAX": 20,
       "xp": 50
     },
     "levelUps": {
-      "HP": 28,
+      "HP": 50,
       "STR": 10,
       "CON": 13,
       "AGI": 2,
@@ -155,8 +126,8 @@
       "REG": 0,
       "ACC": 5,
       "DEF": 3,
-      "DAMAGE_MIN": 6,
-      "DAMAGE_MAX": 11,
+      "DAMAGE_MIN": 20,
+      "DAMAGE_MAX": 50,
       "xp": 45
     },
     "levelUps": {
@@ -166,8 +137,8 @@
       "AGI": 6,
       "ACC": 8,
       "DEF": 7,
-      "DAMAGE_MIN": 8,
-      "DAMAGE_MAX": 8,
+      "DAMAGE_MIN": 10,
+      "DAMAGE_MAX": 10,
       "xp": 18
     },
     "equipSlots": ["head", "body", "legs", "arm_l", "arm_r"],
