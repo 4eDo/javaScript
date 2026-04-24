@@ -797,11 +797,20 @@ export function addBattleLogEntry(message, className = '') {
   log.scrollTop = log.scrollHeight;
 }
 
-export function updateBattleCharacterStats(stats = null) {
-  // Если статы не переданы — берём чистые из персонажа
+export function updateBattleCharacterStats(stats = null, currentHP = null) {
   const s = stats || character.getStats();
+  const hp = currentHP !== null ? currentHP : s.HP;
   
-  document.getElementById('stat-hp').textContent = s.HP;
+  const hpEl = document.getElementById('stat-hp');
+  if (hpEl) {
+    hpEl.textContent = hp + (currentHP !== null ? `/${s.HP}` : '');
+    if (currentHP !== null && currentHP < s.HP * 0.3) {
+      hpEl.classList.add('hp-critical');
+    } else {
+      hpEl.classList.remove('hp-critical');
+    }
+  }
+  
   document.getElementById('stat-str').textContent = s.STR;
   document.getElementById('stat-con').textContent = s.CON;
   document.getElementById('stat-agi').textContent = s.AGI;

@@ -19,7 +19,7 @@ function showIdleState() {
   ui.hideEnemyInfo();
   
   const stats = getPlayerStats();
-  ui.updateBattleCharacterStats(stats);
+  ui.updateBattleCharacterStats(stats, stats.HP);
   
   ui.renderBattleActions(`
     <button id="btn-search">Искать врагов</button>
@@ -65,14 +65,14 @@ function startEncounter(mode) {
       return;
     }
     
-    // 40% — предмет + враги
-    const allItems = getAllItems();
-    const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
-    playerCharacter.addItem(randomItem.id);
-    ui.renderAll();
-    generateEnemies(mode, playerLevel);
-    ui.addBattleLogEntry(`Вы нашли: ${randomItem.name}, но привлекли внимание врагов!`, 'log-system');
-    return;
+    if (roll >= 60) {
+      // 40% — предмет + враги
+      const allItems = getAllItems();
+      const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+      generateEnemies(mode, playerLevel, [randomItem.id]);
+      ui.addBattleLogEntry(`Вы нашли: ${randomItem.name}, но привлекли внимание врагов!`, 'log-system');
+      return;
+    }
   }
   
   generateEnemies(mode, playerLevel);
@@ -88,7 +88,7 @@ function showIdleActions() {
   document.getElementById('btn-explore').addEventListener('click', () => startEncounter('explore'));
 }
 
-function generateEnemies(mode, playerLevel) {
+function generateEnemies(mode, playerLevel, pendingItems = []) {
   const enemyCount = generateEnemyCount(playerLevel);
   const enemies = [];
   
@@ -106,7 +106,8 @@ function generateEnemies(mode, playerLevel) {
     playerHP: stats.HP,
     playerMaxHP: stats.HP,
     statModifier: mode === 'explore' ? 0.9 : 1.1,
-    isFighting: false
+    isFighting: false,
+    pendingItems: pendingItems // предметы, которые ждут конца боя
   };
   
   ui.renderEnemyList(enemies, battleState.currentEnemyIndex, false);
@@ -365,6 +366,11 @@ function giveRewards() {
       }
     }
   }
+
+  // Добавляем отложенные предметы
+  if (battleState.pendingItems && battleState.pendingItems.length > 0) {
+    battleState.pendingItems.forEach(id => playerCharacter.addItem(id));
+  }
   
   playerCharacter.addXP(totalXP);
   droppedItems.forEach(id => playerCharacter.addItem(id));
@@ -424,12 +430,8 @@ function getPlayerStats() {
 
 function updateStats() {
   const stats = getPlayerStats();
-  const hp = battleState ? battleState.playerHP : stats.HP;
-  const maxHP = stats.HP;
+  const currentHP = battleState ? battleState.playerHP : stats.HP;
   
-  // Обновляем HP с учётом текущего состояния
-  document.getElementById('stat-hp').textContent = `${hp}/${maxHP}`;
-  
-  // Все остальные статы — с модификатором
-  ui.updateBattleCharacterStats(stats);
+  // Передаём текущее HP отдельно от статов
+  ui.updateBattleCharacterStats(stats, currentHP);
 }
