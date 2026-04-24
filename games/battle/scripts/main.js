@@ -1,20 +1,36 @@
 import { loadItemsDB, getItemById, getRecipeByIndex, getAllItemIds } from './itemsDB.js';
 import { Character } from './character.js';
 import * as ui from './ui.js';
+import { setupBattle } from './battle.js';
 
 const player = new Character();
 ui.setCharacter(player);
 
 // ========== ДЕЛЕГИРОВАНИЕ СОБЫТИЙ ==========
 function setupDelegatedEvents() {
+  const equipView = document.getElementById('equip-view');
+  
   // Клик по слотам экипировки
-  document.getElementById('equip-view').addEventListener('click', e => {
+  equipView.addEventListener('click', e => {
     const slot = e.target.closest('.slot');
     if (!slot || !slot.dataset.slot) return;
     if (slot.classList.contains('twohanded-disabled')) return;
     if (slot.classList.contains('single-disabled')) return;
     onEquipSlotClick(slot.dataset.slot, parseInt(slot.dataset.index));
   });
+
+  // Наведение на слоты экипировки
+  equipView.addEventListener('mouseenter', e => {
+    const slot = e.target.closest('.slot');
+    if (!slot || !slot.dataset.slot) return;
+    ui.showEquipSlotTooltip(slot.dataset.slot, parseInt(slot.dataset.index));
+  }, true);
+  
+  equipView.addEventListener('mouseleave', e => {
+    const slot = e.target.closest('.slot');
+    if (!slot || !slot.dataset.slot) return;
+    ui.hideEquipSlotTooltip();
+  }, true);
 
   // Клик по инвентарю
   document.getElementById('items').addEventListener('click', e => {
@@ -35,8 +51,8 @@ function setupDelegatedEvents() {
     if (e.target.id === 'btn-create-item') onCraftClick();
   });
 
-  // Правый клик — снятие предмета
-  document.getElementById('equip-view').addEventListener('contextmenu', e => {
+  // Правый клик — снятие
+  equipView.addEventListener('contextmenu', e => {
     const slot = e.target.closest('.slot');
     if (!slot?.dataset.slot) return;
     e.preventDefault();
@@ -54,7 +70,6 @@ function setupDelegatedEvents() {
 function onEquipSlotClick(slotName, index) {
   const key = `${slotName}-${index}`;
 
-  // Двуручное оружие надето
   if (slotName === 'weapon' && player._isTwoHandedEquipped()) {
     if (ui.getSelectedSlotKey() === 'weapon-0' && !ui.getSelectedItemId()) {
       ui.clearSelection();
@@ -74,7 +89,6 @@ function onEquipSlotClick(slotName, index) {
     return;
   }
 
-  // Обычное поведение
   if (ui.getSelectedSlotKey() === key && !ui.getSelectedItemId()) {
     ui.clearSelection();
   } else if (ui.getSelectedItemId()) {
@@ -196,7 +210,6 @@ function addPropLocal(container, key, value, className) {
 
 // ========== ПРОЧИЕ ОБРАБОТЧИКИ ==========
 function setupOtherEvents() {
-  // Снятие через кнопку
   document.getElementById('btn-unequip-left').addEventListener('click', () => {
     if (ui.getSelectedSlotKey()) {
       player.unequip(ui.getSelectedSlotKey());
@@ -206,7 +219,6 @@ function setupOtherEvents() {
     }
   });
 
-  // Табы Персонаж / Бой
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -216,7 +228,6 @@ function setupOtherEvents() {
     });
   });
 
-  // Экипировка / Характеристики
   document.getElementById('btn-show-equip').addEventListener('click', () => {
     document.getElementById('btn-show-equip').classList.add('active');
     document.getElementById('btn-show-stats').classList.remove('active');
@@ -231,7 +242,6 @@ function setupOtherEvents() {
     document.getElementById('equip-view').classList.remove('active');
   });
 
-  // Вкладки инвентаря
   document.querySelectorAll('.inv-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
@@ -243,18 +253,15 @@ function setupOtherEvents() {
     });
   });
 
-  // Прокачка за пост
   document.getElementById('btn-upgrade').addEventListener('click', () => {
     document.getElementById('modal-upgrade').classList.add('open');
   });
 
-  // Подтверждение крафта
   document.getElementById('btn-confirm-craft').addEventListener('click', () => {
     const recipe = ui.getPendingRecipe();
     if (recipe) finishCraft(recipe);
   });
 
-  // Закрытие модалок
   document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById(btn.dataset.close).classList.remove('open');
@@ -271,52 +278,11 @@ function setupOtherEvents() {
     win.addEventListener('click', e => e.stopPropagation());
   });
 
-  // Фильтры
   ['filter-type', 'filter-level', 'filter-slot'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', () => ui.renderInventory());
   });
   ['eng-filter-type', 'eng-filter-level', 'eng-filter-slot', 'eng-filter-available'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', () => ui.renderRecipes());
-  });
-
-  // Бой
-  document.getElementById('btn-attack').addEventListener('click', () => {
-    const log = document.getElementById('battle-log');
-    const entry = document.createElement('p');
-    entry.className = 'log-entry';
-    entry.textContent = 'Вы атакуете — ' + Math.floor(Math.random() * 20 + 5) + ' урона.';
-    log.appendChild(entry);
-    log.scrollTop = log.scrollHeight;
-    
-    if (Math.random() < 0.3) {
-      setTimeout(() => {
-        document.getElementById('result-title').textContent = 'Победа!';
-        document.getElementById('result-text').textContent = 'Вы победили противника! Получено 50 опыта.';
-        document.getElementById('modal-result').classList.add('open');
-      }, 500);
-    }
-  });
-
-  document.getElementById('btn-flee').addEventListener('click', () => {
-    const log = document.getElementById('battle-log');
-    const entry = document.createElement('p');
-    entry.className = 'log-entry log-system';
-    entry.textContent = 'Вы пытаетесь убежать...';
-    log.appendChild(entry);
-    log.scrollTop = log.scrollHeight;
-    
-    setTimeout(() => {
-      document.getElementById('result-title').textContent = 'Побег!';
-      document.getElementById('result-text').textContent = 'Вы успешно сбежали с поля боя.';
-      document.getElementById('modal-result').classList.add('open');
-    }, 800);
-  });
-
-  document.querySelectorAll('.enemy').forEach(enemy => {
-    enemy.addEventListener('click', () => {
-      document.querySelectorAll('.enemy').forEach(e => e.style.outline = '');
-      enemy.style.outline = '2px solid #000';
-    });
   });
 }
 
@@ -325,6 +291,7 @@ async function init() {
   await loadItemsDB();
   setupDelegatedEvents();
   setupOtherEvents();
+  setupBattle();
   
   const allIds = getAllItemIds();
   player.testFillInventory(allIds);

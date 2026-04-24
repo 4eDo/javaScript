@@ -31,7 +31,6 @@ export function renderInventory() {
     const item = getItemById(id);
     if (!item) return;
     
-    // Фильтрация по тегам
     if (filterType && (!item.tags || !item.tags.includes(filterType))) return;
     if (filterLevel !== '' && item.level !== parseInt(filterLevel)) return;
     if (filterSlot && (!item.slots || !item.slots.includes(filterSlot))) return;
@@ -54,7 +53,6 @@ export function renderInventory() {
     }
     slot.dataset.id = item.id;
 
-    // Подсветка при выбранном слоте
     if (selectedSlotKey && !selectedItemId) {
       const [slotName] = selectedSlotKey.split('-');
       if (item.slots && item.slots.includes(slotName)) {
@@ -66,7 +64,6 @@ export function renderInventory() {
       slot.classList.add('selected');
     }
 
-    // Сравнение при наведении
     slot.addEventListener('mouseenter', () => {
       if (selectedItemId && selectedItemId !== item.id && isInvItemsTabActive()) {
         showComparisonInfo(selectedItemId, item);
@@ -92,7 +89,6 @@ export function renderEquipment() {
     el.style.opacity = '1';
   });
 
-  // Заполняем надетые предметы
   for (const [key, itemId] of Object.entries(character.equipment)) {
     if (!itemId) continue;
     const [slotName, index] = key.split('-');
@@ -108,7 +104,6 @@ export function renderEquipment() {
     }
   }
 
-  // Блокировка двуручного
   const w0 = character.equipment['weapon-0'];
   const w1 = character.equipment['weapon-1'];
   const twoHandedEquipped = (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded'));
@@ -131,7 +126,6 @@ export function renderEquipment() {
     }
   }
 
-  // Блокировка single
   const singleBySlot = _getSingleEquippedBySlot();
   for (const [slotName, itemIds] of Object.entries(singleBySlot)) {
     allSlots.forEach(el => {
@@ -160,7 +154,6 @@ export function renderEquipment() {
     });
   }
 
-  // Подсветка выбранного слота
   if (selectedSlotKey && !selectedItemId) {
     const [sName, sIdx] = selectedSlotKey.split('-');
     const itemId = character.equipment[selectedSlotKey];
@@ -186,7 +179,6 @@ export function renderEquipment() {
     }
   }
 
-  // Подсветка слотов при выбранном предмете
   if (selectedItemId && !selectedSlotKey) {
     const item = getItemById(selectedItemId);
     if (item && item.slots) {
@@ -308,7 +300,6 @@ export function renderRecipes() {
     grid.appendChild(slot);
   });
 
-  // Кнопка «Создать»
   let btn = document.getElementById('btn-create-item');
   if (!btn) {
     btn = document.createElement('button');
@@ -330,13 +321,11 @@ export function executeCraft(recipe) {
   for (const ing of recipe.ingredients) {
     let remaining = ing.count;
     
-    // Сначала из инвентаря
     while (remaining > 0 && character.hasItem(ing.id)) {
       character.removeItem(ing.id);
       remaining--;
     }
     
-    // Потом из экипировки
     if (remaining > 0) {
       const keysToRemove = [];
       const countedTwoHanded = new Set();
@@ -395,6 +384,112 @@ export function updateItemInfo() {
       document.getElementById('itemTitle').textContent = `Слот: ${sName} [${sIdx}] (пусто)`;
     }
   }
+}
+
+// ========== ВСПЛЫВАЮЩИЕ ПОДСКАЗКИ (правая панель) ==========
+export function showEquipSlotTooltip(slotName, index) {
+  const key = `${slotName}-${index}`;
+  const itemId = character.equipment[key];
+  
+  if (!itemId) {
+    // Пустой слот
+    if (selectedItemId) {
+      const selectedItem = getItemById(selectedItemId);
+      if (selectedItem?.slots?.includes(slotName)) {
+        showEmptySlotHint(slotName, index, selectedItem);
+      }
+    }
+    return;
+  }
+  
+  const item = getItemById(itemId);
+  if (!item) return;
+  
+  if (selectedItemId && selectedItemId !== itemId) {
+    // Сравнение выбранного предмета с надетым
+    const selectedItem = getItemById(selectedItemId);
+    if (selectedItem) {
+      showComparisonWithEquipped(selectedItem, item);
+    }
+  } else if (!selectedItemId) {
+    // Просто показываем надетый предмет
+    showEquippedItemTooltip(item);
+  }
+}
+
+export function hideEquipSlotTooltip() {
+  hideItemInfo('info-right');
+}
+
+function showEmptySlotHint(slotName, index, selectedItem) {
+  const container = document.getElementById('info-right');
+  if (!container) return;
+  container.style.display = 'block';
+  
+  document.getElementById('itemTitleHover').textContent = `Слот: ${slotName} [${index}]`;
+  
+  const props = document.getElementById('propertiesHover');
+  props.innerHTML = '';
+  
+  const dt = document.createElement('dt');
+  dt.textContent = 'Выбранный предмет:';
+  props.appendChild(dt);
+  
+  const dd = document.createElement('dd');
+  dd.textContent = selectedItem.name;
+  dd.style.color = '#888';
+  props.appendChild(dd);
+  
+  const dt2 = document.createElement('dt');
+  dt2.textContent = 'Клик — надеть';
+  dt2.style.color = '#888';
+  dt2.style.fontSize = '0.9em';
+  props.appendChild(dt2);
+}
+
+function showEquippedItemTooltip(item) {
+  showItemInfo(item, 'info-right', 'itemTitleHover', 'propertiesHover');
+  document.getElementById('itemTitleHover').textContent += ' (надето)';
+}
+
+function showComparisonWithEquipped(selectedItem, equippedItem) {
+  const container = document.getElementById('info-right');
+  if (!container) return;
+  container.style.display = 'block';
+  
+  document.getElementById('itemTitleHover').textContent = equippedItem.name + ' (надето)';
+  
+  const props = document.getElementById('propertiesHover');
+  props.innerHTML = '';
+  
+  const levelClass = getCompareClass(selectedItem.level, equippedItem.level);
+  const levelDiff = getDiffString(selectedItem.level, equippedItem.level);
+  addProp(props, 'Уровень', equippedItem.level + levelDiff, levelClass);
+  
+  if (equippedItem.slots) {
+    addProp(props, 'Слоты', equippedItem.slots.join(', '), '');
+  }
+  
+  if (equippedItem.tags?.includes('twoHanded')) {
+    addProp(props, 'Особенность', 'Двуручное', '');
+  }
+  
+  const allKeys = new Set([
+    ...Object.keys(selectedItem.properties || {}),
+    ...Object.keys(equippedItem.properties || {})
+  ]);
+  
+  allKeys.forEach(key => {
+    const selectedVal = selectedItem.properties?.[key] || 0;
+    const equippedVal = equippedItem.properties?.[key] || 0;
+    const cls = getCompareClass(selectedVal, equippedVal);
+    const diff = equippedVal - selectedVal;
+    const sign = diff > 0 ? '+' : '';
+    const diffText = diff !== 0 ? ` (${sign}${diff})` : '';
+    const displayVal = (equippedVal > 0 ? '+' : '') + equippedVal + diffText;
+    
+    addProp(props, key, displayVal, cls);
+  });
 }
 
 function showItemInfo(item, containerId, titleId, propsId) {
