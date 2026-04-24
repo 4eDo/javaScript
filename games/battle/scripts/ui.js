@@ -89,6 +89,7 @@ export function renderEquipment() {
     el.style.opacity = '1';
   });
 
+  // Заполняем надетые предметы
   for (const [key, itemId] of Object.entries(character.equipment)) {
     if (!itemId) continue;
     const [slotName, index] = key.split('-');
@@ -104,6 +105,7 @@ export function renderEquipment() {
     }
   }
 
+  // Блокировка двуручного
   const w0 = character.equipment['weapon-0'];
   const w1 = character.equipment['weapon-1'];
   const twoHandedEquipped = (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded'));
@@ -116,44 +118,33 @@ export function renderEquipment() {
       if (slot0) slot0.classList.remove('twohanded-disabled');
       if (slot1) slot1.classList.remove('twohanded-disabled');
     } else {
-      if (w0 && !w1) {
-        if (slot1) slot1.classList.add('twohanded-disabled');
-      } else if (!w0 && w1) {
-        if (slot0) slot0.classList.add('twohanded-disabled');
-      } else if (w0 && w1 && w0 === w1) {
-        if (slot1) slot1.classList.add('twohanded-disabled');
-      }
+      if (slot1) slot1.classList.add('twohanded-disabled');
     }
   }
 
-  const singleBySlot = _getSingleEquippedBySlot();
-  for (const [slotName, itemIds] of Object.entries(singleBySlot)) {
-    allSlots.forEach(el => {
-      if (el.dataset.slot !== slotName) return;
-      const key = `${slotName}-${el.dataset.index}`;
+  // Блокировка слотов, где рядом надет single
+  allSlots.forEach(el => {
+    const slotName = el.dataset.slot;
+    const index = el.dataset.index;
+    const key = `${slotName}-${index}`;
+    
+    // Пропускаем занятые слоты
+    if (character.equipment[key]) return;
+    
+    // Проверяем, не заблокирован ли слот из-за соседнего single
+    for (const [eqKey, equippedId] of Object.entries(character.equipment)) {
+      const [eqSlot] = eqKey.split('-');
+      if (eqSlot !== slotName || eqKey === key) continue;
       
-      if (!character.equipment[key]) {
-        let shouldBlock = true;
-        
-        if (selectedSlotKey === key && !selectedItemId) {
-          shouldBlock = false;
-        }
-        
-        if (selectedItemId && !itemIds.has(selectedItemId)) {
-          shouldBlock = false;
-        }
-        
-        if (selectedItemId && itemIds.has(selectedItemId)) {
-          shouldBlock = true;
-        }
-        
-        if (shouldBlock) {
-          el.classList.add('single-disabled');
-        }
+      const equippedItem = getItemById(equippedId);
+      if (equippedItem?.tags?.includes('single')) {
+        el.classList.add('single-disabled');
+        break;
       }
-    });
-  }
+    }
+  });
 
+  // Подсветка выбранного слота
   if (selectedSlotKey && !selectedItemId) {
     const [sName, sIdx] = selectedSlotKey.split('-');
     const itemId = character.equipment[selectedSlotKey];
@@ -179,18 +170,19 @@ export function renderEquipment() {
     }
   }
 
+  // Подсветка слотов при выбранном предмете
   if (selectedItemId && !selectedSlotKey) {
     const item = getItemById(selectedItemId);
     if (item && item.slots) {
       allSlots.forEach(el => {
-        if (!item.slots.includes(el.dataset.slot)) return;
-        const key = `${el.dataset.slot}-${el.dataset.index}`;
+        const slotName = el.dataset.slot;
+        const index = el.dataset.index;
+        const key = `${slotName}-${index}`;
         
-        if (character.equipment[key]) {
-          el.classList.add('highlight-slot');
-        } else if (item.tags?.includes('single') && singleBySlot[el.dataset.slot]?.has(selectedItemId)) {
-          // заблокирован single
-        } else {
+        if (!item.slots.includes(slotName)) return;
+        
+        // Используем единый метод проверки
+        if (character.canEquipInSlot(selectedItemId, key)) {
           el.classList.add('highlight-slot');
         }
       });

@@ -39,6 +39,55 @@ export class Character {
     return Object.values(this.equipment).includes(itemId);
   }
 
+  // ========== ПРОВЕРКА ДОСТУПНОСТИ СЛОТА ==========
+  canEquipInSlot(itemId, slotKey) {
+    const item = getItemById(itemId);
+    if (!item) return false;
+    
+    const [slotName] = slotKey.split('-');
+    
+    // Предмет должен подходить к этому типу слота
+    if (!item.slots || !item.slots.includes(slotName)) return false;
+    
+    // Если слот уже содержит этот же предмет
+    if (this.equipment[slotKey] === itemId) return false;
+    
+    // Двуручное оружие — всегда можно (займёт оба слота)
+    if (item.tags?.includes('twoHanded') && slotName === 'weapon') {
+      return true;
+    }
+    
+    // Проверка: если надеваемый предмет — single, а в соседнем слоте уже висит любой single
+    if (item.tags?.includes('single')) {
+      for (const [key, equippedId] of Object.entries(this.equipment)) {
+        const [eqSlot] = key.split('-');
+        if (eqSlot !== slotName) continue;
+        if (key === slotKey) continue; // тот же слот — можно заменить
+        
+        const equippedItem = getItemById(equippedId);
+        if (equippedItem?.tags?.includes('single')) {
+          return false;
+        }
+      }
+    }
+    
+    // Проверка: если в соседнем слоте уже надет single-предмет (любой),
+    // то этот слот недоступен для любых предметов
+    for (const [key, equippedId] of Object.entries(this.equipment)) {
+      const [eqSlot] = key.split('-');
+      if (eqSlot !== slotName) continue;
+      if (key === slotKey) continue;
+      
+      const equippedItem = getItemById(equippedId);
+      if (equippedItem?.tags?.includes('single')) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  // ========== ЭКИПИРОВКА ==========
   equip(itemId, slotKey) {
     const item = getItemById(itemId);
     if (!item) return false;
@@ -52,19 +101,8 @@ export class Character {
     // Проверка: предмет должен подходить к слоту
     if (!item.slots || !item.slots.includes(slotName)) return false;
 
-    // Проверка single: в этой части тела уже надет ЛЮБОЙ single-предмет
-    if (item.tags && item.tags.includes('single')) {
-      for (const [key, equippedId] of Object.entries(this.equipment)) {
-        const [eqSlot] = key.split('-');
-        if (eqSlot !== slotName) continue;
-        if (key === slotKey) continue; // тот же слот — можно заменить
-        const equippedItem = getItemById(equippedId);
-        if (equippedItem?.tags?.includes('single')) {
-          // В другом слоте этой же части тела уже надет single-предмет
-          return false;
-        }
-      }
-    }
+    // Проверка через canEquipInSlot
+    if (!this.canEquipInSlot(itemId, slotKey)) return false;
 
     // Запоминаем старые предметы для возврата в инвентарь
     const oldItems = [];

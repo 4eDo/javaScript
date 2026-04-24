@@ -71,6 +71,7 @@ function setupDelegatedEvents() {
 function onEquipSlotClick(slotName, index) {
   const key = `${slotName}-${index}`;
 
+  // Двуручное оружие надето
   if (slotName === 'weapon' && player._isTwoHandedEquipped()) {
     if (ui.getSelectedSlotKey() === 'weapon-0' && !ui.getSelectedItemId()) {
       ui.clearSelection();
@@ -90,6 +91,7 @@ function onEquipSlotClick(slotName, index) {
     return;
   }
 
+  // Обычное поведение
   if (ui.getSelectedSlotKey() === key && !ui.getSelectedItemId()) {
     ui.clearSelection();
   } else if (ui.getSelectedItemId()) {
@@ -99,7 +101,24 @@ function onEquipSlotClick(slotName, index) {
       ui.clearSelection();
     }
   } else {
-    ui.selectSlot(key);
+    // Проверяем, можно ли выделить пустой слот
+    // Пустой слот с соседним single — не выделяем
+    let blockedBySingle = false;
+    if (!player.equipment[key]) {
+      for (const [eqKey, equippedId] of Object.entries(player.equipment)) {
+        const [eqSlot] = eqKey.split('-');
+        if (eqSlot !== slotName || eqKey === key) continue;
+        const equippedItem = getItemById(equippedId);
+        if (equippedItem?.tags?.includes('single')) {
+          blockedBySingle = true;
+          break;
+        }
+      }
+    }
+    
+    if (!blockedBySingle) {
+      ui.selectSlot(key);
+    }
   }
   ui.renderAll();
   ui.updateItemInfo();
