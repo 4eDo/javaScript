@@ -17,6 +17,7 @@ function showIdleState() {
   
   ui.enableAllTabs();
   ui.updateActiveEffects([]);
+  ui.updateConsumableSlotsInfo();
   
   ui.renderEnemyList([], -1, false);
   ui.hideEnemyInfo();
@@ -451,6 +452,8 @@ function compare(a, b, op) {
 function applyConsumable(slotKey, item) {
   const { duration, stats } = item.usage;
   
+  if (!stats) return; // защита от пустых stats
+  
   if (duration === 0) {
     if (stats.HP) {
       const healed = Math.min(stats.HP, battleState.playerMaxHP - battleState.playerHP);
@@ -661,4 +664,5 @@ function updateStats() {
   
   ui.updateBattleHP(currentHP, maxHP);
   ui.renderStats();
+  ui.updateConsumableSlotsInfo();
 }

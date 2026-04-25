@@ -727,3 +727,12 @@ modal-window li {
   font-size: 12px;
   margin-left: 10px;
 }
+
+.consumables-info {
+  margin-top: 10px;
+}
+
+.consumables-info .stat-row dd {
+  font-size: 10px;
+  color: #666;
+}

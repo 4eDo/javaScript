@@ -724,6 +724,7 @@ export function renderAll() {
   renderInventory();
   renderRecipes();
   renderStats();
+  updateConsumableSlotsInfo();
 }
 
 function isInvItemsTabActive() {
@@ -942,6 +943,52 @@ export function updateActiveEffects(effects) {
     
     row.appendChild(nameDt);
     row.appendChild(valueDd);
+    container.appendChild(row);
+  });
+}
+
+export function updateConsumableSlotsInfo() {
+  const container = document.getElementById('consumables-info');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  // Собираем все расходники из слотов consumable
+  const consumables = [];
+  for (const [key, itemId] of Object.entries(character.equipment)) {
+    if (!key.startsWith('consumable-') || !itemId) continue;
+    const item = getItemById(itemId);
+    if (item?.usage) {
+      consumables.push(item);
+    }
+  }
+  
+  if (consumables.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'block';
+  
+  const title = document.createElement('dt');
+  title.className = 'dynamic-title';
+  title.textContent = 'Расходники';
+  container.appendChild(title);
+  
+  consumables.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'stat-row';
+    
+    const nameDt = document.createElement('dt');
+    nameDt.textContent = item.name;
+    
+    const condDd = document.createElement('dd');
+    condDd.textContent = formatTrigger(item.usage.trigger);
+    condDd.style.fontSize = '10px';
+    condDd.style.color = '#666';
+    
+    row.appendChild(nameDt);
+    row.appendChild(condDd);
     container.appendChild(row);
   });
 }
