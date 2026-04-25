@@ -15,15 +15,14 @@ body {
 
 /* ============ ИНТЕРФЕЙС ИГРЫ ============ */
 game-interface {
-  display: flex;
-  flex-wrap: wrap;
+  display: block;
   max-width: 1060px;
   margin: 20px auto;
   border: 2px solid #000;
+  padding: 0;
 }
 
 nav.tabs {
-  width: 100%;
   display: flex;
   border-bottom: 2px solid #000;
 }
@@ -49,54 +48,49 @@ nav.tabs {
   color: #fff;
 }
 
-.main-area {
-  flex: 1;
-  min-width: 0;
+/* ============ ОСНОВНОЙ КОНТЕЙНЕР ============ */
+#main-layout {
+  display: flex;
+  min-height: 500px;
 }
 
 .tab-content {
   display: none;
-  min-height: 500px;
+  flex: 1;
 }
 
 .tab-content.active {
   display: flex;
 }
 
+#tab-character {
+  display: none;
+}
+
+#tab-character.active {
+  display: flex;
+}
+
+#tab-battle {
+  display: none;
+}
+
+#tab-battle.active {
+  display: flex;
+}
+
 /* ============ ПАНЕЛИ ============ */
 .panel-left {
   width: 260px;
-  flex-shrink: 0;
+  min-width: 260px;
   border-right: 2px solid #000;
   padding: 10px;
 }
 
-.stats-panel {
+.panel-right {
   width: 220px;
-  flex-shrink: 0;
+  min-width: 220px;
   border-left: 2px solid #000;
-  padding: 10px;
-}
-
-#inventory {
-  flex: 1;
-  padding: 10px;
-}
-
-#enemy-list {
-  width: 180px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border-right: 2px solid #000;
-}
-
-#battlefield {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   padding: 10px;
 }
 
@@ -288,6 +282,11 @@ equipment-part::before {
 }
 
 /* ============ ИНВЕНТАРЬ ============ */
+#inventory {
+  flex: 1;
+  padding: 10px;
+}
+
 filter-bar {
   display: flex;
   gap: 8px;
@@ -420,7 +419,31 @@ item-info dt {
   color: #000;
 }
 
+/* ============ ИНЖЕНЕРИЯ ============ */
+.recipe-details {
+  font-size: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dotted #000;
+}
+
+.recipe-details dt {
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.recipe-details dd {
+  margin-left: 10px;
+}
+
 /* ============ ХАРАКТЕРИСТИКИ ============ */
+#stats-panel {
+  width: 220px;
+  min-width: 220px;
+  border-left: 2px solid #000;
+  padding: 10px;
+}
+
 .stats-list {
   list-style: none;
 }
@@ -477,6 +500,12 @@ item-info dt {
 }
 
 /* ============ БОЙ ============ */
+#enemy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .enemy {
   display: flex;
   justify-content: space-between;
@@ -509,6 +538,13 @@ item-info dt {
 .enemy-hp {
   font-family: monospace;
   font-size: 12px;
+}
+
+#battlefield {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
 }
 
 #enemy-info {

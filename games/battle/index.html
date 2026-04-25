@@ -16,7 +16,7 @@
     <button class="tab" data-tab="battle">Бой</button>
   </nav>
 
-  <div class="main-area">
+  <div id="main-layout">
     
     <!-- ============ РАЗДЕЛ: ПЕРСОНАЖ ============ -->
     <main class="tab-content active" id="tab-character">
@@ -108,6 +108,7 @@
           <button class="inv-tab" data-invtab="engineering">Инженерия</button>
         </nav>
         
+        <!-- Вкладка: Предметы -->
         <section class="inv-content active" id="inv-items">
           <filter-bar>
             <label>Тип
@@ -121,11 +122,11 @@
             <label>Уровень
               <select id="filter-level">
                 <option value="">Все</option>
-                <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
+                <option value="5">5</option>
               </select>
             </label>
             <label>Слот
@@ -148,6 +149,7 @@
           </inventory-grid>
         </section>
         
+        <!-- Вкладка: Инженерия -->
         <section class="inv-content" id="inv-engineering">
           <filter-bar>
             <label>Тип
@@ -161,11 +163,11 @@
             <label>Уровень
               <select id="eng-filter-level">
                 <option value="">Все</option>
-                <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
+                <option value="5">5</option>
               </select>
             </label>
             <label>Слот
@@ -230,32 +232,33 @@
       </section>
 
     </main>
-  </div>
 
-  <!-- Характеристики всегда справа -->
-  <aside class="panel-right stats-panel" id="stats-panel" aria-label="Характеристики">
-    <h2 class="tabTitle">Характеристики</h2>
-    
-    <dl class="stats-list">
-      <dt class="stat-level">
-        <span>Текущий уровень</span>
-        <span class="stat-value">1</span>
-      </dt>
-      <dd class="level-bar-container">
-        <div class="level-bar-fill" style="width: 0%;"></div>
-        <span class="level-bar-text">0 / 100</span>
-      </dd>
+    <!-- Характеристики  -->
+    <aside class="panel-right" id="stats-panel" aria-label="Характеристики">
+      <h2 class="tabTitle">Характеристики</h2>
       
-      <div class="stat-row"><dt>Здоровье (HP)</dt><dd id="stat-hp">100</dd></div>
-      <div class="stat-row"><dt>Сила (STR)</dt><dd id="stat-str">1</dd></div>
-      <div class="stat-row"><dt>Стойкость (CON)</dt><dd id="stat-con">1</dd></div>
-      <div class="stat-row"><dt>Ловкость (AGI)</dt><dd id="stat-agi">1</dd></div>
-      <div class="stat-row"><dt>Исцеление (REG)</dt><dd id="stat-reg">1</dd></div>
-      <div class="stat-row"><dt>Меткость (ACC)</dt><dd id="stat-acc">1</dd></div>
-      <div class="stat-row"><dt>Защита (DEF)</dt><dd id="stat-def">0</dd></div>
-      <div class="stat-row"><dt>Урон</dt><dd id="stat-damage">1-5</dd></div>
-    </dl>
-  </aside>
+      <dl class="stats-list">
+        <dt class="stat-level">
+          <span>Текущий уровень</span>
+          <span class="stat-value">1</span>
+        </dt>
+        <dd class="level-bar-container">
+          <div class="level-bar-fill" style="width: 0%;"></div>
+          <span class="level-bar-text">0 / 100</span>
+        </dd>
+        
+        <div class="stat-row"><dt>Здоровье (HP)</dt><dd id="stat-hp">100</dd></div>
+        <div class="stat-row"><dt>Сила (STR)</dt><dd id="stat-str">1</dd></div>
+        <div class="stat-row"><dt>Стойкость (CON)</dt><dd id="stat-con">1</dd></div>
+        <div class="stat-row"><dt>Ловкость (AGI)</dt><dd id="stat-agi">1</dd></div>
+        <div class="stat-row"><dt>Исцеление (REG)</dt><dd id="stat-reg">1</dd></div>
+        <div class="stat-row"><dt>Меткость (ACC)</dt><dd id="stat-acc">1</dd></div>
+        <div class="stat-row"><dt>Защита (DEF)</dt><dd id="stat-def">0</dd></div>
+        <div class="stat-row"><dt>Урон</dt><dd id="stat-damage">1-5</dd></div>
+      </dl>
+    </aside>
+
+  </div>
 
 </game-interface>
 
