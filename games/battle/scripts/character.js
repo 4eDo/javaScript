@@ -352,13 +352,27 @@ export class Character {
   }
 
   _getWeaponDamageMin() {
-    const weapon = this.getEquippedItem('weapon', 0) || this.getEquippedItem('weapon', 1);
-    return weapon?.properties?.DAMAGE_MIN || 1;
+    const w0 = this.getEquippedItem('weapon', 0);
+    const w1 = this.getEquippedItem('weapon', 1);
+    
+    if (w0?.tags?.includes('twoHanded')) return w0.properties?.DAMAGE_MIN || 1;
+    if (w1?.tags?.includes('twoHanded')) return w1.properties?.DAMAGE_MIN || 1;
+    
+    const min0 = w0?.properties?.DAMAGE_MIN || 0;
+    const min1 = w1?.properties?.DAMAGE_MIN || 0;
+    return Math.max(1, min0 + min1);
   }
 
   _getWeaponDamageMax() {
-    const weapon = this.getEquippedItem('weapon', 0) || this.getEquippedItem('weapon', 1);
-    return weapon?.properties?.DAMAGE_MAX || 5;
+    const w0 = this.getEquippedItem('weapon', 0);
+    const w1 = this.getEquippedItem('weapon', 1);
+    
+    if (w0?.tags?.includes('twoHanded')) return w0.properties?.DAMAGE_MAX || 5;
+    if (w1?.tags?.includes('twoHanded')) return w1.properties?.DAMAGE_MAX || 5;
+    
+    const max0 = w0?.properties?.DAMAGE_MAX || 0;
+    const max1 = w1?.properties?.DAMAGE_MAX || 0;
+    return Math.max(1, max0 + max1);
   }
 
   addXP(amount) {
