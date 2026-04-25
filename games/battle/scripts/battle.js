@@ -193,7 +193,7 @@ function playerAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  // Шанс попадания = 100 - (AGI врага / ACC игрока) * 100
+  // Шанс попадания
   const dodgeChance = pStats.ACC > 0 ? (enemy.stats.AGI / pStats.ACC) * 100 : 100;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
@@ -209,14 +209,12 @@ function playerAttack() {
     return;
   }
   
-  // Урон = случайный в диапазоне DAMAGE_MIN..DAMAGE_MAX + бонус силы
+  // Урон уже включает STR из getStats()
   const baseDamage = Math.floor(Math.random() * (pStats.DAMAGE_MAX - pStats.DAMAGE_MIN + 1)) + pStats.DAMAGE_MIN;
-  const strBonus = pStats.STR;
-  let rawDamage = baseDamage + strBonus;
   
-  // Защита врага поглощает часть урона
-  const blocked = Math.min(enemy.stats.DEF || 0, rawDamage);
-  let damage = Math.max(1, rawDamage - blocked);
+  // Защита врага
+  const blocked = Math.min(enemy.stats.DEF || 0, baseDamage);
+  let damage = Math.max(1, baseDamage - blocked);
   
   enemy.currentHP -= damage;
   
@@ -251,7 +249,7 @@ function enemyAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  // Регенерация игрока — раз в ход врага
+  // Регенерация игрока
   if (pStats.REG > 0 && battleState.playerHP < battleState.playerMaxHP) {
     const regenAmount = Math.min(pStats.REG, battleState.playerMaxHP - battleState.playerHP);
     battleState.playerHP += regenAmount;
@@ -261,7 +259,7 @@ function enemyAttack() {
     ui.addBattleLogEntry(msg, 'log-system');
   }
   
-  // Шанс попадания = 100 - (AGI игрока / ACC врага) * 100
+  // Шанс попадания
   const dodgeChance = enemy.stats.ACC > 0 ? (pStats.AGI / enemy.stats.ACC) * 100 : 100;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
@@ -276,14 +274,12 @@ function enemyAttack() {
     return;
   }
   
-  // Урон врага
+  // Урон врага — DAMAGE уже включает STR из calculateEnemyStats
   const baseDamage = Math.floor(Math.random() * (enemy.stats.DAMAGE_MAX - enemy.stats.DAMAGE_MIN + 1)) + enemy.stats.DAMAGE_MIN;
-  const strBonus = enemy.stats.STR;
-  let rawDamage = baseDamage + strBonus;
   
-  // Защита игрока поглощает часть урона
-  const blocked = Math.min(pStats.DEF || 0, rawDamage);
-  let damage = Math.max(1, rawDamage - blocked);
+  // Защита игрока
+  const blocked = Math.min(pStats.DEF || 0, baseDamage);
+  let damage = Math.max(1, baseDamage - blocked);
   
   battleState.playerHP -= damage;
   

@@ -41,15 +41,17 @@ function calculateEnemyStats(template, level) {
   if (level > 1) {
     const levelsAbove = level - 1;
     for (const key of Object.keys(template.levelUps)) {
-      if (key === 'xp') continue; // xp увеличивается отдельно
-      // levelUps[key] — процент прироста за уровень
+      if (key === 'xp') continue;
       const increase = stats[key] * (template.levelUps[key] / 100) * levelsAbove;
       stats[key] = Math.round(stats[key] + increase);
     }
-    // XP: базовый * (1 + процент/100 * (уровень-1))
     const xpIncrease = stats.xp * (template.levelUps.xp / 100) * levelsAbove;
     stats.xp = Math.round(stats.xp + xpIncrease);
   }
+  
+  // Урон врага = базовый урон + сила
+  stats.DAMAGE_MIN = stats.DAMAGE_MIN + stats.STR;
+  stats.DAMAGE_MAX = stats.DAMAGE_MAX + stats.STR;
   
   return stats;
 }

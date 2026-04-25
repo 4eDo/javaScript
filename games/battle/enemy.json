@@ -125,7 +125,7 @@
       "AGI": 3,
       "REG": 0,
       "ACC": 5,
-      "DEF": 3,
+      "DEF": 5,
       "DAMAGE_MIN": 20,
       "DAMAGE_MAX": 50,
       "xp": 45
@@ -136,7 +136,7 @@
       "CON": 8,
       "AGI": 6,
       "ACC": 8,
-      "DEF": 7,
+      "DEF": 5,
       "DAMAGE_MIN": 10,
       "DAMAGE_MAX": 10,
       "xp": 18

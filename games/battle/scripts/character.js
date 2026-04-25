@@ -232,13 +232,19 @@ export class Character {
     }
 
     const hp = CONFIG.BASE_HP + CON * CONFIG.HP_PER_CON;
+    
+    // Урон = урон оружия + сила
+    const weaponMin = this._getWeaponDamageMin();
+    const weaponMax = this._getWeaponDamageMax();
+    const damageMin = weaponMin + STR;
+    const damageMax = weaponMax + STR;
 
     return {
       STR, CON, AGI, REG, ACC,
       HP: Math.round(hp),
       DEF: this._getTotalDEF(),
-      DAMAGE_MIN: this._getWeaponDamageMin(),
-      DAMAGE_MAX: this._getWeaponDamageMax(),
+      DAMAGE_MIN: damageMin,
+      DAMAGE_MAX: damageMax,
       level: this.level,
       xp: this.xp
     };
