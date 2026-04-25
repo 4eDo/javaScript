@@ -89,7 +89,6 @@ export function renderEquipment() {
     el.style.opacity = '1';
   });
 
-  // Заполняем надетые предметы
   for (const [key, itemId] of Object.entries(character.equipment)) {
     if (!itemId) continue;
     const [slotName, index] = key.split('-');
@@ -105,7 +104,6 @@ export function renderEquipment() {
     }
   }
 
-  // Блокировка двуручного
   const w0 = character.equipment['weapon-0'];
   const w1 = character.equipment['weapon-1'];
   const twoHandedEquipped = (w0 && w1 && w0 === w1 && getItemById(w0)?.tags?.includes('twoHanded'));
@@ -129,14 +127,11 @@ export function renderEquipment() {
     const index = el.dataset.index;
     const key = `${slotName}-${index}`;
     
-    // Занятые слоты не блокируем
     if (character.equipment[key]) return;
     
-    // Если выбран предмет и он single
     if (selectedItemId) {
       const selectedItem = getItemById(selectedItemId);
       if (selectedItem?.tags?.includes('single')) {
-        // Проверяем, нет ли рядом надетого single
         for (const [eqKey, equippedId] of Object.entries(character.equipment)) {
           const [eqSlot] = eqKey.split('-');
           if (eqSlot !== slotName || eqKey === key) continue;
@@ -188,7 +183,6 @@ export function renderEquipment() {
         
         if (!item.slots.includes(slotName)) return;
         
-        // Используем единый метод проверки
         if (character.canEquipInSlot(selectedItemId, key)) {
           el.classList.add('highlight-slot');
         }
@@ -197,20 +191,6 @@ export function renderEquipment() {
   }
 
   updateConsumableSlots();
-}
-
-function _getSingleEquippedBySlot() {
-  const map = {};
-  for (const [key, itemId] of Object.entries(character.equipment)) {
-    if (!itemId) continue;
-    const [slotName] = key.split('-');
-    const item = getItemById(itemId);
-    if (item?.tags?.includes('single')) {
-      if (!map[slotName]) map[slotName] = new Set();
-      map[slotName].add(itemId);
-    }
-  }
-  return map;
 }
 
 function updateConsumableSlots() {
@@ -401,12 +381,12 @@ export function showEquipSlotTooltip(slotName, index) {
   const item = getItemById(itemId);
   if (!item) return;
   
-  if (selectedItemId && selectedItemId !== itemId) {
+  if (selectedItemId) {
     const selectedItem = getItemById(selectedItemId);
     if (selectedItem) {
       showComparisonWithEquipped(selectedItem, item);
     }
-  } else if (!selectedItemId) {
+  } else {
     showEquippedItemTooltip(item);
   }
 }
@@ -480,45 +460,77 @@ function showComparisonWithEquipped(selectedItem, equippedItem) {
     const diff = equippedVal - selectedVal;
     const sign = diff > 0 ? '+' : '';
     const diffText = diff !== 0 ? ` (${sign}${diff})` : '';
-    const displayVal = (equippedVal > 0 ? '+' : '') + equippedVal + diffText;
+    const label = key === 'CAPACITY' ? 'Вместимость' : key;
+    const displayVal = key === 'CAPACITY' ? equippedVal + diffText : (equippedVal > 0 ? '+' : '') + equippedVal + diffText;
     
-    addProp(props, key, displayVal, cls);
+    addProp(props, label, displayVal, cls);
   });
 }
 
-if (item.usage) {
-  const dl = document.createElement('dl');
-  dl.className = 'usage-info';
+function showItemInfo(item, containerId, titleId, propsId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.style.display = 'block';
   
-  const dtTitle = document.createElement('dt');
-  dtTitle.textContent = 'Расходник';
-  dl.appendChild(dtTitle);
+  document.getElementById(titleId).textContent = item.name;
   
-  const ddTrigger = document.createElement('dd');
-  ddTrigger.textContent = `Условие: ${formatTrigger(item.usage.trigger)}`;
-  dl.appendChild(ddTrigger);
+  const props = document.getElementById(propsId);
+  props.innerHTML = '';
   
-  if (item.usage.duration === 0) {
-    const ddDuration = document.createElement('dd');
-    ddDuration.textContent = 'Действие: мгновенное';
-    dl.appendChild(ddDuration);
-  } else if (item.usage.duration === 'battle') {
-    const ddDuration = document.createElement('dd');
-    ddDuration.textContent = 'Длительность: до конца боя';
-    dl.appendChild(ddDuration);
-  } else {
-    const ddDuration = document.createElement('dd');
-    ddDuration.textContent = `Длительность: ${item.usage.duration} ходов`;
-    dl.appendChild(ddDuration);
+  addProp(props, 'Уровень', item.level, '');
+  
+  if (item.slots) {
+    addProp(props, 'Слоты', item.slots.join(', '), '');
   }
   
-  const ddEffect = document.createElement('dd');
-  ddEffect.textContent = 'Эффект: ' + Object.entries(item.usage.stats)
-    .map(([k, v]) => `${k} ${v > 0 ? '+' + v : v}`)
-    .join(', ');
-  dl.appendChild(ddEffect);
+  if (item.tags && item.tags.includes('twoHanded')) {
+    addProp(props, 'Особенность', 'Двуручное', '');
+  }
   
-  props.appendChild(dl);
+  if (item.properties) {
+    for (const [key, value] of Object.entries(item.properties)) {
+      if (key === 'CAPACITY') {
+        addProp(props, 'Вместимость', value, '');
+      } else {
+        addProp(props, key, value > 0 ? '+' + value : value, '');
+      }
+    }
+  }
+  
+  if (item.usage) {
+    const dl = document.createElement('dl');
+    dl.className = 'usage-info';
+    
+    const dtTitle = document.createElement('dt');
+    dtTitle.textContent = 'Расходник';
+    dl.appendChild(dtTitle);
+    
+    const ddTrigger = document.createElement('dd');
+    ddTrigger.textContent = `Условие: ${formatTrigger(item.usage.trigger)}`;
+    dl.appendChild(ddTrigger);
+    
+    if (item.usage.duration === 0) {
+      const ddDuration = document.createElement('dd');
+      ddDuration.textContent = 'Действие: мгновенное';
+      dl.appendChild(ddDuration);
+    } else if (item.usage.duration === 'battle') {
+      const ddDuration = document.createElement('dd');
+      ddDuration.textContent = 'Длительность: до конца боя';
+      dl.appendChild(ddDuration);
+    } else {
+      const ddDuration = document.createElement('dd');
+      ddDuration.textContent = `Длительность: ${item.usage.duration} ходов`;
+      dl.appendChild(ddDuration);
+    }
+    
+    const ddEffect = document.createElement('dd');
+    ddEffect.textContent = 'Эффект: ' + Object.entries(item.usage.stats)
+      .map(([k, v]) => `${k} ${v > 0 ? '+' + v : v}`)
+      .join(', ');
+    dl.appendChild(ddEffect);
+    
+    props.appendChild(dl);
+  }
 }
 
 function formatTrigger(trigger) {
@@ -596,15 +608,18 @@ function showComparisonInfo(selectedId, hoveredItem) {
   }
   
   if (hoveredItem.usage) {
-    const dt = document.createElement('dt');
-    dt.textContent = 'Расходник';
-    dt.style.marginTop = '8px';
-    dt.style.fontWeight = 'bold';
-    props.appendChild(dt);
+    const dl = document.createElement('dl');
+    dl.className = 'usage-info';
+    
+    const dtTitle = document.createElement('dt');
+    dtTitle.textContent = 'Расходник';
+    dl.appendChild(dtTitle);
     
     const dd = document.createElement('dd');
     dd.textContent = `Условие: ${formatTrigger(hoveredItem.usage.trigger)}`;
-    props.appendChild(dd);
+    dl.appendChild(dd);
+    
+    props.appendChild(dl);
   }
 }
 
@@ -688,18 +703,6 @@ export function renderStats() {
   document.getElementById('stat-damage').textContent = `${s.DAMAGE_MIN}-${s.DAMAGE_MAX}`;
   
   updateXPBar();
-}
-
-export function updateBattleHP(currentHP, maxHP) {
-  const hpEl = document.getElementById('stat-hp');
-  if (hpEl) {
-    hpEl.textContent = `${currentHP}/${maxHP}`;
-    if (currentHP < maxHP * 0.3) {
-      hpEl.classList.add('hp-critical');
-    } else {
-      hpEl.classList.remove('hp-critical');
-    }
-  }
 }
 
 export function updateXPBar() {
@@ -852,6 +855,18 @@ export function addBattleLogEntry(message, className = '') {
   log.scrollTop = log.scrollHeight;
 }
 
+export function updateBattleHP(currentHP, maxHP) {
+  const hpEl = document.getElementById('stat-hp');
+  if (hpEl) {
+    hpEl.textContent = `${currentHP}/${maxHP}`;
+    if (currentHP < maxHP * 0.3) {
+      hpEl.classList.add('hp-critical');
+    } else {
+      hpEl.classList.remove('hp-critical');
+    }
+  }
+}
+
 export function showBattleResult(title, message) {
   document.getElementById('result-title').textContent = title;
   document.getElementById('result-text').textContent = message;
@@ -892,7 +907,6 @@ export function updateActiveEffects(effects) {
   const container = document.getElementById('active-effects');
   if (!container) return;
   
-  // Очищаем всё кроме заголовка
   const title = container.querySelector('.dynamic-title');
   container.innerHTML = '';
   if (title) {
