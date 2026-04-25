@@ -486,31 +486,64 @@ function showComparisonWithEquipped(selectedItem, equippedItem) {
   });
 }
 
-function showItemInfo(item, containerId, titleId, propsId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.style.display = 'block';
+if (item.usage) {
+  const dl = document.createElement('dl');
+  dl.className = 'usage-info';
   
-  document.getElementById(titleId).textContent = item.name;
+  const dtTitle = document.createElement('dt');
+  dtTitle.textContent = 'Расходник';
+  dl.appendChild(dtTitle);
   
-  const props = document.getElementById(propsId);
-  props.innerHTML = '';
+  const ddTrigger = document.createElement('dd');
+  ddTrigger.textContent = `Условие: ${formatTrigger(item.usage.trigger)}`;
+  dl.appendChild(ddTrigger);
   
-  addProp(props, 'Уровень', item.level, '');
-  
-  if (item.slots) {
-    addProp(props, 'Слоты', item.slots.join(', '), '');
+  if (item.usage.duration === 0) {
+    const ddDuration = document.createElement('dd');
+    ddDuration.textContent = 'Действие: мгновенное';
+    dl.appendChild(ddDuration);
+  } else if (item.usage.duration === 'battle') {
+    const ddDuration = document.createElement('dd');
+    ddDuration.textContent = 'Длительность: до конца боя';
+    dl.appendChild(ddDuration);
+  } else {
+    const ddDuration = document.createElement('dd');
+    ddDuration.textContent = `Длительность: ${item.usage.duration} ходов`;
+    dl.appendChild(ddDuration);
   }
   
-  if (item.tags && item.tags.includes('twoHanded')) {
-    addProp(props, 'Особенность', 'Двуручное', '');
-  }
+  const ddEffect = document.createElement('dd');
+  ddEffect.textContent = 'Эффект: ' + Object.entries(item.usage.stats)
+    .map(([k, v]) => `${k} ${v > 0 ? '+' + v : v}`)
+    .join(', ');
+  dl.appendChild(ddEffect);
   
-  if (item.properties) {
-    for (const [key, value] of Object.entries(item.properties)) {
-      addProp(props, key, value > 0 ? '+' + value : value, '');
-    }
-  }
+  props.appendChild(dl);
+}
+
+function formatTrigger(trigger) {
+  const { target, val, op = 'eq' } = trigger;
+  
+  const opNames = {
+    'eq': 'равно',
+    'lt': 'меньше',
+    'gt': 'больше',
+    'lte': 'меньше или равно',
+    'gte': 'больше или равно'
+  };
+  
+  const targetNames = {
+    'hp': `здоровье ${opNames[op] || op} ${val}`,
+    'hp_pct': `здоровье ${opNames[op] || op} ${val}%`,
+    'miss_streak': `${val} промаха подряд`,
+    'hit_streak': `${val} попаданий подряд`,
+    'enemy_count': `противников ${opNames[op] || op} ${val}`,
+    'enemy_level': `уровень врага ${opNames[op] || op} уровня игрока${val !== 0 ? ' + ' + val : ''}`,
+    'on_dodge': 'после уклонения',
+    'battle_start': 'в начале боя'
+  };
+  
+  return targetNames[target] || `${target} ${op} ${val}`;
 }
 
 function showItemInfoStatic(item, containerId, titleId, propsId) {
@@ -555,10 +588,23 @@ function showComparisonInfo(selectedId, hoveredItem) {
       const diff = hoveredVal - selectedVal;
       const sign = diff > 0 ? '+' : '';
       const diffText = diff !== 0 ? ` (${sign}${diff})` : '';
-      const displayVal = (hoveredVal > 0 ? '+' : '') + hoveredVal + diffText;
+      const label = key === 'CAPACITY' ? 'Вместимость' : key;
+      const displayVal = key === 'CAPACITY' ? hoveredVal + diffText : (hoveredVal > 0 ? '+' : '') + hoveredVal + diffText;
       
-      addProp(props, key, displayVal, cls);
+      addProp(props, label, displayVal, cls);
     });
+  }
+  
+  if (hoveredItem.usage) {
+    const dt = document.createElement('dt');
+    dt.textContent = 'Расходник';
+    dt.style.marginTop = '8px';
+    dt.style.fontWeight = 'bold';
+    props.appendChild(dt);
+    
+    const dd = document.createElement('dd');
+    dd.textContent = `Условие: ${formatTrigger(hoveredItem.usage.trigger)}`;
+    props.appendChild(dd);
   }
 }
 

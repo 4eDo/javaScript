@@ -709,3 +709,21 @@ modal-window li {
 .active-effects {
   margin-top: 10px;
 }
+
+/* ============ ОПИСАНИЕ РАСХОДНИКА ============ */
+.usage-info {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dotted #000;
+}
+
+.usage-info dt {
+  font-weight: bold;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.usage-info dd {
+  font-size: 12px;
+  margin-left: 10px;
+}
