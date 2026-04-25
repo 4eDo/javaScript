@@ -19,6 +19,7 @@ function showIdleState() {
   ui.hideEnemyInfo();
   
   const stats = getPlayerStats();
+  ui.updateBattleHP(stats.HP, stats.HP);
   ui.renderStats();
   
   ui.renderBattleActions(`
@@ -427,12 +428,8 @@ function getPlayerStats() {
 function updateStats() {
   const stats = getPlayerStats();
   const currentHP = battleState ? battleState.playerHP : stats.HP;
+  const maxHP = stats.HP;
   
-  const hpEl = document.getElementById('stat-hp');
-  if (hpEl) {
-    hpEl.textContent = currentHP !== null ? `${currentHP}/${stats.HP}` : stats.HP;
-    hpEl.className = currentHP < stats.HP * 0.3 ? 'hp-critical' : '';
-  }
-  
+  ui.updateBattleHP(currentHP, maxHP);
   ui.renderStats();
 }

@@ -230,6 +230,7 @@ function addPropLocal(container, key, value, className) {
 
 // ========== ПРОЧИЕ ОБРАБОТЧИКИ ==========
 function setupOtherEvents() {
+  // Снятие через кнопку
   document.getElementById('btn-unequip-left').addEventListener('click', () => {
     if (ui.getSelectedSlotKey()) {
       player.unequip(ui.getSelectedSlotKey());
@@ -246,9 +247,17 @@ function setupOtherEvents() {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      
+      // При переключении на бой обновляем HP
+      if (tab.dataset.tab === 'battle') {
+        const stats = player.getStats();
+        ui.updateBattleHP(stats.HP, stats.HP);
+        ui.renderStats();
+      }
     });
   });
 
+  // Экипировка / Внешний вид
   document.getElementById('btn-show-equip').addEventListener('click', () => {
     document.getElementById('btn-show-equip').classList.add('active');
     document.getElementById('btn-show-appearance').classList.remove('active');
@@ -263,6 +272,7 @@ function setupOtherEvents() {
     document.getElementById('equip-view').classList.remove('active');
   });
 
+  // Вкладки инвентаря
   document.querySelectorAll('.inv-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
@@ -274,15 +284,18 @@ function setupOtherEvents() {
     });
   });
 
+  // Прокачка за пост
   document.getElementById('btn-upgrade').addEventListener('click', () => {
     document.getElementById('modal-upgrade').classList.add('open');
   });
 
+  // Подтверждение крафта
   document.getElementById('btn-confirm-craft').addEventListener('click', () => {
     const recipe = ui.getPendingRecipe();
     if (recipe) finishCraft(recipe);
   });
 
+  // Закрытие модалок
   document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById(btn.dataset.close).classList.remove('open');
@@ -299,6 +312,7 @@ function setupOtherEvents() {
     win.addEventListener('click', e => e.stopPropagation());
   });
 
+  // Фильтры
   ['filter-type', 'filter-level', 'filter-slot'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', () => ui.renderInventory());
   });
@@ -313,7 +327,7 @@ async function init() {
   await loadEnemyTemplates();
   setupDelegatedEvents();
   setupOtherEvents();
-  setupBattle(player, ui);
+  setupBattle(player);
   
   const allIds = getAllItemIds();
   player.testFillInventory(allIds);

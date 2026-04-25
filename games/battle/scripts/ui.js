@@ -638,14 +638,23 @@ export function renderStats() {
   document.getElementById('stat-agi').textContent = s.AGI;
   document.getElementById('stat-reg').textContent = s.REG;
   document.getElementById('stat-acc').textContent = s.ACC;
-  document.getElementById('stat-hp').textContent = s.HP;
   document.getElementById('stat-def').textContent = s.DEF;
   document.getElementById('stat-damage').textContent = `${s.DAMAGE_MIN}-${s.DAMAGE_MAX}`;
   
   updateXPBar();
 }
 
-
+export function updateBattleHP(currentHP, maxHP) {
+  const hpEl = document.getElementById('stat-hp');
+  if (hpEl) {
+    hpEl.textContent = `${currentHP}/${maxHP}`;
+    if (currentHP < maxHP * 0.3) {
+      hpEl.classList.add('hp-critical');
+    } else {
+      hpEl.classList.remove('hp-critical');
+    }
+  }
+}
 
 export function updateXPBar() {
   const s = character.getStats();
