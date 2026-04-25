@@ -41,21 +41,12 @@ function startEncounter(mode) {
   if (mode === 'explore') {
     const roll = Math.random() * 100;
     
-    if (roll < 15) {
-      ui.renderEnemyList([], -1, false);
-      ui.addBattleLogEntry(randomMessage('nothing_found'), 'log-system');
-      ui.hideEnemyInfo();
-      showIdleActions();
-      updateStats();
-      return;
-    }
-    
-    if (roll < 30) {
+    if (roll < CONFIG.EXPLORE_CHANCE_ENEMIES) {
       generateEnemies(mode, playerLevel);
       return;
     }
     
-    if (roll < 60) {
+    if (roll < CONFIG.EXPLORE_CHANCE_ENEMIES + CONFIG.EXPLORE_CHANCE_ITEM) {
       const allItems = getAllItems();
       const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
       playerCharacter.addItem(randomItem.id);
@@ -69,10 +60,20 @@ function startEncounter(mode) {
       return;
     }
     
-    const allItems = getAllItems();
-    const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
-    generateEnemies(mode, playerLevel, [randomItem.id]);
-    ui.addBattleLogEntry(randomMessage('found_item_enemies').replace('{item}', randomItem.name), 'log-system');
+    if (roll < CONFIG.EXPLORE_CHANCE_ENEMIES + CONFIG.EXPLORE_CHANCE_ITEM + CONFIG.EXPLORE_CHANCE_ITEM_AND_ENEMIES) {
+      const allItems = getAllItems();
+      const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+      generateEnemies(mode, playerLevel, [randomItem.id]);
+      ui.addBattleLogEntry(randomMessage('found_item_enemies').replace('{item}', randomItem.name), 'log-system');
+      return;
+    }
+    
+    // Остаток — пусто
+    ui.renderEnemyList([], -1, false);
+    ui.addBattleLogEntry(randomMessage('nothing_found'), 'log-system');
+    ui.hideEnemyInfo();
+    showIdleActions();
+    updateStats();
     return;
   }
   
@@ -567,12 +568,12 @@ function fleeBattle() {
   const defeatedEnemies = battleState.enemies.filter(e => e.currentHP <= 0);
   
   for (const enemy of defeatedEnemies) {
-    totalXP += Math.round(enemy.stats.xp * 0.3);
+    totalXP += Math.round(enemy.stats.xp * (CONFIG.FLEE_XP_PERCENT / 100));
   }
   
   // Шанс 30% на одну случайную вещь с поверженных врагов
   let droppedItem = null;
-  if (defeatedEnemies.length > 0 && Math.random() < 0.3) {
+  if (defeatedEnemies.length > 0 && Math.random() * 100 < CONFIG.FLEE_ITEM_CHANCE) {
     const allDrops = [];
     
     for (const enemy of defeatedEnemies) {
@@ -607,7 +608,7 @@ function fleeBattle() {
   
   let msg = `Вы сбежали с поля боя.\n`;
   if (totalXP > 0) {
-    msg += `Получено опыта: ${totalXP} (30% от поверженных врагов).\n`;
+    msg += `Получено опыта: ${totalXP} (${CONFIG.FLEE_XP_PERCENT}% от поверженных врагов).\n`;
   }
   if (droppedItem) {
     msg += `Успели подобрать: ${droppedItem.item.name}.`;
