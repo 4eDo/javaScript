@@ -450,13 +450,13 @@ function compare(a, b, op) {
 }
 
 function applyConsumable(slotKey, item) {
-  const { duration, stats } = item.usage;
+  const { duration, properties } = item.usage;
   
-  if (!stats) return; // защита от пустых stats
+  if (!properties) return;
   
   if (duration === 0) {
-    if (stats.HP) {
-      const healed = Math.min(stats.HP, battleState.playerMaxHP - battleState.playerHP);
+    if (properties.HP) {
+      const healed = Math.min(properties.HP, battleState.playerMaxHP - battleState.playerHP);
       battleState.playerHP += healed;
       
       const msg = randomMessage('consumable_instant')
@@ -468,7 +468,7 @@ function applyConsumable(slotKey, item) {
   } else {
     battleState.activeEffects.push({
       name: item.name,
-      stats: { ...stats },
+      properties: { ...properties },
       remaining: duration === 'battle' ? Infinity : duration
     });
     
@@ -646,7 +646,7 @@ function getPlayerStats() {
   
   if (battleState && battleState.activeEffects) {
     for (const effect of battleState.activeEffects) {
-      for (const [key, value] of Object.entries(effect.stats)) {
+      for (const [key, value] of Object.entries(effect.properties)) {
         if (stats.hasOwnProperty(key)) {
           stats[key] += value;
         }

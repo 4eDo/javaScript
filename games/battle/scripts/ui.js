@@ -524,7 +524,7 @@ function showItemInfo(item, containerId, titleId, propsId) {
     }
     
     const ddEffect = document.createElement('dd');
-    ddEffect.textContent = 'Эффект: ' + Object.entries(item.usage.stats)
+    ddEffect.textContent = 'Эффект: ' + Object.entries(item.usage.properties)
       .map(([k, v]) => `${k} ${v > 0 ? '+' + v : v}`)
       .join(', ');
     dl.appendChild(ddEffect);
@@ -934,7 +934,7 @@ export function updateActiveEffects(effects) {
     nameDt.textContent = effect.name;
     
     const valueDd = document.createElement('dd');
-    const statsText = Object.entries(effect.stats)
+    const statsText = Object.entries(effect.properties)
       .filter(([k]) => k !== 'HP')
       .map(([k, v]) => `${k} +${v}`)
       .join(', ');
