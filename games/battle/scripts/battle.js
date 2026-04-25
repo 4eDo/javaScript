@@ -264,8 +264,13 @@ function playerAttack() {
   
   enemy.currentHP -= damage;
   
-  const randomEquip = getRandomEquip(playerCharacter);
-  const equipName = randomEquip ? getItemById(randomEquip)?.name || '' : '';
+  const randomEquipId = getRandomEquip(playerCharacter);
+  let equipName;
+  if (randomEquipId) {
+    equipName = getItemById(randomEquipId)?.name || '';
+  } else {
+    equipName = randomMessage('no_equip');
+  }
   
   if (blocked > 0) {
     const msg = randomMessage('blocked')

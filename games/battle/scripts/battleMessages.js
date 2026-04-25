@@ -103,6 +103,23 @@ export const BATTLE_MESSAGES = {
     'Быстрый рывок — и вы уже далеко от противников.',
     'Тактическое отступление! Враги теряют вас из виду.',
     'Ноги в руки — и вы успешно скрываетесь!'
+  ],
+  no_equip: [
+    'чистое везение',
+    'удача',
+    'успешный успех',
+    'костюм Адама',
+    'природное обаяние',
+    'голые руки',
+    'смекалка',
+    'врождённый талант',
+    'сила духа',
+    'крутость',
+    'наглая морда',
+    'второе дыхание',
+    'здоровый сон',
+    'мамина радость',
+    'дедовский наказ'
   ]
 };
 
@@ -122,7 +139,7 @@ export function getRandomEquip(character) {
       const [slot] = key.split('-');
       return slot !== 'consumable';
     })
-    .map(([key, itemId]) => itemId);
+    .map(([, itemId]) => itemId);
   
   if (equipped.length === 0) return null;
   return equipped[Math.floor(Math.random() * equipped.length)];
