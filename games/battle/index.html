@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Battle</title>
+  <title>Battle Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,221 +16,224 @@
     <button class="tab" data-tab="battle">Бой</button>
   </nav>
 
-  <!-- ============ РАЗДЕЛ: ПЕРСОНАЖ ============ -->
-  <main class="tab-content active" id="tab-character">
+  <div class="main-area">
     
-    <!-- Левая панель: Экипировка -->
-    <aside class="panel-left">
+    <!-- ============ РАЗДЕЛ: ПЕРСОНАЖ ============ -->
+    <main class="tab-content active" id="tab-character">
       
-      <nav class="view-switcher">
-        <button id="btn-show-equip" class="view-btn active">Экипировка</button>
-        <button id="btn-show-appearance" class="view-btn">Внешний вид</button>
-      </nav>
-      
-      <!-- Экипировка -->
-      <section id="equip-view" class="view active" aria-label="Экипировка">
-        <h2 class="tabTitle">Экипировка</h2>
+      <!-- Левая панель: Экипировка -->
+      <aside class="panel-left">
         
-        <equipment-part data-label="Голова">
-          <div class="slot" data-slot="head" data-index="0"></div>
-          <div class="slot" data-slot="head" data-index="1"></div>
-          <div class="slot" data-slot="head" data-index="2"></div>
-        </equipment-part>
+        <nav class="view-switcher">
+          <button id="btn-show-equip" class="view-btn active">Экипировка</button>
+          <button id="btn-show-appearance" class="view-btn">Внешний вид</button>
+        </nav>
         
-        <equipment-part data-label="Тело">
-          <div class="slot" data-slot="body" data-index="0"></div>
-          <div class="slot" data-slot="body" data-index="1"></div>
-          <div class="slot" data-slot="body" data-index="2"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Ноги">
-          <div class="slot" data-slot="legs" data-index="0"></div>
-          <div class="slot" data-slot="legs" data-index="1"></div>
-          <div class="slot" data-slot="legs" data-index="2"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Оружие">
-          <div class="slot" data-slot="weapon" data-index="0"></div>
-          <div class="slot" data-slot="weapon" data-index="1"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Левая рука">
-          <div class="slot" data-slot="arm_l" data-index="0"></div>
-          <div class="slot" data-slot="arm_l" data-index="1"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Правая рука">
-          <div class="slot" data-slot="arm_r" data-index="0"></div>
-          <div class="slot" data-slot="arm_r" data-index="1"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Левая ступня">
-          <div class="slot" data-slot="feet_l" data-index="0"></div>
-          <div class="slot" data-slot="feet_l" data-index="1"></div>
-          <div class="slot" data-slot="feet_l" data-index="2"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Правая ступня">
-          <div class="slot" data-slot="feet_r" data-index="0"></div>
-          <div class="slot" data-slot="feet_r" data-index="1"></div>
-          <div class="slot" data-slot="feet_r" data-index="2"></div>
-        </equipment-part>
-        
-        <equipment-part data-label="Пояс">
-          <div class="slot" data-slot="belt" data-index="0"></div>
-          <div class="slot" data-slot="belt" data-index="1"></div>
-          <div class="slot" data-slot="belt" data-index="2"></div>
-        </equipment-part>
-        
-        <equipment-part id="consumable-part" data-label="Расходники" style="display:none;">
-        </equipment-part>
+        <!-- Экипировка -->
+        <section id="equip-view" class="view active" aria-label="Экипировка">
+          <h2 class="tabTitle">Экипировка</h2>
+          
+          <equipment-part data-label="Голова">
+            <div class="slot" data-slot="head" data-index="0"></div>
+            <div class="slot" data-slot="head" data-index="1"></div>
+            <div class="slot" data-slot="head" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Тело">
+            <div class="slot" data-slot="body" data-index="0"></div>
+            <div class="slot" data-slot="body" data-index="1"></div>
+            <div class="slot" data-slot="body" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Ноги">
+            <div class="slot" data-slot="legs" data-index="0"></div>
+            <div class="slot" data-slot="legs" data-index="1"></div>
+            <div class="slot" data-slot="legs" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Оружие">
+            <div class="slot" data-slot="weapon" data-index="0"></div>
+            <div class="slot" data-slot="weapon" data-index="1"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Левая рука">
+            <div class="slot" data-slot="arm_l" data-index="0"></div>
+            <div class="slot" data-slot="arm_l" data-index="1"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Правая рука">
+            <div class="slot" data-slot="arm_r" data-index="0"></div>
+            <div class="slot" data-slot="arm_r" data-index="1"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Левая ступня">
+            <div class="slot" data-slot="feet_l" data-index="0"></div>
+            <div class="slot" data-slot="feet_l" data-index="1"></div>
+            <div class="slot" data-slot="feet_l" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Правая ступня">
+            <div class="slot" data-slot="feet_r" data-index="0"></div>
+            <div class="slot" data-slot="feet_r" data-index="1"></div>
+            <div class="slot" data-slot="feet_r" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part data-label="Пояс">
+            <div class="slot" data-slot="belt" data-index="0"></div>
+            <div class="slot" data-slot="belt" data-index="1"></div>
+            <div class="slot" data-slot="belt" data-index="2"></div>
+          </equipment-part>
+          
+          <equipment-part id="consumable-part" data-label="Расходники" style="display:none;">
+          </equipment-part>
 
-        <button id="btn-upgrade" class="btn-full">Прокачка за пост</button>
-        <button class="btn-save">Сохранить</button>
-      </section>
-      
-      <!-- Внешний вид (заглушка) -->
-      <section id="appearance-view" class="view" aria-label="Внешний вид">
-        <h2 class="tabTitle">Внешний вид</h2>
-        <p style="padding: 20px; font-style: italic;">Здесь будет настройка внешнего вида персонажа.</p>
-      </section>
-      
-    </aside>
+          <button id="btn-upgrade" class="btn-full">Прокачка за пост</button>
+          <button class="btn-save">Сохранить</button>
+        </section>
+        
+        <!-- Внешний вид -->
+        <section id="appearance-view" class="view" aria-label="Внешний вид">
+          <h2 class="tabTitle">Внешний вид</h2>
+          <p style="padding: 20px; font-style: italic;">Здесь будет настройка внешнего вида персонажа.</p>
+        </section>
+        
+      </aside>
 
-    <!-- Центр: Инвентарь -->
-    <section id="inventory" aria-label="Инвентарь">
-      <h2 class="tabTitle">Инвентарь</h2>
-      
-      <nav class="inv-tabs">
-        <button class="inv-tab active" data-invtab="items">Предметы</button>
-        <button class="inv-tab" data-invtab="engineering">Инженерия</button>
-      </nav>
-      
-      <section class="inv-content active" id="inv-items">
-        <filter-bar>
-          <label>Тип
-            <select id="filter-type">
-              <option value="">Все</option>
-              <option value="weapon">Оружие</option>
-              <option value="armor">Броня</option>
-              <option value="consumable">Расходник</option>
-            </select>
-          </label>
-          <label>Уровень
-            <select id="filter-level">
-              <option value="">Все</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-          <label>Слот
-            <select id="filter-slot">
-              <option value="">Все</option>
-              <option value="head">Голова</option>
-              <option value="body">Тело</option>
-              <option value="legs">Ноги</option>
-              <option value="weapon">Оружие</option>
-              <option value="arm_l">Левая рука</option>
-              <option value="arm_r">Правая рука</option>
-              <option value="feet_l">Левая ступня</option>
-              <option value="feet_r">Правая ступня</option>
-              <option value="belt">Пояс</option>
-            </select>
-          </label>
-        </filter-bar>
+      <!-- Центр: Инвентарь -->
+      <section id="inventory" aria-label="Инвентарь">
+        <h2 class="tabTitle">Инвентарь</h2>
         
-        <inventory-grid id="items" aria-label="Сетка предметов">
-        </inventory-grid>
-      </section>
-      
-      <section class="inv-content" id="inv-engineering">
-        <filter-bar>
-          <label>Тип
-            <select id="eng-filter-type">
-              <option value="">Все</option>
-              <option value="weapon">Оружие</option>
-              <option value="armor">Броня</option>
-              <option value="consumable">Расходник</option>
-            </select>
-          </label>
-          <label>Уровень
-            <select id="eng-filter-level">
-              <option value="">Все</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-          <label>Слот
-            <select id="eng-filter-slot">
-              <option value="">Все</option>
-              <option value="head">Голова</option>
-              <option value="body">Тело</option>
-              <option value="legs">Ноги</option>
-              <option value="weapon">Оружие</option>
-              <option value="arm_l">Левая рука</option>
-              <option value="arm_r">Правая рука</option>
-              <option value="feet_l">Левая ступня</option>
-              <option value="feet_r">Правая ступня</option>
-              <option value="belt">Пояс</option>
-            </select>
-          </label>
-          <label>Доступно
-            <select id="eng-filter-available">
-              <option value="">Все</option>
-              <option value="yes">Можно создать</option>
-              <option value="no">Не хватает</option>
-            </select>
-          </label>
-        </filter-bar>
+        <nav class="inv-tabs">
+          <button class="inv-tab active" data-invtab="items">Предметы</button>
+          <button class="inv-tab" data-invtab="engineering">Инженерия</button>
+        </nav>
         
-        <inventory-grid id="engineering-recipes" aria-label="Рецепты">
-        </inventory-grid>
+        <section class="inv-content active" id="inv-items">
+          <filter-bar>
+            <label>Тип
+              <select id="filter-type">
+                <option value="">Все</option>
+                <option value="weapon">Оружие</option>
+                <option value="armor">Броня</option>
+                <option value="consumable">Расходник</option>
+              </select>
+            </label>
+            <label>Уровень
+              <select id="filter-level">
+                <option value="">Все</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+            <label>Слот
+              <select id="filter-slot">
+                <option value="">Все</option>
+                <option value="head">Голова</option>
+                <option value="body">Тело</option>
+                <option value="legs">Ноги</option>
+                <option value="weapon">Оружие</option>
+                <option value="arm_l">Левая рука</option>
+                <option value="arm_r">Правая рука</option>
+                <option value="feet_l">Левая ступня</option>
+                <option value="feet_r">Правая ступня</option>
+                <option value="belt">Пояс</option>
+              </select>
+            </label>
+          </filter-bar>
+          
+          <inventory-grid id="items" aria-label="Сетка предметов">
+          </inventory-grid>
+        </section>
+        
+        <section class="inv-content" id="inv-engineering">
+          <filter-bar>
+            <label>Тип
+              <select id="eng-filter-type">
+                <option value="">Все</option>
+                <option value="weapon">Оружие</option>
+                <option value="armor">Броня</option>
+                <option value="consumable">Расходник</option>
+              </select>
+            </label>
+            <label>Уровень
+              <select id="eng-filter-level">
+                <option value="">Все</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+            <label>Слот
+              <select id="eng-filter-slot">
+                <option value="">Все</option>
+                <option value="head">Голова</option>
+                <option value="body">Тело</option>
+                <option value="legs">Ноги</option>
+                <option value="weapon">Оружие</option>
+                <option value="arm_l">Левая рука</option>
+                <option value="arm_r">Правая рука</option>
+                <option value="feet_l">Левая ступня</option>
+                <option value="feet_r">Правая ступня</option>
+                <option value="belt">Пояс</option>
+              </select>
+            </label>
+            <label>Доступно
+              <select id="eng-filter-available">
+                <option value="">Все</option>
+                <option value="yes">Можно создать</option>
+                <option value="no">Не хватает</option>
+              </select>
+            </label>
+          </filter-bar>
+          
+          <inventory-grid id="engineering-recipes" aria-label="Рецепты">
+          </inventory-grid>
+        </section>
+        
+        <item-info id="info">
+          <div id="info-left">
+            <h3 id="itemTitle">Выберите предмет</h3>
+            <dl id="properties"></dl>
+            <button id="btn-unequip-left" class="btn-unequip" style="display:none;">Снять предмет</button>
+          </div>
+          <div id="info-right" style="display:none;">
+            <h3 id="itemTitleHover"></h3>
+            <dl id="propertiesHover"></dl>
+          </div>
+        </item-info>
       </section>
+
+    </main>
+
+    <!-- ============ РАЗДЕЛ: БОЙ ============ -->
+    <main class="tab-content" id="tab-battle">
       
-      <item-info id="info">
-        <div id="info-left">
-          <h3 id="itemTitle">Выберите предмет</h3>
-          <dl id="properties"></dl>
-          <button id="btn-unequip-left" class="btn-unequip" style="display:none;">Снять предмет</button>
+      <aside class="panel-left" id="enemy-list" aria-label="Список противников">
+        <h2 class="tabTitle">Противники</h2>
+      </aside>
+
+      <section id="battlefield" aria-label="Поле боя">
+        <div id="enemy-info"></div>
+        <div id="battle-actions">
+          <button id="btn-search">Искать врагов</button>
+          <button id="btn-explore">Исследовать окрестности</button>
         </div>
-        <div id="info-right" style="display:none;">
-          <h3 id="itemTitleHover"></h3>
-          <dl id="propertiesHover"></dl>
-        </div>
-      </item-info>
-    </section>
+        
+        <battle-log id="battle-log" aria-label="Лог боя">
+          <p class="log-entry log-system">— Ожидание действий —</p>
+        </battle-log>
+      </section>
 
-  </main>
+    </main>
+  </div>
 
-  <!-- ============ РАЗДЕЛ: БОЙ ============ -->
-  <main class="tab-content" id="tab-battle">
-    
-    <aside class="panel-left" id="enemy-list" aria-label="Список противников">
-      <h2 class="tabTitle">Противники</h2>
-    </aside>
-
-    <section id="battlefield" aria-label="Поле боя">
-      <div id="enemy-info"></div>
-      <div id="battle-actions">
-        <button id="btn-search">Искать врагов</button>
-        <button id="btn-explore">Исследовать окрестности</button>
-      </div>
-      
-      <battle-log id="battle-log" aria-label="Лог боя">
-        <p class="log-entry log-system">— Ожидание действий —</p>
-      </battle-log>
-    </section>
-
-  </main>
-
-  <!-- Характеристики — всегда справа -->
-  <aside class="panel-right" id="stats-panel" aria-label="Характеристики">
+  <!-- Характеристики всегда справа -->
+  <aside class="panel-right stats-panel" id="stats-panel" aria-label="Характеристики">
     <h2 class="tabTitle">Характеристики</h2>
     
     <dl class="stats-list">
@@ -255,8 +258,6 @@
   </aside>
 
 </game-interface>
-
-<!-- Модальные окна без изменений -->
 
 <!-- ============ МОДАЛЬНОЕ ОКНО: ПРОКАЧКА ЗА ПОСТ ============ -->
 <modal-overlay id="modal-upgrade" class="modal">
@@ -292,7 +293,6 @@
   </modal-window>
 </modal-overlay>
 
-<!-- Скрипты -->
 <script type="module" src="scripts/main.js"></script>
 
 </body>
