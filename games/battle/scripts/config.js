@@ -9,4 +9,5 @@ export const CONFIG = {
   DODGE_PER_AGI: 2,
   DOUBLE_PER_AGI: 1.5,
   REDUCE_PER_CON: 1.5,
+  PLAYER_NAME: 'Герой'
 };

@@ -1,7 +1,8 @@
 import { loadEnemyTemplates, generateEnemy, generateEnemyCount } from './enemy.js';
-import { randomMessage } from './battleMessages.js';
+import { randomMessage, getRandomEquip } from './battleMessages.js';
 import { getItemById, getAllItems } from './itemsDB.js';
 import * as ui from './ui.js';
+import { CONFIG } from './config.js';
 
 let battleState = null;
 let playerCharacter = null;
@@ -18,7 +19,6 @@ function showIdleState() {
   ui.updateActiveEffects([]);
   
   ui.renderEnemyList([], -1, false);
-  ui.renderBattleLog('<p class="log-entry log-system">— Ожидание действий —</p>');
   ui.hideEnemyInfo();
   
   const stats = getPlayerStats();
@@ -43,7 +43,7 @@ function startEncounter(mode) {
     
     if (roll < 15) {
       ui.renderEnemyList([], -1, false);
-      ui.addBattleLogEntry('Вы осмотрели окрестности, но ничего не нашли.', 'log-system');
+      ui.addBattleLogEntry(randomMessage('nothing_found'), 'log-system');
       ui.hideEnemyInfo();
       showIdleActions();
       updateStats();
@@ -61,7 +61,7 @@ function startEncounter(mode) {
       playerCharacter.addItem(randomItem.id);
       
       ui.renderEnemyList([], -1, false);
-      ui.addBattleLogEntry(`Исследуя местность, вы нашли: ${randomItem.name}!`, 'log-system');
+      ui.addBattleLogEntry(randomMessage('found_item').replace('{item}', randomItem.name), 'log-system');
       ui.hideEnemyInfo();
       ui.renderAll();
       showIdleActions();
@@ -72,7 +72,7 @@ function startEncounter(mode) {
     const allItems = getAllItems();
     const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
     generateEnemies(mode, playerLevel, [randomItem.id]);
-    ui.addBattleLogEntry(`Вы нашли: ${randomItem.name}, но привлекли внимание врагов!`, 'log-system');
+    ui.addBattleLogEntry(randomMessage('found_item_enemies').replace('{item}', randomItem.name), 'log-system');
     return;
   }
   
@@ -122,7 +122,7 @@ function generateEnemies(mode, playerLevel, pendingItems = []) {
   ui.updateActiveEffects([]);
   
   ui.renderEnemyList(enemies, battleState.currentEnemyIndex, false);
-  ui.renderBattleLog('<p class="log-entry log-system">— Обнаружены противники! Выберите цель —</p>');
+  ui.addBattleLogEntry(randomMessage('enemy_spotted'), 'log-system');
   ui.hideEnemyInfo();
   ui.renderBattleActions(`
     <button id="btn-flee">Убежать</button>
@@ -181,7 +181,7 @@ function startAutoBattle() {
   battleState.playerTurn = Math.random() < 0.5;
   battleState.turn = 0;
   
-  ui.addBattleLogEntry('— Бой начался —', 'log-system');
+  ui.addBattleLogEntry(randomMessage('battle_start'), 'log-system');
   
   autoBattleStep();
 }
@@ -195,7 +195,7 @@ function autoBattleStep() {
     battleState.isFighting = false;
     ui.renderEnemyList(battleState.enemies, -1, false);
     ui.hideEnemyInfo();
-    ui.addBattleLogEntry('— Противник повержен. Выберите следующую цель —', 'log-system');
+    ui.addBattleLogEntry(randomMessage('enemy_defeated'), 'log-system');
     
     document.querySelectorAll('.enemy').forEach(entry => {
       entry.style.pointerEvents = 'auto';
@@ -221,7 +221,6 @@ function autoBattleStep() {
   }
   
   if (battleState.playerTurn) {
-    // Проверка расходников перед ходом игрока
     checkConsumables();
     playerAttack();
   } else {
@@ -244,7 +243,7 @@ function playerAttack() {
     
     const msg = randomMessage('dodge')
       .replace('{defender}', enemy.name)
-      .replace('{attacker}', 'Вы');
+      .replace('{attacker}', CONFIG.PLAYER_NAME);
     ui.addBattleLogEntry(msg, 'log-system');
     updateStats();
     ui.renderEnemyInfo(enemy);
@@ -263,18 +262,23 @@ function playerAttack() {
   
   enemy.currentHP -= damage;
   
+  const randomEquip = getRandomEquip(playerCharacter);
+  const equipName = randomEquip ? getItemById(randomEquip)?.name || '' : '';
+  
   if (blocked > 0) {
     const msg = randomMessage('blocked')
-      .replace('{attacker}', 'Вы')
+      .replace('{attacker}', CONFIG.PLAYER_NAME)
       .replace('{defender}', enemy.name)
       .replace('{damage}', damage)
-      .replace('{blocked}', blocked);
+      .replace('{blocked}', blocked)
+      .replace('{equip}', equipName);
     ui.addBattleLogEntry(msg);
   } else {
     const msg = randomMessage('attack')
-      .replace('{attacker}', 'Вы')
+      .replace('{attacker}', CONFIG.PLAYER_NAME)
       .replace('{defender}', enemy.name)
-      .replace('{damage}', damage);
+      .replace('{damage}', damage)
+      .replace('{equip}', equipName);
     ui.addBattleLogEntry(msg);
   }
   
@@ -298,7 +302,7 @@ function enemyAttack() {
     const regenAmount = Math.min(pStats.REG, battleState.playerMaxHP - battleState.playerHP);
     battleState.playerHP += regenAmount;
     const msg = randomMessage('regen')
-      .replace('{name}', 'Вы')
+      .replace('{name}', CONFIG.PLAYER_NAME)
       .replace('{amount}', regenAmount);
     ui.addBattleLogEntry(msg, 'log-system');
   }
@@ -311,7 +315,7 @@ function enemyAttack() {
     battleState.lastEvent = 'player_dodge';
     
     const msg = randomMessage('dodge')
-      .replace('{defender}', 'Вы')
+      .replace('{defender}', CONFIG.PLAYER_NAME)
       .replace('{attacker}', enemy.name);
     ui.addBattleLogEntry(msg, 'log-system');
     updateStats();
@@ -331,21 +335,22 @@ function enemyAttack() {
   if (blocked > 0) {
     const msg = randomMessage('blocked')
       .replace('{attacker}', enemy.name)
-      .replace('{defender}', 'Вас')
+      .replace('{defender}', CONFIG.PLAYER_NAME)
       .replace('{damage}', damage)
       .replace('{blocked}', blocked);
     ui.addBattleLogEntry(msg);
   } else {
     const msg = randomMessage('attack')
       .replace('{attacker}', enemy.name)
-      .replace('{defender}', 'Вас')
+      .replace('{defender}', CONFIG.PLAYER_NAME)
       .replace('{damage}', damage);
     ui.addBattleLogEntry(msg);
   }
   
   if (battleState.playerHP <= 0) {
     battleState.playerHP = 0;
-    ui.addBattleLogEntry('Вы пали в бою...');
+    const msg = randomMessage('player_death').replace('{name}', CONFIG.PLAYER_NAME);
+    ui.addBattleLogEntry(msg);
     endBattle(false);
     return;
   }
@@ -358,7 +363,6 @@ function finishPlayerTurn() {
   battleState.playerTurn = false;
   battleState.turn++;
   
-  // Уменьшаем длительность активных эффектов
   tickActiveEffects();
   
   if (!battleState.battleOver && battleState.isFighting) {
@@ -376,7 +380,7 @@ function finishEnemyTurn() {
 
 function tickActiveEffects() {
   battleState.activeEffects = battleState.activeEffects.filter(effect => {
-    if (effect.remaining === Infinity) return true; // "battle"
+    if (effect.remaining === Infinity) return true;
     effect.remaining--;
     return effect.remaining > 0;
   });
@@ -450,7 +454,12 @@ function applyConsumable(slotKey, item) {
     if (stats.HP) {
       const healed = Math.min(stats.HP, battleState.playerMaxHP - battleState.playerHP);
       battleState.playerHP += healed;
-      ui.addBattleLogEntry(`Использован ${item.name}: +${healed} HP!`, 'log-system');
+      
+      const msg = randomMessage('consumable_instant')
+        .replace('{name}', CONFIG.PLAYER_NAME)
+        .replace('{item}', item.name)
+        .replace('{value}', healed);
+      ui.addBattleLogEntry(msg, 'log-system');
     }
   } else {
     battleState.activeEffects.push({
@@ -458,7 +467,14 @@ function applyConsumable(slotKey, item) {
       stats: { ...stats },
       remaining: duration === 'battle' ? Infinity : duration
     });
-    ui.addBattleLogEntry(`Использован ${item.name}: эффект на ${duration === 'battle' ? 'весь бой' : duration + ' ходов'}!`, 'log-system');
+    
+    const durText = duration === 'battle' ? 'весь бой' : `${duration} ход(ов)`;
+    const msgCategory = duration === 'battle' ? 'consumable_effect_battle' : 'consumable_effect';
+    const msg = randomMessage(msgCategory)
+      .replace('{name}', CONFIG.PLAYER_NAME)
+      .replace('{item}', item.name)
+      .replace('{duration}', durText);
+    ui.addBattleLogEntry(msg, 'log-system');
   }
   
   delete playerCharacter.equipment[slotKey];
@@ -478,6 +494,7 @@ function endBattle(victory) {
   ui.updateActiveEffects([]);
   
   if (victory) {
+    ui.addBattleLogEntry(randomMessage('all_enemies_defeated'), 'log-system');
     giveRewards();
   } else {
     const lostXP = playerCharacter.xp || 0;
@@ -543,14 +560,64 @@ function fleeBattle() {
   ui.enableAllTabs();
   ui.updateActiveEffects([]);
   
+  ui.addBattleLogEntry(randomMessage('flee'), 'log-system');
+  
+  // 30% опыта от ПОВЕРЖЕННЫХ врагов
   let totalXP = 0;
-  for (const enemy of battleState.enemies) {
+  const defeatedEnemies = battleState.enemies.filter(e => e.currentHP <= 0);
+  
+  for (const enemy of defeatedEnemies) {
     totalXP += Math.round(enemy.stats.xp * 0.3);
+  }
+  
+  // Шанс 30% на одну случайную вещь с поверженных врагов
+  let droppedItem = null;
+  if (defeatedEnemies.length > 0 && Math.random() < 0.3) {
+    const allDrops = [];
+    
+    for (const enemy of defeatedEnemies) {
+      if (enemy.equipment) {
+        for (const [slotKey, itemId] of Object.entries(enemy.equipment)) {
+          const item = getItemById(itemId);
+          if (item) {
+            allDrops.push({ itemId, item, enemyName: enemy.name });
+          }
+        }
+      }
+      // Также проверяем pendingItems, если враг был из исследования
+      if (battleState.pendingItems && battleState.pendingItems.length > 0) {
+        for (const id of battleState.pendingItems) {
+          const item = getItemById(id);
+          if (item) {
+            allDrops.push({ itemId: id, item, enemyName: 'тайника' });
+          }
+        }
+      }
+    }
+    
+    if (allDrops.length > 0) {
+      const randomDrop = allDrops[Math.floor(Math.random() * allDrops.length)];
+      droppedItem = randomDrop;
+      playerCharacter.addItem(droppedItem.itemId);
+    }
   }
   
   playerCharacter.addXP(totalXP);
   ui.renderAll();
-  ui.showBattleResult('Побег!', `Вы сбежали с поля боя.\nПолучено опыта: ${totalXP} (30% от возможного).\nПротивники ушли.`);
+  
+  let msg = `Вы сбежали с поля боя.\n`;
+  if (totalXP > 0) {
+    msg += `Получено опыта: ${totalXP} (30% от поверженных врагов).\n`;
+  }
+  if (droppedItem) {
+    msg += `Успели подобрать: ${droppedItem.item.name}.`;
+  } else if (defeatedEnemies.length > 0) {
+    msg += `Ничего не успели подобрать.`;
+  } else {
+    msg += `Ни одного врага не повержено — наград нет.`;
+  }
+  
+  ui.showBattleResult('Побег!', msg);
   
   setTimeout(() => {
     showIdleState();
@@ -573,7 +640,6 @@ function getPlayerStats() {
     DAMAGE_MAX: Math.round((base.DAMAGE_MAX || 5) * mod)
   };
   
-  // Применяем активные эффекты от расходников
   if (battleState && battleState.activeEffects) {
     for (const effect of battleState.activeEffects) {
       for (const [key, value] of Object.entries(effect.stats)) {
