@@ -841,3 +841,47 @@ export function enableAllTabs() {
     tab.style.opacity = '1';
   });
 }
+
+export function updateActiveEffects(effects) {
+  const container = document.getElementById('active-effects');
+  if (!container) return;
+  
+  // Очищаем всё кроме заголовка
+  const title = container.querySelector('.dynamic-title');
+  container.innerHTML = '';
+  if (title) {
+    container.appendChild(title);
+  } else {
+    const dt = document.createElement('dt');
+    dt.className = 'dynamic-title';
+    dt.textContent = 'Активные эффекты';
+    container.appendChild(dt);
+  }
+  
+  if (!effects || effects.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'block';
+  
+  effects.forEach(effect => {
+    const row = document.createElement('div');
+    row.className = 'stat-row';
+    
+    const nameDt = document.createElement('dt');
+    nameDt.textContent = effect.name;
+    
+    const valueDd = document.createElement('dd');
+    const statsText = Object.entries(effect.stats)
+      .filter(([k]) => k !== 'HP')
+      .map(([k, v]) => `${k} +${v}`)
+      .join(', ');
+    const remainingText = effect.remaining === Infinity ? 'весь бой' : effect.remaining;
+    valueDd.textContent = `${statsText} (осталось: ${remainingText})`;
+    
+    row.appendChild(nameDt);
+    row.appendChild(valueDd);
+    container.appendChild(row);
+  });
+}

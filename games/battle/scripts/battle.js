@@ -14,8 +14,8 @@ export function setupBattle(character) {
 function showIdleState() {
   battleState = null;
   
-  // Разрешаем переключение табов
   ui.enableAllTabs();
+  ui.updateActiveEffects([]);
   
   ui.renderEnemyList([], -1, false);
   ui.renderBattleLog('<p class="log-entry log-system">— Ожидание действий —</p>');
@@ -109,11 +109,17 @@ function generateEnemies(mode, playerLevel, pendingItems = []) {
     statModifier: mode === 'explore' ? 0.9 : 1.1,
     isFighting: false,
     pendingItems: pendingItems,
-    battleStarted: false
+    battleStarted: false,
+    turn: 0,
+    missStreak: 0,
+    hitStreak: 0,
+    lastEvent: null,
+    activeEffects: [],
+    usedConsumables: new Set()
   };
   
-  // Запрещаем переключение табов
   ui.disableCharacterTab();
+  ui.updateActiveEffects([]);
   
   ui.renderEnemyList(enemies, battleState.currentEnemyIndex, false);
   ui.renderBattleLog('<p class="log-entry log-system">— Обнаружены противники! Выберите цель —</p>');
@@ -126,7 +132,6 @@ function generateEnemies(mode, playerLevel, pendingItems = []) {
   
   updateStats();
   
-  // Клики на врагов
   document.querySelectorAll('.enemy').forEach(entry => {
     entry.addEventListener('click', () => {
       const index = parseInt(entry.dataset.index);
@@ -174,6 +179,7 @@ function startAutoBattle() {
   ui.renderEnemyList(battleState.enemies, battleState.currentEnemyIndex, true);
   
   battleState.playerTurn = Math.random() < 0.5;
+  battleState.turn = 0;
   
   ui.addBattleLogEntry('— Бой начался —', 'log-system');
   
@@ -185,14 +191,12 @@ function autoBattleStep() {
   
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   
-  // Если текущий враг мёртв — останавливаем бой, ждём действий игрока
   if (enemy.currentHP <= 0) {
     battleState.isFighting = false;
     ui.renderEnemyList(battleState.enemies, -1, false);
     ui.hideEnemyInfo();
     ui.addBattleLogEntry('— Противник повержен. Выберите следующую цель —', 'log-system');
     
-    // Разрешаем клики по живым врагам
     document.querySelectorAll('.enemy').forEach(entry => {
       entry.style.pointerEvents = 'auto';
       const index = parseInt(entry.dataset.index);
@@ -206,7 +210,6 @@ function autoBattleStep() {
     `);
     document.getElementById('btn-flee').addEventListener('click', () => fleeBattle());
     
-    // Проверяем, все ли мертвы
     const allDead = battleState.enemies.every(e => e.currentHP <= 0);
     if (allDead) {
       endBattle(true);
@@ -218,6 +221,8 @@ function autoBattleStep() {
   }
   
   if (battleState.playerTurn) {
+    // Проверка расходников перед ходом игрока
+    checkConsumables();
     playerAttack();
   } else {
     enemyAttack();
@@ -228,11 +233,15 @@ function playerAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  const dodgeChance = pStats.ACC > 0 ? (enemy.stats.AGI / pStats.ACC) * 100 : 100;
+  const dodgeChance = enemy.stats.ACC > 0 ? (enemy.stats.AGI / pStats.ACC) * 100 : 0;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
   
   if (!hit) {
+    battleState.missStreak++;
+    battleState.hitStreak = 0;
+    battleState.lastEvent = 'player_miss';
+    
     const msg = randomMessage('dodge')
       .replace('{defender}', enemy.name)
       .replace('{attacker}', 'Вы');
@@ -242,6 +251,10 @@ function playerAttack() {
     finishPlayerTurn();
     return;
   }
+  
+  battleState.missStreak = 0;
+  battleState.hitStreak++;
+  battleState.lastEvent = 'player_hit';
   
   const baseDamage = Math.floor(Math.random() * (pStats.DAMAGE_MAX - pStats.DAMAGE_MIN + 1)) + pStats.DAMAGE_MIN;
   
@@ -290,11 +303,13 @@ function enemyAttack() {
     ui.addBattleLogEntry(msg, 'log-system');
   }
   
-  const dodgeChance = enemy.stats.ACC > 0 ? (pStats.AGI / enemy.stats.ACC) * 100 : 100;
+  const dodgeChance = enemy.stats.ACC > 0 ? (pStats.AGI / enemy.stats.ACC) * 100 : 0;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
   
   if (!hit) {
+    battleState.lastEvent = 'player_dodge';
+    
     const msg = randomMessage('dodge')
       .replace('{defender}', 'Вы')
       .replace('{attacker}', enemy.name);
@@ -303,6 +318,8 @@ function enemyAttack() {
     finishEnemyTurn();
     return;
   }
+  
+  battleState.lastEvent = 'enemy_hit';
   
   const baseDamage = Math.floor(Math.random() * (enemy.stats.DAMAGE_MAX - enemy.stats.DAMAGE_MIN + 1)) + enemy.stats.DAMAGE_MIN;
   
@@ -339,6 +356,11 @@ function enemyAttack() {
 
 function finishPlayerTurn() {
   battleState.playerTurn = false;
+  battleState.turn++;
+  
+  // Уменьшаем длительность активных эффектов
+  tickActiveEffects();
+  
   if (!battleState.battleOver && battleState.isFighting) {
     setTimeout(() => autoBattleStep(), 700);
   }
@@ -346,15 +368,114 @@ function finishPlayerTurn() {
 
 function finishEnemyTurn() {
   battleState.playerTurn = true;
+  
   if (!battleState.battleOver && battleState.isFighting) {
     setTimeout(() => autoBattleStep(), 700);
   }
 }
 
+function tickActiveEffects() {
+  battleState.activeEffects = battleState.activeEffects.filter(effect => {
+    if (effect.remaining === Infinity) return true; // "battle"
+    effect.remaining--;
+    return effect.remaining > 0;
+  });
+  
+  ui.updateActiveEffects(battleState.activeEffects);
+}
+
+function checkConsumables() {
+  if (!battleState || battleState.battleOver) return;
+  
+  const consumableSlots = Object.entries(playerCharacter.equipment)
+    .filter(([key, itemId]) => key.startsWith('consumable-') && itemId);
+  
+  for (const [slotKey, itemId] of consumableSlots) {
+    if (battleState.usedConsumables.has(slotKey)) continue;
+    
+    const item = getItemById(itemId);
+    if (!item?.usage) continue;
+    
+    const enemy = battleState.enemies[battleState.currentEnemyIndex];
+    const pStats = getPlayerStats();
+    
+    if (checkTrigger(item.usage.trigger, battleState, pStats, enemy)) {
+      applyConsumable(slotKey, item);
+      break;
+    }
+  }
+}
+
+function checkTrigger(trigger, state, pStats, enemy) {
+  const { target, val, op = 'eq' } = trigger;
+  
+  switch (target) {
+    case 'hp':
+      return compare(state.playerHP, val, op);
+    case 'hp_pct':
+      return compare((state.playerHP / state.playerMaxHP) * 100, val, op);
+    case 'miss_streak':
+      return state.missStreak >= val;
+    case 'hit_streak':
+      return state.hitStreak >= val;
+    case 'enemy_count':
+      return compare(state.enemies.filter(e => e.currentHP > 0).length, val, op);
+    case 'enemy_level':
+      if (!enemy) return false;
+      return compare(enemy.level, pStats.level + val, op);
+    case 'on_dodge':
+      return state.lastEvent === 'player_dodge';
+    case 'battle_start':
+      return state.turn === 0 && state.battleStarted;
+    default:
+      return false;
+  }
+}
+
+function compare(a, b, op) {
+  switch (op) {
+    case 'eq': return a === b;
+    case 'lt': return a < b;
+    case 'gt': return a > b;
+    case 'lte': return a <= b;
+    case 'gte': return a >= b;
+    default: return false;
+  }
+}
+
+function applyConsumable(slotKey, item) {
+  const { duration, stats } = item.usage;
+  
+  if (duration === 0) {
+    if (stats.HP) {
+      const healed = Math.min(stats.HP, battleState.playerMaxHP - battleState.playerHP);
+      battleState.playerHP += healed;
+      ui.addBattleLogEntry(`Использован ${item.name}: +${healed} HP!`, 'log-system');
+    }
+  } else {
+    battleState.activeEffects.push({
+      name: item.name,
+      stats: { ...stats },
+      remaining: duration === 'battle' ? Infinity : duration
+    });
+    ui.addBattleLogEntry(`Использован ${item.name}: эффект на ${duration === 'battle' ? 'весь бой' : duration + ' ходов'}!`, 'log-system');
+  }
+  
+  delete playerCharacter.equipment[slotKey];
+  battleState.usedConsumables.add(slotKey);
+  
+  ui.updateActiveEffects(battleState.activeEffects);
+  ui.renderAll();
+  updateStats();
+}
+
 function endBattle(victory) {
   battleState.battleOver = true;
   battleState.isFighting = false;
+  battleState.activeEffects = [];
+  
   ui.enableAllTabs();
+  ui.updateActiveEffects([]);
   
   if (victory) {
     giveRewards();
@@ -392,7 +513,6 @@ function giveRewards() {
     }
   }
   
-  // Добавляем отложенные предметы
   if (battleState.pendingItems && battleState.pendingItems.length > 0) {
     battleState.pendingItems.forEach(id => playerCharacter.addItem(id));
   }
@@ -418,7 +538,10 @@ function fleeBattle() {
   
   battleState.battleOver = true;
   battleState.isFighting = false;
+  battleState.activeEffects = [];
+  
   ui.enableAllTabs();
+  ui.updateActiveEffects([]);
   
   let totalXP = 0;
   for (const enemy of battleState.enemies) {
@@ -438,9 +561,8 @@ function getPlayerStats() {
   const base = playerCharacter.getStats();
   const mod = battleState ? battleState.statModifier : 1;
   
-  return {
+  let stats = {
     ...base,
-    HP: base.HP,
     STR: Math.round(base.STR * mod * 10) / 10,
     CON: Math.round(base.CON * mod * 10) / 10,
     AGI: Math.round(base.AGI * mod * 10) / 10,
@@ -450,6 +572,19 @@ function getPlayerStats() {
     DAMAGE_MIN: Math.round((base.DAMAGE_MIN || 1) * mod),
     DAMAGE_MAX: Math.round((base.DAMAGE_MAX || 5) * mod)
   };
+  
+  // Применяем активные эффекты от расходников
+  if (battleState && battleState.activeEffects) {
+    for (const effect of battleState.activeEffects) {
+      for (const [key, value] of Object.entries(effect.stats)) {
+        if (stats.hasOwnProperty(key)) {
+          stats[key] += value;
+        }
+      }
+    }
+  }
+  
+  return stats;
 }
 
 function updateStats() {

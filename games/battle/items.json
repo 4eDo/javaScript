@@ -139,6 +139,13 @@
             "HP": 5,
             "REG_HP": 1
         },
+        "usage": {
+            "trigger": { "target": "hp", "val": 90, "op": "lt" },
+            "duration": 0,
+            "properties": {
+                "HP": 15
+            }
+        },
         "img": "https://placehold.jp/0/90EE90/ffffff/30x30.png"
     },
 	{
@@ -151,6 +158,13 @@
         "properties": {
             "HP": 10,
             "REG_HP": 2
+        },
+        "usage": {
+            "trigger": { "target": "hp_pct", "val": 50, "op": "lte" },
+            "duration": 3,
+            "properties": {
+                "HP": 10
+            }
         },
         "img": "https://placehold.jp/0/00FA9A/ffffff/30x30.png"
     },
@@ -380,7 +394,7 @@
             "ACC": 3,
             "AGI": 1
         },
-        "img": "https://placehold.jp/0/F31890/ffffff/30x30.png"
+        "img": "https://placehold.jp/0/931890/ffffff/30x30.png"
     },
     {
         "id": "helm_1",
@@ -394,5 +408,38 @@
             "ACC": -1
         },
         "img": "https://placehold.jp/0/FFD700/ffffff/30x30.png"
+    },
+    {
+        "id": "sock_0",
+        "name": "Вонючий носок",
+        "descr": "Если кинуть в стену, он прилипнет.",
+        "level": 0,
+        "tags": ["consumable", "clothes"],
+        "slots": ["consumable", "feet_l", "feet_r"],
+        "properties": {
+            "CON": 1,
+            "REG": 0.5
+        },
+        "usage": {
+            "trigger": { "target": "miss_streak", "val": 3 },
+            "duration": 5,
+            "stats": { "ACC": 4 }
+        },
+        "img": "https://placehold.jp/0/55BB2F/ffffff/30x30.png"
+    },
+    {
+        "id": "sock_1",
+        "name": "Носок-бумеранг",
+        "descr": "Летает, правда, кривовато.",
+        "level": 1,
+        "tags": ["weapon", "clothes"],
+        "slots": ["weapon", "feet_l", "feet_r"],
+        "properties": {
+            "DEF": 1,
+            "STR": 1,
+            "DAMAGE_MIN": 2,
+            "DAMAGE_MAX": 16
+        },
+        "img": "https://placehold.jp/0/808020/ffffff/30x30.png"
     }
 ]
