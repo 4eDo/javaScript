@@ -246,50 +246,20 @@ function setupOtherEvents() {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-      
-      const statsView = document.getElementById('stats-view');
-      const battleStatsContainer = document.getElementById('battle-stats-container');
-      
-      if (tab.dataset.tab === 'battle') {
-        // Перемещаем stats-view в правую панель боя
-        if (statsView && battleStatsContainer) {
-          battleStatsContainer.appendChild(statsView);
-          statsView.classList.add('active');
-          document.getElementById('btn-show-equip')?.classList.remove('active');
-          document.getElementById('btn-show-stats')?.classList.add('active');
-        }
-        ui.updateBattleCharacterStats();
-      } else if (tab.dataset.tab === 'character') {
-        // Возвращаем stats-view на место (внутрь panel-left, после view-switcher)
-        const panelLeft = document.querySelector('#tab-character .panel-left');
-        const viewSwitcher = panelLeft?.querySelector('.view-switcher');
-        if (statsView && viewSwitcher) {
-          viewSwitcher.after(statsView);
-          // Показываем ту вкладку, которая была активна
-          const equipActive = document.getElementById('btn-show-equip')?.classList.contains('active');
-          if (equipActive) {
-            document.getElementById('equip-view')?.classList.add('active');
-            statsView.classList.remove('active');
-          } else {
-            statsView.classList.add('active');
-            document.getElementById('equip-view')?.classList.remove('active');
-          }
-        }
-      }
     });
   });
 
   document.getElementById('btn-show-equip').addEventListener('click', () => {
     document.getElementById('btn-show-equip').classList.add('active');
-    document.getElementById('btn-show-stats').classList.remove('active');
+    document.getElementById('btn-show-appearance').classList.remove('active');
     document.getElementById('equip-view').classList.add('active');
-    document.getElementById('stats-view').classList.remove('active');
+    document.getElementById('appearance-view').classList.remove('active');
   });
 
-  document.getElementById('btn-show-stats').addEventListener('click', () => {
-    document.getElementById('btn-show-stats').classList.add('active');
+  document.getElementById('btn-show-appearance').addEventListener('click', () => {
+    document.getElementById('btn-show-appearance').classList.add('active');
     document.getElementById('btn-show-equip').classList.remove('active');
-    document.getElementById('stats-view').classList.add('active');
+    document.getElementById('appearance-view').classList.add('active');
     document.getElementById('equip-view').classList.remove('active');
   });
 

@@ -15,14 +15,16 @@ body {
 
 /* ============ ИНТЕРФЕЙС ИГРЫ ============ */
 game-interface {
-  display: block;
-  max-width: 960px;
+  display: grid;
+  grid-template-columns: 260px 1fr 220px;
+  max-width: 1060px;
   margin: 20px auto;
   border: 2px solid #000;
   padding: 0;
 }
 
 nav.tabs {
+  grid-column: 1 / -1;
   display: flex;
   border-bottom: 2px solid #000;
 }
@@ -50,7 +52,8 @@ nav.tabs {
 
 .tab-content {
   display: none;
-  grid-template-columns: 260px 1fr;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   min-height: 500px;
 }
 
@@ -58,8 +61,12 @@ nav.tabs {
   display: grid;
 }
 
+#tab-character {
+  grid-template-columns: 260px 1fr 220px;
+}
+
 #tab-battle {
-  grid-template-columns: 180px 1fr 180px;
+  grid-template-columns: 180px 1fr 220px;
 }
 
 /* ============ ПАНЕЛИ ============ */
@@ -415,6 +422,11 @@ item-info dt {
 }
 
 /* ============ ХАРАКТЕРИСТИКИ ============ */
+#stats-panel {
+  border-left: 2px solid #000;
+  padding: 10px;
+}
+
 .stats-list {
   list-style: none;
 }
@@ -470,14 +482,6 @@ item-info dt {
   font-family: monospace;
 }
 
-.dynamic-title {
-  font-weight: bold;
-  font-size: 12px;
-  margin: 8px 0 4px;
-  padding-top: 8px;
-  border-top: 1px dashed #000;
-}
-
 /* ============ БОЙ ============ */
 #enemy-list {
   display: flex;
@@ -498,6 +502,18 @@ item-info dt {
   background: #f0f0f0;
 }
 
+.enemy.selected {
+  outline: 2px solid #000;
+}
+
+.enemy.dead {
+  opacity: 0.5;
+}
+
+.enemy.fighting {
+  outline: 2px solid #000;
+}
+
 .enemy-name {
   font-weight: bold;
 }
@@ -513,78 +529,6 @@ item-info dt {
   padding: 10px;
 }
 
-#battle-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 20px;
-  margin-bottom: 10px;
-  border: 1px dashed #000;
-  min-height: 80px;
-  align-items: center;
-}
-
-battle-log {
-  flex: 1;
-  border: 1px solid #000;
-  padding: 10px;
-  background: #fafafa;
-  overflow-y: auto;
-  max-height: 200px;
-}
-
-
-.log-entry {
-  padding: 3px 0;
-  border-bottom: 1px dotted #eee;
-  font-size: 12px;
-}
-
-.log-system {
-  color: #666;
-  font-style: italic;
-}
-
-#battle-char .stats-list {
-  font-size: 12px;
-}
-
-#battle-char .stat-row {
-  padding: 4px 0;
-}
-
-/* ============ ИНФОРМАЦИЯ О ВРАГЕ ============ */
-#enemy-info {
-  display: none;
-  padding: 10px;
-  border: 1px solid #000;
-  margin-bottom: 10px;
-  background: #fafafa;
-}
-
-#enemy-info h3 {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-#enemy-info dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px 10px;
-  font-size: 12px;
-}
-
-#enemy-info dt {
-  font-weight: bold;
-}
-
-#enemy-info ul {
-  margin-top: 6px;
-  font-size: 11px;
-  padding-left: 15px;
-}
-
-/* ============ ИНФОРМАЦИЯ О ВРАГЕ ============ */
 #enemy-info {
   display: none;
   padding: 10px;
@@ -624,33 +568,26 @@ battle-log {
   padding-left: 15px;
 }
 
-/* Подсветка врага */
-.enemy.selected {
-  outline: 2px solid #000;
+#battle-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px;
+  margin-bottom: 10px;
+  border: 1px dashed #000;
+  min-height: 80px;
+  align-items: center;
 }
 
-.enemy.dead {
-  opacity: 0.5;
+battle-log {
+  flex: 1;
+  border: 1px solid #000;
+  padding: 10px;
+  background: #fafafa;
+  overflow-y: auto;
+  max-height: 200px;
 }
 
-/* Подсветка врага во время боя */
-.enemy.fighting {
-  outline: 2px solid #000;
-}
-
-/* Цвета HP */
-.hp-critical {
-  color: #800000;
-  font-weight: bold;
-}
-
-/* Список наград */
-.reward-list {
-  margin-top: 6px;
-  font-size: 12px;
-}
-
-/* Сообщение в логе */
 .log-entry {
   padding: 3px 0;
   border-bottom: 1px dotted #eee;
@@ -664,6 +601,11 @@ battle-log {
 
 .log-reward {
   color: #008000;
+}
+
+.hp-critical {
+  color: #800000;
+  font-weight: bold;
 }
 
 /* ============ МОДАЛЬНЫЕ ОКНА ============ */

@@ -19,16 +19,13 @@
   <!-- ============ РАЗДЕЛ: ПЕРСОНАЖ ============ -->
   <main class="tab-content active" id="tab-character">
     
-    <!-- Левая панель -->
+    <!-- Левая панель: Экипировка -->
     <aside class="panel-left">
       
-      <!-- Переключатели -->
       <nav class="view-switcher">
         <button id="btn-show-equip" class="view-btn active">Экипировка</button>
-        <button id="btn-show-stats" class="view-btn">Характеристики</button>
+        <button id="btn-show-appearance" class="view-btn">Внешний вид</button>
       </nav>
-      
-      <button id="btn-upgrade" class="btn-full">Прокачка за пост</button>
       
       <!-- Экипировка -->
       <section id="equip-view" class="view active" aria-label="Экипировка">
@@ -88,47 +85,27 @@
         <equipment-part id="consumable-part" data-label="Расходники" style="display:none;">
         </equipment-part>
 
+        <button id="btn-upgrade" class="btn-full">Прокачка за пост</button>
         <button class="btn-save">Сохранить</button>
       </section>
       
-      <!-- Характеристики -->
-      <section id="stats-view" class="view" aria-label="Характеристики">
-        <h2 class="tabTitle">Характеристики</h2>
-        
-        <dl class="stats-list">
-          <dt class="stat-level">
-            <span>Текущий уровень</span>
-            <span class="stat-value">1</span>
-          </dt>
-          <dd class="level-bar-container">
-            <div class="level-bar-fill" style="width: 0%;"></div>
-            <span class="level-bar-text">0 / 100</span>
-          </dd>
-          
-          <div class="stat-row"><dt>Здоровье (HP)</dt><dd id="stat-hp">100</dd></div>
-          <div class="stat-row"><dt>Сила (STR)</dt><dd id="stat-str">1</dd></div>
-          <div class="stat-row"><dt>Стойкость (CON)</dt><dd id="stat-con">1</dd></div>
-          <div class="stat-row"><dt>Ловкость (AGI)</dt><dd id="stat-agi">1</dd></div>
-          <div class="stat-row"><dt>Исцеление (REG)</dt><dd id="stat-reg">1</dd></div>
-          <div class="stat-row"><dt>Меткость (ACC)</dt><dd id="stat-acc">1</dd></div>
-          <div class="stat-row"><dt>Защита (DEF)</dt><dd id="stat-def">0</dd></div>
-          <div class="stat-row"><dt>Урон</dt><dd id="stat-damage">1-5</dd></div>
-        </dl>
+      <!-- Внешний вид (заглушка) -->
+      <section id="appearance-view" class="view" aria-label="Внешний вид">
+        <h2 class="tabTitle">Внешний вид</h2>
+        <p style="padding: 20px; font-style: italic;">Здесь будет настройка внешнего вида персонажа.</p>
       </section>
       
     </aside>
 
-    <!-- Правая панель: Инвентарь -->
+    <!-- Центр: Инвентарь -->
     <section id="inventory" aria-label="Инвентарь">
       <h2 class="tabTitle">Инвентарь</h2>
       
-      <!-- Вкладки инвентаря -->
       <nav class="inv-tabs">
         <button class="inv-tab active" data-invtab="items">Предметы</button>
         <button class="inv-tab" data-invtab="engineering">Инженерия</button>
       </nav>
       
-      <!-- Вкладка: Предметы -->
       <section class="inv-content active" id="inv-items">
         <filter-bar>
           <label>Тип
@@ -142,11 +119,11 @@
           <label>Уровень
             <select id="filter-level">
               <option value="">Все</option>
-              <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
+              <option value="5">5</option>
             </select>
           </label>
           <label>Слот
@@ -169,7 +146,6 @@
         </inventory-grid>
       </section>
       
-      <!-- Вкладка: Инженерия -->
       <section class="inv-content" id="inv-engineering">
         <filter-bar>
           <label>Тип
@@ -183,11 +159,11 @@
           <label>Уровень
             <select id="eng-filter-level">
               <option value="">Все</option>
-              <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
+              <option value="5">5</option>
             </select>
           </label>
           <label>Слот
@@ -237,7 +213,6 @@
     
     <aside class="panel-left" id="enemy-list" aria-label="Список противников">
       <h2 class="tabTitle">Противники</h2>
-      
     </aside>
 
     <section id="battlefield" aria-label="Поле боя">
@@ -252,12 +227,36 @@
       </battle-log>
     </section>
 
-    <aside class="panel-right" id="battle-stats-container" aria-label="Характеристики">
-    </aside>
-
   </main>
 
+  <!-- Характеристики — всегда справа -->
+  <aside class="panel-right" id="stats-panel" aria-label="Характеристики">
+    <h2 class="tabTitle">Характеристики</h2>
+    
+    <dl class="stats-list">
+      <dt class="stat-level">
+        <span>Текущий уровень</span>
+        <span class="stat-value">1</span>
+      </dt>
+      <dd class="level-bar-container">
+        <div class="level-bar-fill" style="width: 0%;"></div>
+        <span class="level-bar-text">0 / 100</span>
+      </dd>
+      
+      <div class="stat-row"><dt>Здоровье (HP)</dt><dd id="stat-hp">100</dd></div>
+      <div class="stat-row"><dt>Сила (STR)</dt><dd id="stat-str">1</dd></div>
+      <div class="stat-row"><dt>Стойкость (CON)</dt><dd id="stat-con">1</dd></div>
+      <div class="stat-row"><dt>Ловкость (AGI)</dt><dd id="stat-agi">1</dd></div>
+      <div class="stat-row"><dt>Исцеление (REG)</dt><dd id="stat-reg">1</dd></div>
+      <div class="stat-row"><dt>Меткость (ACC)</dt><dd id="stat-acc">1</dd></div>
+      <div class="stat-row"><dt>Защита (DEF)</dt><dd id="stat-def">0</dd></div>
+      <div class="stat-row"><dt>Урон</dt><dd id="stat-damage">1-5</dd></div>
+    </dl>
+  </aside>
+
 </game-interface>
+
+<!-- Модальные окна без изменений -->
 
 <!-- ============ МОДАЛЬНОЕ ОКНО: ПРОКАЧКА ЗА ПОСТ ============ -->
 <modal-overlay id="modal-upgrade" class="modal">

@@ -645,30 +645,7 @@ export function renderStats() {
   updateXPBar();
 }
 
-export function updateBattleCharacterStats(stats = null, currentHP = null) {
-  const s = stats || character.getStats();
-  const hp = currentHP !== null ? currentHP : s.HP;
-  
-  const hpEl = document.getElementById('stat-hp');
-  if (hpEl) {
-    hpEl.textContent = currentHP !== null ? `${currentHP}/${s.HP}` : s.HP;
-    if (currentHP !== null && currentHP < s.HP * 0.3) {
-      hpEl.classList.add('hp-critical');
-    } else {
-      hpEl.classList.remove('hp-critical');
-    }
-  }
-  
-  document.getElementById('stat-str').textContent = s.STR;
-  document.getElementById('stat-con').textContent = s.CON;
-  document.getElementById('stat-agi').textContent = s.AGI;
-  document.getElementById('stat-reg').textContent = s.REG;
-  document.getElementById('stat-acc').textContent = s.ACC;
-  document.getElementById('stat-def').textContent = s.DEF;
-  document.getElementById('stat-damage').textContent = `${s.DAMAGE_MIN}-${s.DAMAGE_MAX}`;
-  
-  updateXPBar();
-}
+
 
 export function updateXPBar() {
   const s = character.getStats();

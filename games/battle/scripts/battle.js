@@ -19,7 +19,7 @@ function showIdleState() {
   ui.hideEnemyInfo();
   
   const stats = getPlayerStats();
-  ui.updateBattleCharacterStats(stats, stats.HP);
+  ui.renderStats();
   
   ui.renderBattleActions(`
     <button id="btn-search">Искать врагов</button>
@@ -428,6 +428,11 @@ function updateStats() {
   const stats = getPlayerStats();
   const currentHP = battleState ? battleState.playerHP : stats.HP;
   
-  // Передаём текущее HP отдельно от статов
-  ui.updateBattleCharacterStats(stats, currentHP);
+  const hpEl = document.getElementById('stat-hp');
+  if (hpEl) {
+    hpEl.textContent = currentHP !== null ? `${currentHP}/${stats.HP}` : stats.HP;
+    hpEl.className = currentHP < stats.HP * 0.3 ? 'hp-critical' : '';
+  }
+  
+  ui.renderStats();
 }
