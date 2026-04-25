@@ -14,6 +14,9 @@ export function setupBattle(character) {
 function showIdleState() {
   battleState = null;
   
+  // Разрешаем переключение табов
+  ui.enableAllTabs();
+  
   ui.renderEnemyList([], -1, false);
   ui.renderBattleLog('<p class="log-entry log-system">— Ожидание действий —</p>');
   ui.hideEnemyInfo();
@@ -66,14 +69,11 @@ function startEncounter(mode) {
       return;
     }
     
-    if (roll >= 60) {
-      // 40% — предмет + враги
-      const allItems = getAllItems();
-      const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
-      generateEnemies(mode, playerLevel, [randomItem.id]);
-      ui.addBattleLogEntry(`Вы нашли: ${randomItem.name}, но привлекли внимание врагов!`, 'log-system');
-      return;
-    }
+    const allItems = getAllItems();
+    const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+    generateEnemies(mode, playerLevel, [randomItem.id]);
+    ui.addBattleLogEntry(`Вы нашли: ${randomItem.name}, но привлекли внимание врагов!`, 'log-system');
+    return;
   }
   
   generateEnemies(mode, playerLevel);
@@ -108,16 +108,25 @@ function generateEnemies(mode, playerLevel, pendingItems = []) {
     playerMaxHP: stats.HP,
     statModifier: mode === 'explore' ? 0.9 : 1.1,
     isFighting: false,
-    pendingItems: pendingItems // предметы, которые ждут конца боя
+    pendingItems: pendingItems,
+    battleStarted: false
   };
+  
+  // Запрещаем переключение табов
+  ui.disableCharacterTab();
   
   ui.renderEnemyList(enemies, battleState.currentEnemyIndex, false);
   ui.renderBattleLog('<p class="log-entry log-system">— Обнаружены противники! Выберите цель —</p>');
   ui.hideEnemyInfo();
-  ui.renderBattleActions('');
+  ui.renderBattleActions(`
+    <button id="btn-flee">Убежать</button>
+  `);
+  
+  document.getElementById('btn-flee').addEventListener('click', () => fleeBattle());
+  
   updateStats();
   
-  // Вешаем клики на врагов
+  // Клики на врагов
   document.querySelectorAll('.enemy').forEach(entry => {
     entry.addEventListener('click', () => {
       const index = parseInt(entry.dataset.index);
@@ -153,7 +162,14 @@ function startAutoBattle() {
   if (battleState.enemies[battleState.currentEnemyIndex].currentHP <= 0) return;
   
   battleState.isFighting = true;
-  ui.renderBattleActions('');
+  battleState.battleStarted = true;
+  
+  ui.renderBattleActions(`
+    <button id="btn-flee">Убежать</button>
+  `);
+  
+  document.getElementById('btn-flee').addEventListener('click', () => fleeBattle());
+  
   ui.disableEnemyClicks();
   ui.renderEnemyList(battleState.enemies, battleState.currentEnemyIndex, true);
   
@@ -169,16 +185,35 @@ function autoBattleStep() {
   
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   
+  // Если текущий враг мёртв — останавливаем бой, ждём действий игрока
   if (enemy.currentHP <= 0) {
-    const nextAlive = battleState.enemies.findIndex((e, i) => e.currentHP > 0 && i !== battleState.currentEnemyIndex);
-    if (nextAlive === -1) {
+    battleState.isFighting = false;
+    ui.renderEnemyList(battleState.enemies, -1, false);
+    ui.hideEnemyInfo();
+    ui.addBattleLogEntry('— Противник повержен. Выберите следующую цель —', 'log-system');
+    
+    // Разрешаем клики по живым врагам
+    document.querySelectorAll('.enemy').forEach(entry => {
+      entry.style.pointerEvents = 'auto';
+      const index = parseInt(entry.dataset.index);
+      if (battleState.enemies[index].currentHP > 0) {
+        entry.addEventListener('click', () => selectEnemy(index));
+      }
+    });
+    
+    ui.renderBattleActions(`
+      <button id="btn-flee">Убежать</button>
+    `);
+    document.getElementById('btn-flee').addEventListener('click', () => fleeBattle());
+    
+    // Проверяем, все ли мертвы
+    const allDead = battleState.enemies.every(e => e.currentHP <= 0);
+    if (allDead) {
       endBattle(true);
       return;
     }
-    battleState.currentEnemyIndex = nextAlive;
-    ui.renderEnemyList(battleState.enemies, battleState.currentEnemyIndex, true);
-    ui.renderEnemyInfo(battleState.enemies[nextAlive]);
-    autoBattleStep();
+    
+    updateStats();
     return;
   }
   
@@ -193,7 +228,6 @@ function playerAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  // Шанс попадания
   const dodgeChance = pStats.ACC > 0 ? (enemy.stats.AGI / pStats.ACC) * 100 : 100;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
@@ -209,10 +243,8 @@ function playerAttack() {
     return;
   }
   
-  // Урон уже включает STR из getStats()
   const baseDamage = Math.floor(Math.random() * (pStats.DAMAGE_MAX - pStats.DAMAGE_MIN + 1)) + pStats.DAMAGE_MIN;
   
-  // Защита врага
   const blocked = Math.min(enemy.stats.DEF || 0, baseDamage);
   let damage = Math.max(1, baseDamage - blocked);
   
@@ -249,7 +281,6 @@ function enemyAttack() {
   const enemy = battleState.enemies[battleState.currentEnemyIndex];
   const pStats = getPlayerStats();
   
-  // Регенерация игрока
   if (pStats.REG > 0 && battleState.playerHP < battleState.playerMaxHP) {
     const regenAmount = Math.min(pStats.REG, battleState.playerMaxHP - battleState.playerHP);
     battleState.playerHP += regenAmount;
@@ -259,7 +290,6 @@ function enemyAttack() {
     ui.addBattleLogEntry(msg, 'log-system');
   }
   
-  // Шанс попадания
   const dodgeChance = enemy.stats.ACC > 0 ? (pStats.AGI / enemy.stats.ACC) * 100 : 100;
   const hitChance = Math.max(5, 100 - dodgeChance);
   const hit = Math.random() * 100 < hitChance;
@@ -274,10 +304,8 @@ function enemyAttack() {
     return;
   }
   
-  // Урон врага — DAMAGE уже включает STR из calculateEnemyStats
   const baseDamage = Math.floor(Math.random() * (enemy.stats.DAMAGE_MAX - enemy.stats.DAMAGE_MIN + 1)) + enemy.stats.DAMAGE_MIN;
   
-  // Защита игрока
   const blocked = Math.min(pStats.DEF || 0, baseDamage);
   let damage = Math.max(1, baseDamage - blocked);
   
@@ -311,14 +339,14 @@ function enemyAttack() {
 
 function finishPlayerTurn() {
   battleState.playerTurn = false;
-  if (!battleState.battleOver) {
+  if (!battleState.battleOver && battleState.isFighting) {
     setTimeout(() => autoBattleStep(), 700);
   }
 }
 
 function finishEnemyTurn() {
   battleState.playerTurn = true;
-  if (!battleState.battleOver) {
+  if (!battleState.battleOver && battleState.isFighting) {
     setTimeout(() => autoBattleStep(), 700);
   }
 }
@@ -326,6 +354,7 @@ function finishEnemyTurn() {
 function endBattle(victory) {
   battleState.battleOver = true;
   battleState.isFighting = false;
+  ui.enableAllTabs();
   
   if (victory) {
     giveRewards();
@@ -362,7 +391,7 @@ function giveRewards() {
       }
     }
   }
-
+  
   // Добавляем отложенные предметы
   if (battleState.pendingItems && battleState.pendingItems.length > 0) {
     battleState.pendingItems.forEach(id => playerCharacter.addItem(id));
@@ -385,9 +414,11 @@ function giveRewards() {
 }
 
 function fleeBattle() {
-  if (!battleState || battleState.battleOver || battleState.isFighting) return;
+  if (!battleState || battleState.battleOver) return;
   
   battleState.battleOver = true;
+  battleState.isFighting = false;
+  ui.enableAllTabs();
   
   let totalXP = 0;
   for (const enemy of battleState.enemies) {
@@ -396,7 +427,7 @@ function fleeBattle() {
   
   playerCharacter.addXP(totalXP);
   ui.renderAll();
-  ui.showBattleResult('Побег!', `Вы сбежали с поля боя.\nПолучено опыта: ${totalXP} (30% от возможного).`);
+  ui.showBattleResult('Побег!', `Вы сбежали с поля боя.\nПолучено опыта: ${totalXP} (30% от возможного).\nПротивники ушли.`);
   
   setTimeout(() => {
     showIdleState();

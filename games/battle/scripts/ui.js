@@ -825,3 +825,19 @@ export function disableEnemyClicks() {
     e.style.pointerEvents = 'none';
   });
 }
+
+export function disableCharacterTab() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    if (tab.dataset.tab !== 'battle') {
+      tab.style.pointerEvents = 'none';
+      tab.style.opacity = '0.5';
+    }
+  });
+}
+
+export function enableAllTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.style.pointerEvents = 'auto';
+    tab.style.opacity = '1';
+  });
+}
