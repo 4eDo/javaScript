@@ -1,0 +1,78 @@
+@keyframes front_stay_01 {
+  0% {
+    --head-tilt: 0deg;
+    --chest-tilt: 0deg;
+    --spine-tilt: 0deg;
+    --arm-angle-left: 30deg;
+    --arm-angle-right: -30deg;
+    --forearm-angle-left: -5deg;
+    --forearm-angle-right: 5deg;
+    --wrist-angle-left: -10deg;
+    --wrist-angle-right: 10deg;
+    --leg-spread-left: 10deg;
+    --leg-spread-right: -10deg;
+    --shin-angle-left: 0deg;
+    --shin-angle-right: 0deg;
+    --foot-angle-left: 0deg;
+    --foot-angle-right: 0deg;
+    --vertical-offset: 0px;
+    --weapon-length-left: 60px;
+    --weapon-grip-left: 50%;
+    --weapon-angle-left: 0deg;
+    --weapon-length-right: 60px;
+    --weapon-grip-right: 50%;
+    --weapon-angle-right: 0deg;
+  }
+  50% {
+    --head-tilt: 0deg;
+    --chest-tilt: 0deg;
+    --spine-tilt: 0deg;
+    --arm-angle-left: 42deg;
+    --arm-angle-right: -42deg;
+    --forearm-angle-left: -36deg;
+    --forearm-angle-right: 36deg;
+    --wrist-angle-left: -27deg;
+    --wrist-angle-right: 27deg;
+    --leg-spread-left: 17deg;
+    --leg-spread-right: -17deg;
+    --shin-angle-left: -14deg;
+    --shin-angle-right: 14deg;
+    --foot-angle-left: -4deg;
+    --foot-angle-right: 4deg;
+    --vertical-offset: 7px;
+    --weapon-length-left: 60px;
+    --weapon-grip-left: 50%;
+    --weapon-angle-left: -45deg;
+    --weapon-length-right: 60px;
+    --weapon-grip-right: 50%;
+    --weapon-angle-right: 42deg;
+  }
+  100% {
+    --head-tilt: 0deg;
+    --chest-tilt: 0deg;
+    --spine-tilt: 0deg;
+    --arm-angle-left: 30deg;
+    --arm-angle-right: -30deg;
+    --forearm-angle-left: -5deg;
+    --forearm-angle-right: 5deg;
+    --wrist-angle-left: -10deg;
+    --wrist-angle-right: 10deg;
+    --leg-spread-left: 10deg;
+    --leg-spread-right: -10deg;
+    --shin-angle-left: 0deg;
+    --shin-angle-right: 0deg;
+    --foot-angle-left: 0deg;
+    --foot-angle-right: 0deg;
+    --vertical-offset: 0px;
+    --weapon-length-left: 60px;
+    --weapon-grip-left: 50%;
+    --weapon-angle-left: 0deg;
+    --weapon-length-right: 60px;
+    --weapon-grip-right: 50%;
+    --weapon-angle-right: 0deg;
+  }
+}
+
+character {
+  animation: front_stay_01 2s ease-in-out infinite;
+}
