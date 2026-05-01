@@ -15,7 +15,7 @@
     --shin-angle-right: 0deg;
     --foot-angle-left: 0deg;
     --foot-angle-right: 0deg;
-    --vertical-offset: 0px;
+    --vertical-offset: 20px;
     --weapon-length-left: 60px;
     --weapon-grip-left: 50%;
     --weapon-angle-left: 0deg;
@@ -39,7 +39,7 @@
     --shin-angle-right: 14deg;
     --foot-angle-left: -4deg;
     --foot-angle-right: 4deg;
-    --vertical-offset: 7px;
+    --vertical-offset: 23px;
     --weapon-length-left: 60px;
     --weapon-grip-left: 50%;
     --weapon-angle-left: -45deg;
@@ -63,7 +63,7 @@
     --shin-angle-right: 0deg;
     --foot-angle-left: 0deg;
     --foot-angle-right: 0deg;
-    --vertical-offset: 0px;
+    --vertical-offset: 20px;
     --weapon-length-left: 60px;
     --weapon-grip-left: 50%;
     --weapon-angle-left: 0deg;
