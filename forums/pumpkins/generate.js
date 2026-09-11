@@ -17,6 +17,8 @@
  *    4) Нормировка счётчиков — гиперболическая сатурация
  *       score = n / (n + K). Она даёт заметный отклик уже при
  *       1–3 попаданиях и не зависит от длины текста.
+ *    5) Глобальный множитель интенсивности (ползунок в UI)
+ *       масштабирует SENS и RGB/BW сдвиги на лету.
  * ============================================================ */
 
 (function () {
@@ -33,8 +35,6 @@
   // Гиперболическая сатурация: score = n / (n + K).
   // Чем меньше K, тем быстрее набирается «насыщение».
   //   K = 2.5 → 1 попадание: 0.29, 3: 0.55, 5: 0.67, 10: 0.80
-  //   K = 1.5 → 1 попадание: 0.40, 3: 0.67, 5: 0.77, 10: 0.87
-  //   K = 1.0 → 1 попадание: 0.50, 3: 0.75, 5: 0.83, 10: 0.91
   const K = 2.5;
 
   // Базовый цвет заливки, от которого работают сдвиги RGB
@@ -52,7 +52,7 @@
   };
 
   // Чувствительность: насколько score (0..1) сдвигает параметр.
-  // Подобрано так, чтобы уже 2–3 попадания давали ЗАМЕТНЫЙ сдвиг.
+  // Это базовые значения, поверх которых умножается globalSens.
   const SENS = {
     int:   1.2,
     shade: 1.0,
@@ -63,19 +63,21 @@
     lw:    1.2,
     rw:    1.2,
     hh:    1.5,
-    ts:    60,   // в «пикселях» ползунка
+    ts:    60,
     ms:    60,
     bs:    60,
-    sk:    30,   // в градусах
+    sk:    30,
     rt:    120,
     fx:    0.5,
     fy:    0.5,
     fs:    0.8,
   };
 
-  // Насколько сдвигается RGB-канал за единицу score
-  const RGB_SHIFT = 140;   // из 255
-  const BW_SHIFT  = 1.0;   // доля приближения к чёрному/белому
+  const RGB_SHIFT_BASE = 140;   // из 255
+  const BW_SHIFT_BASE  = 1.0;
+
+  // Глобальный множитель, читается с ползунка в UI
+  let globalSens = 1.0;
 
   // ============================================================
   //  ТОКЕНИЗАЦИЯ
@@ -93,8 +95,8 @@
   //  АНАЛИЗ
   // ============================================================
   function analyze(words) {
-    const raw = {};    // сырые попадания по категориям
-    const hits = {};   // какие слова сработали
+    const raw = {};
+    const hits = {};
 
     for (const word of words) {
       for (const [cat, rule] of Object.entries(RULES)) {
@@ -110,7 +112,6 @@
       }
     }
 
-    // Гиперболическая сатурация вместо деления на длину текста.
     const scores = {};
     for (const [cat, n] of Object.entries(raw)) {
       scores[cat] = n / (n + K);
@@ -122,14 +123,6 @@
   // ============================================================
   //  ЭМОЦИИ: пропорция
   // ============================================================
-  //
-  //  Берём три счётчика (уже нормированные) и считаем, какую долю
-  //  от их суммы занимает каждая эмоция. Затем ставим emo-слайдер
-  //  на взвешенную позицию:
-  //     sad   → 0.0
-  //     joy   → 0.5
-  //     angry → 1.0
-  //
   function computeEmotion(scores) {
     const sad   = scores.emo_sad   || 0;
     const joy   = scores.emo_joy   || 0;
@@ -148,11 +141,10 @@
     const pJoy   = joy   / total;
     const pAngry = angry / total;
 
-    // взвешенная позиция на шкале 0..1
     const emo = pSad * 0 + pJoy * 0.5 + pAngry * 1.0;
 
-    // интенсивность эмоции: суммарная насыщенность × 0.5 — бонус к int
-    const intBonus = Math.min(0.5, total * 0.5);
+    // Бонус к интенсивности — тоже масштабируем глобальным множителем.
+    const intBonus = Math.min(0.8, total * 0.5 * globalSens);
 
     return {
       emo,
@@ -166,21 +158,18 @@
   // ============================================================
   function applyScale(baseValue, plusScore, minusScore, sens) {
     const delta = (plusScore || 0) - (minusScore || 0);
-    return baseValue + delta * sens;
+    return baseValue + delta * sens * globalSens;
   }
 
   function computeParams(a) {
     const s = a.scores;
 
-    // ----- эмоции -----
     const emo = computeEmotion(s);
 
-    // ----- интенсивность -----
     let int = applyScale(BASE.int, s.int_plus, s.int_minus, SENS.int);
-    int += emo.intBonus;         // эмоциональная насыщенность повышает интенсивность
+    int += emo.intBonus;
     int = clamp(int, 0, 1.5);
 
-    // ----- тени / блик -----
     const shade = clamp(
       applyScale(BASE.shade, s.shade_plus, s.shade_minus, SENS.shade),
       0, 1
@@ -190,7 +179,6 @@
       0, 1
     );
 
-    // ----- форма -----
     const tw = clamp(applyScale(BASE.tw, s.tw_plus, s.tw_minus, SENS.tw), 0.2, 2);
     const mw = clamp(applyScale(BASE.mw, s.mw_plus, s.mw_minus, SENS.mw), 0.2, 2.5);
     const bw = clamp(applyScale(BASE.bw, s.bw_plus, s.bw_minus, SENS.bw), 0.2, 2);
@@ -198,25 +186,20 @@
     const rw = clamp(applyScale(BASE.rw, s.rw_plus, s.rw_minus, SENS.rw), 0.3, 2);
     const hh = clamp(applyScale(BASE.hh, s.hh_plus, s.hh_minus, SENS.hh), 0.3, 2);
 
-    // ----- сдвиги -----
     const ts = clamp(applyScale(BASE.ts, s.ts_plus, s.ts_minus, SENS.ts), -80, 80);
     const ms = clamp(applyScale(BASE.ms, s.ms_plus, s.ms_minus, SENS.ms), -80, 80);
     const bs = clamp(applyScale(BASE.bs, s.bs_plus, s.bs_minus, SENS.bs), -80, 80);
 
-    // ----- наклон / поворот -----
     const sk = clamp(applyScale(BASE.sk, s.sk_plus, s.sk_minus, SENS.sk), -45, 45);
     const rt = clamp(applyScale(BASE.rt, s.rt_plus, s.rt_minus, SENS.rt), -180, 180);
 
-    // ----- лицо -----
     let fx = clamp(applyScale(BASE.fx, s.fx_plus, s.fx_minus, SENS.fx), -0.4, 0.4);
     let fy = clamp(applyScale(BASE.fy, s.fy_plus, s.fy_minus, SENS.fy), -0.4, 0.4);
     let fs = clamp(applyScale(BASE.fs, s.fs_plus, s.fs_minus, SENS.fs), 0.4, 1.6);
 
-    // общий размер текста тоже влияет на лицо
     const sizeDelta = (s.size_plus || 0) - (s.size_minus || 0);
-    fs = clamp(fs + sizeDelta * SENS.fs * 0.5, 0.4, 1.6);
+    fs = clamp(fs + sizeDelta * SENS.fs * 0.5 * globalSens, 0.4, 1.6);
 
-    // ----- цвет -----
     const fill = computeColor(s);
 
     return {
@@ -234,10 +217,13 @@
   }
 
   // ============================================================
-  //  ЦВЕТ ОТ ТЕКУЩЕГО
+  //  ЦВЕТ
   // ============================================================
   function computeColor(s) {
     let { r, g, b } = BASE_COLOR;
+
+    const RGB_SHIFT = RGB_SHIFT_BASE * globalSens;
+    const BW_SHIFT  = Math.min(1, BW_SHIFT_BASE * globalSens);
 
     const rDelta = (s.r_plus || 0) - (s.r_minus || 0);
     const gDelta = (s.g_plus || 0) - (s.g_minus || 0);
@@ -247,11 +233,9 @@
     g += gDelta * RGB_SHIFT;
     b += bDelta * RGB_SHIFT;
 
-    // Ч/б: считаем единый коэффициент
     const blackK = (s.to_black || 0) * BW_SHIFT;
     const whiteK = (s.to_white || 0) * BW_SHIFT;
 
-    // к чёрному — умножение, к белому — смешивание с 255
     r = r * (1 - blackK) + 255 * whiteK;
     g = g * (1 - blackK) + 255 * whiteK;
     b = b * (1 - blackK) + 255 * whiteK;
@@ -276,7 +260,6 @@
     const box = $('breakdown');
     box.innerHTML = '';
 
-    // сначала эмоции — они особенные, показываем пропорции
     if (emotion.proportions.sad + emotion.proportions.joy + emotion.proportions.angry > 0) {
       const catEl = document.createElement('div');
       catEl.className = 'cat';
@@ -293,10 +276,9 @@
       box.appendChild(line);
     }
 
-    // группируем оставшиеся категории по префиксу (param_plus / param_minus)
     const byParam = {};
     for (const [cat, rule] of Object.entries(RULES)) {
-      if (cat.startsWith('emo_')) continue; // эмоции уже показали
+      if (cat.startsWith('emo_')) continue;
       const m = cat.match(/^(.+?)_(plus|minus)$/);
       const key = m ? m[1] : cat;
       const dir = m ? m[2] : '';
@@ -306,7 +288,6 @@
       else                      byParam[key].other.push(cat);
     }
 
-    // красивые названия параметров
     const NICE = {
       int: 'интенсивность', shade: 'тени', lit: 'блик',
       tw: 'ширина верха', mw: 'ширина середины', bw: 'ширина низа',
@@ -360,12 +341,13 @@
   // ============================================================
   //  ГЛАВНАЯ ФУНКЦИЯ
   // ============================================================
-  function generate() {
-    const text = $('input').value;
-    const words = tokenize(text);
-    const a = analyze(words);
-    const params = computeParams(a);
+  // Последний проанализированный текст храним, чтобы ползунок
+  // интенсивности мог пересчитать тыкву мгновенно, без нового
+  // нажатия «Сгенерировать».
+  let lastAnalysis = null;
 
+  function applyFromAnalysis(a) {
+    const params = computeParams(a);
     pumpkin.setParams(params);
     pumpkin.render();
 
@@ -380,7 +362,17 @@
       `попаданий: <b>${totalHits}</b>`;
   }
 
-  // ---------- обработчики ----------
+  function generate() {
+    const text = $('input').value;
+    const words = tokenize(text);
+    const a = analyze(words);
+    lastAnalysis = a;
+    applyFromAnalysis(a);
+  }
+
+  // ============================================================
+  //  ОБРАБОТЧИКИ
+  // ============================================================
   $('gen').addEventListener('click', generate);
 
   $('demo').addEventListener('click', () => {
@@ -397,11 +389,38 @@
     }
   });
 
+  // ---- ползунок интенсивности ----
+  const sensInput = $('sens');
+  const sensLabel = $('v-sens');
+
+  function readSens() {
+    globalSens = parseFloat(sensInput.value) || 0;
+    sensLabel.textContent = globalSens.toFixed(2) + '×';
+  }
+
+  sensInput.addEventListener('input', () => {
+    readSens();
+    // Пересчитываем тыкву на лету, если уже есть анализ
+    if (lastAnalysis) applyFromAnalysis(lastAnalysis);
+  });
+
+  // клики по «шкале» под ползунком
+  document.querySelectorAll('.slider-scale span').forEach(el => {
+    el.addEventListener('click', () => {
+      sensInput.value = el.dataset.sens;
+      readSens();
+      if (lastAnalysis) applyFromAnalysis(lastAnalysis);
+    });
+  });
+
+  // ---- resize ----
   function resize() {
     pumpkin.resizeToContainer($('stage'));
   }
   window.addEventListener('resize', resize);
-  resize();
 
+  // стартовая инициализация
+  readSens();
+  resize();
   pumpkin.render();
 })();
