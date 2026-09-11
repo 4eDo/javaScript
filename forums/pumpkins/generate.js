@@ -8,6 +8,15 @@
  *  Все чувствительности хранятся в объекте SENS и читаются
  *  с ползунков в левой панели UI при каждом пересчёте.
  *  Глобальный множитель intensity умножается поверх.
+ *
+ *  ЦВЕТ:
+ *    - три канала R, G, B считаются независимо;
+ *    - канал, который «победил», тянет свой канал к 255;
+ *    - канал, который «проиграл», тянет свой к 0;
+ *    - доминирующие каналы взаимно подавляют остальные
+ *      (чтобы цвет был насыщеннее, а не серым);
+ *    - чёрное/белое считается РАЗНОСТЬЮ и применяется
+ *      поверх как общий сдвиг яркости.
  * ============================================================ */
 
 (function () {
@@ -44,14 +53,13 @@
   };
 
   // Текущие значения — читаются с ползунков.
-  // Начинаем с DEFAULTS, потом syncFromUI() их перезапишет.
   const SENS = { ...DEFAULTS };
 
   // Глобальный множитель (правый ползунок)
   let globalSens = 1.0;
 
-  // Базовый цвет заливки, от которого работают сдвиги RGB
-  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };
+  // Базовый цвет заливки
+  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };  // #f28c1a
 
   const BASE = {
     emo: 0.5, int: 1,
@@ -203,30 +211,96 @@
   // ============================================================
   //  ЦВЕТ
   // ============================================================
+  //
+  //  Алгоритм:
+  //
+  //  1) Считаем веса каналов: wR, wG, wB.
+  //     >0 — канал хочет быть ярким (тянется к 255),
+  //     <0 — канал хочет быть тёмным (тянется к 0).
+  //
+  //  2) Нормируем: RGB_MIX = SENS.rgb / 60 (подобрано так,
+  //     чтобы одно попадание давало заметный сдвиг).
+  //
+  //  3) Считаем целевые значения каналов от базы. Канал
+  //     с положительным весом тянется к 255, с отрицательным —
+  //     к 0, пропорционально |w| * RGB_MIX (clamp до 1).
+  //
+  //  4) Взаимное подавление: если канал доминирует (w > 0),
+  //     он придавливает остальные каналы — это делает цвет
+  //     более насыщенным и не даёт ему уйти в серо-белый.
+  //
+  //  5) Ч/б применяется РАЗНОСТЬЮ поверх всего. Если
+  //     blackScore и whiteScore равны — ничего не происходит.
+  //
   function computeColor(s) {
-    let { r, g, b } = BASE_COLOR;
+    // 1) веса каналов
+    const rW = (s.r_plus || 0) - (s.r_minus || 0);
+    const gW = (s.g_plus || 0) - (s.g_minus || 0);
+    const bW = (s.b_plus || 0) - (s.b_minus || 0);
 
-    const RGB_SHIFT = SENS.rgb * globalSens;
-    const BW_SHIFT  = Math.min(1, SENS.bwshift * globalSens);
+    // 2) коэффициент пропорции
+    const RGB_MIX = (SENS.rgb / 60) * globalSens;
 
-    const rDelta = (s.r_plus || 0) - (s.r_minus || 0);
-    const gDelta = (s.g_plus || 0) - (s.g_minus || 0);
-    const bDelta = (s.b_plus || 0) - (s.b_minus || 0);
+    // 3) целевые значения каналов
+    let rT = BASE_COLOR.r;
+    let gT = BASE_COLOR.g;
+    let bT = BASE_COLOR.b;
 
-    r += rDelta * RGB_SHIFT;
-    g += gDelta * RGB_SHIFT;
-    b += bDelta * RGB_SHIFT;
+    // положительный вес — тянем к 255, отрицательный — к 0
+    if (rW > 0)      rT = rT + (255 - rT) * Math.min(1, rW * RGB_MIX);
+    else if (rW < 0) rT = rT * (1 - Math.min(1, -rW * RGB_MIX));
 
-    const blackK = (s.to_black || 0) * BW_SHIFT;
-    const whiteK = (s.to_white || 0) * BW_SHIFT;
+    if (gW > 0)      gT = gT + (255 - gT) * Math.min(1, gW * RGB_MIX);
+    else if (gW < 0) gT = gT * (1 - Math.min(1, -gW * RGB_MIX));
 
-    r = r * (1 - blackK) + 255 * whiteK;
-    g = g * (1 - blackK) + 255 * whiteK;
-    b = b * (1 - blackK) + 255 * whiteK;
+    if (bW > 0)      bT = bT + (255 - bT) * Math.min(1, bW * RGB_MIX);
+    else if (bW < 0) bT = bT * (1 - Math.min(1, -bW * RGB_MIX));
 
-    r = Math.round(clamp(r, 0, 255));
-    g = Math.round(clamp(g, 0, 255));
-    b = Math.round(clamp(b, 0, 255));
+    // 4) ВЗАИМНОЕ ПОДАВЛЕНИЕ.
+    //    Считаем «силу» каждого положительного канала.
+    //    Если канал доминирует, остальные получают штраф.
+    //    Штраф — доля, на которую уменьшается канал.
+    const rBoost = Math.max(0, rW);
+    const gBoost = Math.max(0, gW);
+    const bBoost = Math.max(0, bW);
+
+    // коэффициент подавления: 0.4 значит, что при полной
+    // доминации одного канала другие падают почти в 2 раза.
+    // Можно регулировать через SENS — здесь жёстко 0.4.
+    const SUPPRESS = 0.4;
+
+    // каждый канал штрафуется суммой чужих boost'ов
+    const rSuppress = Math.min(1, (gBoost + bBoost) * RGB_MIX * SUPPRESS);
+    const gSuppress = Math.min(1, (rBoost + bBoost) * RGB_MIX * SUPPRESS);
+    const bSuppress = Math.min(1, (rBoost + gBoost) * RGB_MIX * SUPPRESS);
+
+    // если сам канал «плюсовой» — его штраф слабее
+    // (он же хочет быть ярким), если нет — штраф полный.
+    rT = rT * (1 - (rBoost > 0 ? rSuppress * 0.3 : rSuppress));
+    gT = gT * (1 - (gBoost > 0 ? gSuppress * 0.3 : gSuppress));
+    bT = bT * (1 - (bBoost > 0 ? bSuppress * 0.3 : bSuppress));
+
+    // 5) Ч/Б — разность. blackScore и whiteScore взаимно
+    //    компенсируются, а не складываются.
+    const blackScore = s.to_black || 0;
+    const whiteScore = s.to_white || 0;
+    const bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
+
+    if (bwNet > 0) {
+      const k = Math.min(1, bwNet);
+      rT = rT * (1 - k) + 255 * k;
+      gT = gT * (1 - k) + 255 * k;
+      bT = bT * (1 - k) + 255 * k;
+    } else if (bwNet < 0) {
+      const k = Math.min(1, -bwNet);
+      rT = rT * (1 - k);
+      gT = gT * (1 - k);
+      bT = bT * (1 - k);
+    }
+
+    const r = Math.round(clamp(rT, 0, 255));
+    const g = Math.round(clamp(gT, 0, 255));
+    const b = Math.round(clamp(bT, 0, 255));
 
     return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
   }
@@ -353,12 +427,7 @@
   // ============================================================
   //  ЛЕВАЯ ПАНЕЛЬ: ПОЛЗУНКИ ЧУВСТВИТЕЛЬНОСТИ
   // ============================================================
-  //
-  //  Каждая строка сопоставляется с ключом в SENS.
-  //  При input — обновляем SENS, надпись и пересчитываем тыкву.
-  //
   const SENS_CONTROLS = [
-    // [ключ в SENS, id ползунка, id подписи, сколько знаков после запятой]
     ['tw',      's-tw',      'l-tw',      2],
     ['mw',      's-mw',      'l-mw',      2],
     ['bw',      's-bw',      'l-bw',      2],
@@ -402,7 +471,6 @@
     else pumpkin.render();
   }
 
-  // подключаем обработчики для всех SENS-ползунков
   for (const [, inputId] of SENS_CONTROLS) {
     $(inputId).addEventListener('input', () => {
       syncSensFromUI();
@@ -412,12 +480,10 @@
 
   $('tunerReset').addEventListener('click', resetSensUI);
 
-  // сворачивание панели
   $('toggleTuner').addEventListener('click', () => {
     const aside = $('tuner');
     aside.classList.toggle('collapsed');
     $('toggleTuner').textContent = aside.classList.contains('collapsed') ? '▶' : '◀';
-    // даём браузеру пересчитать размеры и перерисовываем канвас
     setTimeout(() => resize(), 220);
   });
 
@@ -445,7 +511,6 @@
     });
   });
 
-  // кнопки генерации
   $('gen').addEventListener('click', regenerate);
 
   $('demo').addEventListener('click', () => {
