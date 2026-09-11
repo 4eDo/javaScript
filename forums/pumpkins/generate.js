@@ -5,20 +5,9 @@
  *    - pumpkin.js : класс Pumpkin
  *    - words.js   : объект RULES со словарём слов
  *
- *  Принципы:
- *    1) Один параметр тыквы = одна шкала из двух категорий
- *       <param>_plus / <param>_minus. Они считаются независимо
- *       и вычитаются друг из друга.
- *    2) Эмоции — три шкалы, из которых считается ПРОПОРЦИЯ.
- *       Слайдер emo ставится на взвешенную позицию между
- *       грустью (0), радостью (0.5) и злостью (1).
- *    3) Цвет — три канала RGB + шкала чёрное/белое. Все сдвиги
- *       применяются ОТ ТЕКУЩЕГО базового цвета.
- *    4) Нормировка счётчиков — гиперболическая сатурация
- *       score = n / (n + K). Она даёт заметный отклик уже при
- *       1–3 попаданиях и не зависит от длины текста.
- *    5) Глобальный множитель интенсивности (ползунок в UI)
- *       масштабирует SENS и RGB/BW сдвиги на лету.
+ *  Все чувствительности хранятся в объекте SENS и читаются
+ *  с ползунков в левой панели UI при каждом пересчёте.
+ *  Глобальный множитель intensity умножается поверх.
  * ============================================================ */
 
 (function () {
@@ -29,18 +18,41 @@
   const pumpkin = new Pumpkin($('cv'));
 
   // ============================================================
-  //  НАСТРОЙКИ
+  //  БАЗОВЫЕ ЗНАЧЕНИЯ (сбрасываются кнопкой «Сбросить»)
   // ============================================================
+  const DEFAULTS = {
+    K:      2.5,
+    int:    1.2,
+    shade:  1.0,
+    lit:    1.0,
+    tw:     1.5,
+    mw:     2.0,
+    bw:     1.5,
+    lw:     1.2,
+    rw:     1.2,
+    hh:     1.5,
+    ts:     60,
+    ms:     60,
+    bs:     60,
+    sk:     30,
+    rt:     120,
+    fx:     0.5,
+    fy:     0.5,
+    fs:     0.8,
+    rgb:    140,
+    bwshift: 1.0,
+  };
 
-  // Гиперболическая сатурация: score = n / (n + K).
-  // Чем меньше K, тем быстрее набирается «насыщение».
-  //   K = 2.5 → 1 попадание: 0.29, 3: 0.55, 5: 0.67, 10: 0.80
-  const K = 2.5;
+  // Текущие значения — читаются с ползунков.
+  // Начинаем с DEFAULTS, потом syncFromUI() их перезапишет.
+  const SENS = { ...DEFAULTS };
+
+  // Глобальный множитель (правый ползунок)
+  let globalSens = 1.0;
 
   // Базовый цвет заливки, от которого работают сдвиги RGB
-  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };  // #f28c1a
+  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };
 
-  // Базовые значения параметров (совпадают с Pumpkin.DEFAULTS)
   const BASE = {
     emo: 0.5, int: 1,
     shade: 0.55, lit: 0.35,
@@ -50,34 +62,6 @@
     sk: 0, rt: 0,
     fx: 0, fy: 0, fs: 1,
   };
-
-  // Чувствительность: насколько score (0..1) сдвигает параметр.
-  // Это базовые значения, поверх которых умножается globalSens.
-  const SENS = {
-    int:   1.2,
-    shade: 1.0,
-    lit:   1.0,
-    tw:    1.5,
-    mw:    2.0,
-    bw:    1.5,
-    lw:    1.2,
-    rw:    1.2,
-    hh:    1.5,
-    ts:    60,
-    ms:    60,
-    bs:    60,
-    sk:    30,
-    rt:    120,
-    fx:    0.5,
-    fy:    0.5,
-    fs:    0.8,
-  };
-
-  const RGB_SHIFT_BASE = 140;   // из 255
-  const BW_SHIFT_BASE  = 1.0;
-
-  // Глобальный множитель, читается с ползунка в UI
-  let globalSens = 1.0;
 
   // ============================================================
   //  ТОКЕНИЗАЦИЯ
@@ -112,6 +96,8 @@
       }
     }
 
+    // Гиперболическая сатурация: score = n / (n + K)
+    const K = SENS.K;
     const scores = {};
     for (const [cat, n] of Object.entries(raw)) {
       scores[cat] = n / (n + K);
@@ -121,7 +107,7 @@
   }
 
   // ============================================================
-  //  ЭМОЦИИ: пропорция
+  //  ЭМОЦИИ
   // ============================================================
   function computeEmotion(scores) {
     const sad   = scores.emo_sad   || 0;
@@ -142,8 +128,6 @@
     const pAngry = angry / total;
 
     const emo = pSad * 0 + pJoy * 0.5 + pAngry * 1.0;
-
-    // Бонус к интенсивности — тоже масштабируем глобальным множителем.
     const intBonus = Math.min(0.8, total * 0.5 * globalSens);
 
     return {
@@ -222,8 +206,8 @@
   function computeColor(s) {
     let { r, g, b } = BASE_COLOR;
 
-    const RGB_SHIFT = RGB_SHIFT_BASE * globalSens;
-    const BW_SHIFT  = Math.min(1, BW_SHIFT_BASE * globalSens);
+    const RGB_SHIFT = SENS.rgb * globalSens;
+    const BW_SHIFT  = Math.min(1, SENS.bwshift * globalSens);
 
     const rDelta = (s.r_plus || 0) - (s.r_minus || 0);
     const gDelta = (s.g_plus || 0) - (s.g_minus || 0);
@@ -341,9 +325,6 @@
   // ============================================================
   //  ГЛАВНАЯ ФУНКЦИЯ
   // ============================================================
-  // Последний проанализированный текст храним, чтобы ползунок
-  // интенсивности мог пересчитать тыкву мгновенно, без нового
-  // нажатия «Сгенерировать».
   let lastAnalysis = null;
 
   function applyFromAnalysis(a) {
@@ -362,65 +343,136 @@
       `попаданий: <b>${totalHits}</b>`;
   }
 
-  function generate() {
+  function regenerate() {
     const text = $('input').value;
     const words = tokenize(text);
-    const a = analyze(words);
-    lastAnalysis = a;
-    applyFromAnalysis(a);
+    lastAnalysis = analyze(words);
+    applyFromAnalysis(lastAnalysis);
   }
 
   // ============================================================
-  //  ОБРАБОТЧИКИ
+  //  ЛЕВАЯ ПАНЕЛЬ: ПОЛЗУНКИ ЧУВСТВИТЕЛЬНОСТИ
   // ============================================================
-  $('gen').addEventListener('click', generate);
+  //
+  //  Каждая строка сопоставляется с ключом в SENS.
+  //  При input — обновляем SENS, надпись и пересчитываем тыкву.
+  //
+  const SENS_CONTROLS = [
+    // [ключ в SENS, id ползунка, id подписи, сколько знаков после запятой]
+    ['tw',      's-tw',      'l-tw',      2],
+    ['mw',      's-mw',      'l-mw',      2],
+    ['bw',      's-bw',      'l-bw',      2],
+    ['lw',      's-lw',      'l-lw',      2],
+    ['rw',      's-rw',      'l-rw',      2],
+    ['hh',      's-hh',      'l-hh',      2],
+    ['fs',      's-fs',      'l-fs',      2],
+    ['ts',      's-ts',      'l-ts',      0],
+    ['ms',      's-ms',      'l-ms',      0],
+    ['bs',      's-bs',      'l-bs',      0],
+    ['sk',      's-sk',      'l-sk',      0],
+    ['rt',      's-rt',      'l-rt',      0],
+    ['fx',      's-fx',      'l-fx',      2],
+    ['fy',      's-fy',      'l-fy',      2],
+    ['int',     's-int',     'l-int',     2],
+    ['shade',   's-shade',   'l-shade',   2],
+    ['lit',     's-lit',     'l-lit',     2],
+    ['rgb',     's-rgb',     'l-rgb',     0],
+    ['bwshift', 's-bwshift', 'l-bwshift', 2],
+    ['K',       's-K',       'l-K',       2],
+  ];
 
-  $('demo').addEventListener('click', () => {
-    $('input').value =
-      'Мне так грустно и тоскливо на душе. Всё кажется унылым и печальным. ' +
-      'Я одинок, и хочется плакать тихо, спокойно, без слёз.';
-    generate();
-  });
-
-  $('input').addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      generate();
+  function syncSensFromUI() {
+    for (const [key, inputId, labelId, digits] of SENS_CONTROLS) {
+      const input = $(inputId);
+      const label = $(labelId);
+      const v = parseFloat(input.value);
+      SENS[key] = v;
+      label.textContent = v.toFixed(digits);
     }
+  }
+
+  function resetSensUI() {
+    for (const [key, inputId, labelId, digits] of SENS_CONTROLS) {
+      const v = DEFAULTS[key];
+      $(inputId).value = v;
+      $(labelId).textContent = v.toFixed(digits);
+    }
+    syncSensFromUI();
+    if (lastAnalysis) applyFromAnalysis(lastAnalysis);
+    else pumpkin.render();
+  }
+
+  // подключаем обработчики для всех SENS-ползунков
+  for (const [, inputId] of SENS_CONTROLS) {
+    $(inputId).addEventListener('input', () => {
+      syncSensFromUI();
+      if (lastAnalysis) applyFromAnalysis(lastAnalysis);
+    });
+  }
+
+  $('tunerReset').addEventListener('click', resetSensUI);
+
+  // сворачивание панели
+  $('toggleTuner').addEventListener('click', () => {
+    const aside = $('tuner');
+    aside.classList.toggle('collapsed');
+    $('toggleTuner').textContent = aside.classList.contains('collapsed') ? '▶' : '◀';
+    // даём браузеру пересчитать размеры и перерисовываем канвас
+    setTimeout(() => resize(), 220);
   });
 
-  // ---- ползунок интенсивности ----
+  // ============================================================
+  //  ПРАВАЯ ПАНЕЛЬ: ГЛОБАЛЬНЫЙ МНОЖИТЕЛЬ + ГЕНЕРАЦИЯ
+  // ============================================================
   const sensInput = $('sens');
   const sensLabel = $('v-sens');
 
-  function readSens() {
+  function readGlobalSens() {
     globalSens = parseFloat(sensInput.value) || 0;
     sensLabel.textContent = globalSens.toFixed(2) + '×';
   }
 
   sensInput.addEventListener('input', () => {
-    readSens();
-    // Пересчитываем тыкву на лету, если уже есть анализ
+    readGlobalSens();
     if (lastAnalysis) applyFromAnalysis(lastAnalysis);
   });
 
-  // клики по «шкале» под ползунком
   document.querySelectorAll('.slider-scale span').forEach(el => {
     el.addEventListener('click', () => {
       sensInput.value = el.dataset.sens;
-      readSens();
+      readGlobalSens();
       if (lastAnalysis) applyFromAnalysis(lastAnalysis);
     });
   });
 
-  // ---- resize ----
+  // кнопки генерации
+  $('gen').addEventListener('click', regenerate);
+
+  $('demo').addEventListener('click', () => {
+    $('input').value =
+      'Мне так грустно и тоскливо на душе. Всё кажется унылым и печальным. ' +
+      'Я одинок, и хочется плакать тихо, спокойно, без слёз.';
+    regenerate();
+  });
+
+  $('input').addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      regenerate();
+    }
+  });
+
+  // ============================================================
+  //  RESIZE
+  // ============================================================
   function resize() {
     pumpkin.resizeToContainer($('stage'));
   }
   window.addEventListener('resize', resize);
 
-  // стартовая инициализация
-  readSens();
+  // старт
+  syncSensFromUI();
+  readGlobalSens();
   resize();
   pumpkin.render();
 })();
