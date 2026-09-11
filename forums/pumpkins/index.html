@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Тыква с эмоциями и объёмом</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, sans-serif;
+    display: flex; height: 100vh; background: #1e1e24; color: #eee;
+  }
+  #stage {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    background:
+      linear-gradient(45deg, #2a2a33 25%, transparent 25%) 0 0/24px 24px,
+      linear-gradient(-45deg, #2a2a33 25%, transparent 25%) 0 12px/24px 24px,
+      linear-gradient(45deg, transparent 75%, #2a2a33 75%) 12px -12px/24px 24px,
+      linear-gradient(-45deg, transparent 75%, #2a2a33 75%) -12px 0/24px 24px,
+      #23232b;
+    overflow: hidden;
+  }
+  canvas { max-width: 100%; max-height: 100%; display: block; }
+
+  #panel {
+    width: 360px; padding: 18px 20px; overflow-y: auto;
+    background: #2b2b34; border-left: 1px solid #3a3a45;
+    flex-shrink: 0;
+  }
+  #panel h2 { margin: 0 0 14px; font-size: 16px; }
+  .group { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #3a3a45; }
+  .group h3 { margin: 0 0 6px; font-size: 12px; color: #9ab; text-transform: uppercase; letter-spacing: .5px; }
+  label { display: block; font-size: 12px; margin: 8px 0 2px; color: #bbb; }
+  label span { float: right; color: #6cf; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: #ff8c1a; }
+  input[type=color] { width: 100%; height: 30px; border: none; background: none; cursor: pointer; }
+  button {
+    width: 100%; padding: 8px; margin-top: 6px; cursor: pointer;
+    background: #ff8c1a; border: none; border-radius: 6px; font-weight: 600;
+  }
+  button:hover { background: #ffa947; }
+  button.secondary { background: #4a4a58; color: #eee; }
+  button.secondary:hover { background: #5a5a6a; }
+  button.upload { background: #2f8fd8; color: #fff; }
+  button.upload:hover { background: #3fa1ea; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .emotion-scale {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #777; margin-top: 4px;
+    user-select: none;
+  }
+  .emotion-scale span { cursor: pointer; }
+  .emotion-scale span:hover { color: #ff8c1a; }
+
+  #exportBox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #exportBox.on { display: flex; }
+  #exportInner {
+    background: #2b2b34; border-radius: 10px; padding: 20px;
+    width: 720px; max-width: 100%; max-height: 90vh;
+    display: flex; flex-direction: column; gap: 12px;
+    overflow-y: auto;
+  }
+  #exportInner h3 { margin: 0; font-size: 15px; }
+  #exportPreviewWrap {
+    display: flex; align-items: center; justify-content: center;
+    background:
+      linear-gradient(45deg, #444 25%, transparent 25%) 0 0/16px 16px,
+      linear-gradient(-45deg, #444 25%, transparent 25%) 0 8px/16px 16px,
+      linear-gradient(45deg, transparent 75%, #444 75%) 8px -8px/16px 16px,
+      linear-gradient(-45deg, transparent 75%, #444 75%) -8px 0/16px 16px,
+      #333;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 240px;
+  }
+  #exportPreview { image-rendering: pixelated; }
+  #exportMeta { font-size: 12px; color: #9ab; }
+  #exportBase64 {
+    width: 100%; height: 120px;
+    background: #1e1e24; color: #9cf; border: 1px solid #3a3a45;
+    border-radius: 6px; padding: 8px;
+    font-family: ui-monospace, monospace; font-size: 11px;
+    resize: vertical;
+  }
+  #exportButtons { display: flex; gap: 8px; flex-wrap: wrap; }
+  #exportButtons button { margin-top: 0; flex: 1 1 160px; }
+
+  /* блок результатов imgbb */
+  #imgbbResult {
+    display: none;
+    background: #1e1e24;
+    border: 1px solid #3a3a45;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+  }
+  #imgbbResult.on { display: block; }
+  #imgbbResult .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  #imgbbResult .row input {
+    flex: 1; background: #14141a; color: #9cf; border: 1px solid #3a3a45;
+    border-radius: 4px; padding: 6px 8px;
+    font-family: ui-monospace, monospace; font-size: 11px;
+  }
+  #imgbbResult .row button {
+    flex: 0 0 auto; padding: 6px 12px; margin: 0; font-size: 11px;
+  }
+  #imgbbResult a { color: #6cf; }
+  #imgbbStatus { font-size: 12px; color: #9ab; }
+  #imgbbStatus.err { color: #ff7676; }
+  #imgbbStatus.ok { color: #8fdc8f; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="cv"></canvas>
+</div>
+
+<div id="panel">
+  <h2>🎃 Тыква с эмоциями</h2>
+
+  <div class="group">
+    <h3>Эмоция (общий слайдер)</h3>
+    <label>Грусть → Радость → Гнев <span id="v-emo">0.50</span></label>
+    <input type="range" id="emo" min="0" max="1" step="0.001" value="0.5">
+    <div class="emotion-scale">
+      <span data-emo="0">😢 грусть</span>
+      <span data-emo="0.5">😀 радость</span>
+      <span data-emo="1">😠 гнев</span>
+    </div>
+  </div>
+
+  <div class="group">
+    <h3>Сила эмоции / интенсивность</h3>
+    <label>Интенсивность <span id="v-int">1.00</span></label>
+    <input type="range" id="int" min="0" max="1.5" step="0.01" value="1">
+  </div>
+
+  <div class="group">
+    <h3>Объём и тени</h3>
+    <label>Сила теней <span id="v-shade">0.55</span></label>
+    <input type="range" id="shade" min="0" max="1" step="0.01" value="0.55">
+    <label>Сила блика <span id="v-lit">0.35</span></label>
+    <input type="range" id="lit" min="0" max="1" step="0.01" value="0.35">
+  </div>
+
+  <div class="group">
+    <h3>Форма по вертикали</h3>
+    <label>Верх — ширина <span id="v-tw">1.00</span></label>
+    <input type="range" id="tw" min="0.2" max="2" step="0.01" value="1">
+    <label>Середина — ширина (пузо) <span id="v-mw">1.00</span></label>
+    <input type="range" id="mw" min="0.2" max="2.5" step="0.01" value="1">
+    <label>Низ — ширина <span id="v-bw">1.00</span></label>
+    <input type="range" id="bw" min="0.2" max="2" step="0.01" value="1">
+  </div>
+
+  <div class="group">
+    <h3>Асимметрия лево/право</h3>
+    <label>Левая половина <span id="v-lw">1.00</span></label>
+    <input type="range" id="lw" min="0.3" max="2" step="0.01" value="1">
+    <label>Правая половина <span id="v-rw">1.00</span></label>
+    <input type="range" id="rw" min="0.3" max="2" step="0.01" value="1">
+  </div>
+
+  <div class="group">
+    <h3>Общая высота и смещения</h3>
+    <label>Общая высота <span id="v-hh">1.00</span></label>
+    <input type="range" id="hh" min="0.3" max="2" step="0.01" value="1">
+    <label>Сдвиг верха <span id="v-ts">0</span></label>
+    <input type="range" id="ts" min="-80" max="80" step="1" value="0">
+    <label>Сдвиг середины <span id="v-ms">0</span></label>
+    <input type="range" id="ms" min="-80" max="80" step="1" value="0">
+    <label>Сдвиг низа <span id="v-bs">0</span></label>
+    <input type="range" id="bs" min="-80" max="80" step="1" value="0">
+  </div>
+
+  <div class="group">
+    <h3>Поворот / наклон</h3>
+    <label>Наклон ° <span id="v-sk">0</span></label>
+    <input type="range" id="sk" min="-45" max="45" step="1" value="0">
+    <label>Поворот ° <span id="v-rt">0</span></label>
+    <input type="range" id="rt" min="-180" max="180" step="1" value="0">
+  </div>
+
+  <div class="group">
+    <h3>Позиция лица</h3>
+    <label>Сдвиг лица по X <span id="v-fx">0</span></label>
+    <input type="range" id="fx" min="-0.4" max="0.4" step="0.01" value="0">
+    <label>Сдвиг лица по Y <span id="v-fy">0</span></label>
+    <input type="range" id="fy" min="-0.4" max="0.4" step="0.01" value="0">
+    <label>Масштаб лица <span id="v-fs">1.00</span></label>
+    <input type="range" id="fs" min="0.4" max="1.6" step="0.01" value="1">
+  </div>
+
+  <div class="group">
+    <h3>Цвет заливки</h3>
+    <label>Заливка</label>
+    <input type="color" id="fill" value="#f28c1a">
+  </div>
+
+  <button id="reset">Сбросить</button>
+  <button id="export" class="secondary">📷 Сохранить как base64 (WebP, 200×200 макс)</button>
+</div>
+
+<div id="exportBox">
+  <div id="exportInner">
+    <h3>WebP с прозрачным фоном</h3>
+    <div id="exportPreviewWrap">
+      <img id="exportPreview" alt="preview">
+    </div>
+    <div id="exportMeta"></div>
+    <textarea id="exportBase64" readonly spellcheck="false"></textarea>
+    <div id="exportButtons">
+      <button id="copyBtn">📋 Скопировать base64</button>
+      <button id="copyImgBtn" class="secondary">🖼 Скопировать как картинку</button>
+      <button id="uploadBtn" class="upload">☁ Загрузить на imgbb</button>
+      <button id="closeExport" class="secondary">Закрыть</button>
+    </div>
+    <div id="imgbbStatus"></div>
+    <div id="imgbbResult">
+      <div><b>Прямая ссылка (для &lt;img&gt;):</b></div>
+      <div class="row">
+        <input id="imgbbDirect" readonly>
+        <button data-copy="imgbbDirect" class="secondary">Копировать</button>
+      </div>
+      <div style="margin-top:10px;"><b>Ссылка на страницу:</b></div>
+      <div class="row">
+        <input id="imgbbPage" readonly>
+        <button data-copy="imgbbPage" class="secondary">Копировать</button>
+      </div>
+      <div style="margin-top:10px;"><b>Удалить (delete URL):</b></div>
+      <div class="row">
+        <input id="imgbbDelete" readonly>
+        <button data-copy="imgbbDelete" class="secondary">Копировать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const cv = $('cv');
+const ctx = cv.getContext('2d');
+
+// ВНИМАНИЕ: ключ хранится в открытом виде. Это ок для локального
+// использования, но для публичной страницы его лучше держать на сервере.
+const IMGBB_API_KEY = '1e12d568c88876be45ce5c87b6753b67';
+
+const STROKE_COLOR = '#000000';
+const FACE_COLOR = '#000000';
+const BASE_LWD = 5;
+const HALO_SCALE = 1.8;
+const EXPORT_MAX = 200;
+
+// ============================================================
+//  ГЕОМЕТРИЯ
+// ============================================================
+function buildOutline(steps = 240) {
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const a = (i / steps) * Math.PI * 2 - Math.PI / 2;
+    pts.push([Math.cos(a), Math.sin(a)]);
+  }
+  return pts;
+}
+
+function buildRibs() {
+  const ribs = [];
+  const pList = [-0.85, -0.6, -0.32, 0, 0.32, 0.6, 0.85];
+  for (const p of pList) {
+    const rib = [];
+    const ap = Math.abs(p);
+    const sign = Math.sign(p) || 1;
+    const edge = ap / 0.85;
+    const aX = 0.08 + ap * 0.42;
+    const aY = 0.82 + edge * 0.16;
+    const roundness = 0.45 + edge * 0.5;
+    const aXround = Math.min(aX, aY * roundness);
+    const centerX = sign * ap * 0.55;
+    for (let i = 0; i <= 48; i++) {
+      const t = i / 48;
+      const ang = -Math.PI / 2 + t * Math.PI;
+      const x = centerX + sign * aXround * Math.cos(ang);
+      const y = aY * Math.sin(ang);
+      rib.push([x, y]);
+    }
+    ribs.push(rib);
+  }
+  return ribs;
+}
+
+function buildStemBar() {
+  const pts = [];
+  const x0 = -0.14, x1 = 0.18, y0 = -0.90;
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
+    const x = x0 + (x1 - x0) * t;
+    const y = y0 + 0.035 * Math.sin(t * Math.PI);
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+function buildStem() {
+  return [
+    [ 0.02, -0.90], [ 0.05, -1.14], [ 0.12, -1.26], [ 0.20, -1.28],
+    [ 0.16, -1.18], [ 0.11, -1.00], [ 0.07, -0.88],
+  ];
+}
+
+const OUTLINE = buildOutline();
+const RIBS = buildRibs();
+const STEM = buildStem();
+const STEM_BAR = buildStemBar();
+
+// ============================================================
+//  ТЕНИ
+// ============================================================
+function buildShadeRight() {
+  const pts = [];
+  const N = 60;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const ang = -Math.PI / 2 + t * Math.PI;
+    pts.push([Math.cos(ang) * 0.99, Math.sin(ang) * 0.99]);
+  }
+  for (let i = N; i >= 0; i--) {
+    const t = i / N;
+    const ang = -Math.PI / 2 + t * Math.PI;
+    const inset = 0.18 + 0.28 * Math.sin(t * Math.PI);
+    pts.push([Math.cos(ang) * (1 - inset), Math.sin(ang) * (1 - inset * 0.7)]);
+  }
+  return pts;
+}
+
+function buildShadeBottom() {
+  const pts = [];
+  const N = 60;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const ang = Math.PI * 0.15 + t * Math.PI * 0.7;
+    pts.push([Math.cos(ang) * 0.99, Math.sin(ang) * 0.99]);
+  }
+  for (let i = N; i >= 0; i--) {
+    const t = i / N;
+    const ang = Math.PI * 0.15 + t * Math.PI * 0.7;
+    pts.push([Math.cos(ang) * 0.82, Math.sin(ang) * 0.82]);
+  }
+  return pts;
+}
+
+function buildHighlight() {
+  const pts = [];
+  const N = 40;
+  const cx = -0.42, cy = -0.4;
+  const rx = 0.22, ry = 0.32;
+  const tilt = -0.5;
+  const c = Math.cos(tilt), s = Math.sin(tilt);
+  for (let i = 0; i <= N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const x0 = Math.cos(a) * rx;
+    const y0 = Math.sin(a) * ry;
+    pts.push([cx + x0 * c - y0 * s, cy + x0 * s + y0 * c]);
+  }
+  return pts;
+}
+
+function buildRibShadows() {
+  const shadows = [];
+  for (const rib of RIBS) {
+    const mid = rib[Math.floor(rib.length / 2)];
+    if (Math.abs(mid[0]) < 0.02) continue;
+    const left = [];
+    const right = [];
+    for (const [x, y] of rib) {
+      const dir = x >= 0 ? 1 : -1;
+      left.push([x, y]);
+      right.push([x - dir * 0.045, y]);
+    }
+    shadows.push([...left, ...right.reverse()]);
+  }
+  return shadows;
+}
+
+const SHADE_RIGHT = buildShadeRight();
+const SHADE_BOTTOM = buildShadeBottom();
+const HIGHLIGHT = buildHighlight();
+const RIB_SHADOWS = buildRibShadows();
+
+// ============================================================
+//  ЛИЦО
+// ============================================================
+const EMOTIONS = [
+  {
+    eyeShape: 0.3, eyeTilt: -0.4, eyeSize: 0.9, eyeScaleY: 1.0,
+    pupilSize: 0.7, pupilOffset: 0.3,
+    browAngle: 0.35, browY: -0.02,
+    mouthCurve: -0.7, mouthOpen: 0.05, mouthWidth: 0.55,
+  },
+  {
+    eyeShape: 0.5, eyeTilt: 0.0, eyeSize: 1.0, eyeScaleY: 1.0,
+    pupilSize: 0.85, pupilOffset: 0,
+    browAngle: -0.08, browY: -0.05,
+    mouthCurve: 0.9, mouthOpen: 0.5, mouthWidth: 0.75,
+  },
+  {
+    eyeShape: 0.0, eyeTilt: 0.6, eyeSize: 0.95, eyeScaleY: 0.72,
+    pupilSize: 0.6, pupilOffset: -0.05,
+    browAngle: -0.5, browY: -0.06,
+    mouthCurve: -0.5, mouthOpen: 0.35, mouthWidth: 0.65,
+  },
+];
+
+function lerpEmotions(a, b, t) {
+  const out = {};
+  for (const k in a) out[k] = a[k] + (b[k] - a[k]) * t;
+  return out;
+}
+
+function getEmotionParams(slider) {
+  if (slider <= 0.5) {
+    return lerpEmotions(EMOTIONS[0], EMOTIONS[1], slider / 0.5);
+  } else {
+    return lerpEmotions(EMOTIONS[1], EMOTIONS[2], (slider - 0.5) / 0.5);
+  }
+}
+
+function applyIntensity(e, intensity) {
+  const neutral = {
+    eyeShape: 0.5, eyeTilt: 0, eyeSize: 1, eyeScaleY: 1,
+    pupilSize: 0.8, pupilOffset: 0,
+    browAngle: 0, browY: 0,
+    mouthCurve: 0, mouthOpen: 0, mouthWidth: 0.6,
+  };
+  const out = {};
+  for (const k in e) out[k] = neutral[k] + (e[k] - neutral[k]) * intensity;
+  return out;
+}
+
+// ============================================================
+//  ФОРМЫ ЛИЦА
+// ============================================================
+function buildEye(shape, tilt, size, scaleY = 1) {
+  const pts = [];
+  const N = 40;
+  const s = size;
+  const tri = [
+    [ 0.0, -1.0 * s],
+    [ 0.9 * s,  0.9 * s],
+    [-0.9 * s,  0.9 * s],
+  ];
+  const c = Math.cos(tilt), sn = Math.sin(tilt);
+  const triRot = tri.map(([x, y]) => [x * c - y * sn, x * sn + y * c]);
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const per = [0, 1/3, 2/3, 1];
+    let seg = 0;
+    while (seg < 3 && t > per[seg + 1]) seg++;
+    const localT = (t - per[seg]) / (per[seg + 1] - per[seg]);
+    const p0 = triRot[seg % 3];
+    const p1 = triRot[(seg + 1) % 3];
+    const tx = p0[0] + (p1[0] - p0[0]) * localT;
+    const ty = p0[1] + (p1[1] - p0[1]) * localT;
+    const ang = t * Math.PI * 2 - Math.PI / 2;
+    const ox = Math.cos(ang) * s;
+    const oy = Math.sin(ang) * s;
+    let px = tx * (1 - shape) + ox * shape;
+    let py = ty * (1 - shape) + oy * shape;
+    py *= scaleY;
+    pts.push([px, py]);
+  }
+  return pts;
+}
+
+function buildBrow(angle, len) {
+  const pts = [];
+  const N = 8;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const x = (t - 0.5) * len;
+    const y = Math.sin(angle) * x;
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+function buildMouth(curve, open, width) {
+  const pts = [];
+  const N = 48;
+  const halfW = width / 2;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const x = -halfW + width * t;
+    const smile = curve * (1 - Math.pow(2 * t - 1, 2));
+    pts.push([x, smile * 0.25 - open * 0.5 * (1 - Math.pow(2 * t - 1, 2))]);
+  }
+  for (let i = N; i >= 0; i--) {
+    const t = i / N;
+    const x = -halfW + width * t;
+    const smile = curve * (1 - Math.pow(2 * t - 1, 2));
+    pts.push([x, smile * 0.25 + open * 0.5 * (1 - Math.pow(2 * t - 1, 2))]);
+  }
+  return pts;
+}
+
+// ============================================================
+//  ДЕФОРМАЦИЯ
+// ============================================================
+function deform(x, y, p) {
+  const topW = Math.exp(-Math.pow((y + 0.7) * 1.6, 2));
+  const midW = Math.exp(-Math.pow((y - 0.0) * 1.6, 2));
+  const botW = Math.exp(-Math.pow((y - 0.7) * 1.6, 2));
+  const wSum = topW + midW + botW || 1;
+  const wt = topW / wSum, wm = midW / wSum, wb = botW / wSum;
+
+  const localW = wt * p.tw + wm * p.mw + wb * p.bw;
+  const sideW = x >= 0 ? p.rw : p.lw;
+
+  let ny = y * p.hh;
+  const dy = wt * p.ts + wm * p.ms + wb * p.bs;
+  ny += dy / 300;
+
+  let nx = x * localW * sideW;
+
+  const rad = p.rt * Math.PI / 180;
+  const skew = Math.tan(p.sk * Math.PI / 180);
+  nx += ny * skew;
+
+  const rx = nx * Math.cos(rad) - ny * Math.sin(rad);
+  const ry = nx * Math.sin(rad) + ny * Math.cos(rad);
+  return [rx, ry];
+}
+
+function facePointToBody(fx, fy, p) {
+  const bx = fx * p.fs + p.fx;
+  const by = fy * p.fs + p.fy;
+  return deform(bx, by, p);
+}
+
+function collectPoints(p) {
+  const all = [];
+  for (const [x, y] of OUTLINE) all.push(deform(x, y, p));
+  for (const rib of RIBS) for (const [x, y] of rib) all.push(deform(x, y, p));
+  for (const [x, y] of STEM) all.push(deform(x, y, p));
+  for (const [x, y] of STEM_BAR) all.push(deform(x, y, p));
+  const emo = getEmotionParams(p.emo);
+  const e = applyIntensity(emo, p.int);
+  const eyeL = buildEye(e.eyeShape, e.eyeTilt, e.eyeSize * 0.22, e.eyeScaleY);
+  for (const [x, y] of eyeL) all.push(facePointToBody(x - 0.35, y - 0.15, p));
+  for (const [x, y] of eyeL) all.push(facePointToBody(x + 0.35, y - 0.15, p));
+  return all;
+}
+
+// ============================================================
+//  ЦВЕТ
+// ============================================================
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+}
+function darken(hex, amount) {
+  const [r, g, b] = hexToRgb(hex);
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount));
+}
+function lighten(hex, amount) {
+  const [r, g, b] = hexToRgb(hex);
+  return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
+}
+
+// ============================================================
+//  ОТРИСОВКА
+// ============================================================
+function renderPumpkin(targetCtx, targetW, targetH, p, exportMode) {
+  targetCtx.clearRect(0, 0, targetW, targetH);
+
+  const pts = collectPoints(p);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const w = maxX - minX || 1;
+  const h = maxY - minY || 1;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+
+  const pad = exportMode ? (BASE_LWD / 2 + 2) : 60;
+  const availW = targetW - pad * 2;
+  const availH = targetH - pad * 2;
+  const fitScale = Math.min(availW / w, availH / h);
+
+  targetCtx.save();
+  targetCtx.setTransform(1, 0, 0, 1, targetW / 2, targetH / 2);
+  targetCtx.scale(fitScale, fitScale);
+  targetCtx.translate(-cx, -cy);
+
+  const lw = BASE_LWD / fitScale;
+
+  // заливка
+  targetCtx.beginPath();
+  OUTLINE.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = p.fill;
+  targetCtx.fill();
+
+  // тени и блик
+  targetCtx.save();
+  targetCtx.beginPath();
+  OUTLINE.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.clip();
+
+  targetCtx.beginPath();
+  SHADE_RIGHT.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = darken(p.fill, p.shade);
+  targetCtx.fill();
+
+  targetCtx.beginPath();
+  SHADE_BOTTOM.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = darken(p.fill, p.shade * 0.75);
+  targetCtx.fill();
+
+  targetCtx.fillStyle = darken(p.fill, p.shade * 0.85);
+  for (const ribbon of RIB_SHADOWS) {
+    targetCtx.beginPath();
+    ribbon.forEach(([x, y], i) => {
+      const [nx, ny] = deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fill();
+  }
+
+  targetCtx.beginPath();
+  HIGHLIGHT.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = lighten(p.fill, p.lit);
+  targetCtx.fill();
+
+  targetCtx.restore();
+
+  // контур
+  targetCtx.lineJoin = 'round';
+  targetCtx.lineCap = 'round';
+  targetCtx.beginPath();
+  OUTLINE.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.strokeStyle = STROKE_COLOR;
+  targetCtx.lineWidth = lw;
+  targetCtx.stroke();
+
+  // рёбра
+  targetCtx.save();
+  targetCtx.beginPath();
+  OUTLINE.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.clip();
+  targetCtx.beginPath();
+  for (const rib of RIBS) {
+    rib.forEach(([x, y], i) => {
+      const [nx, ny] = deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+  }
+  targetCtx.strokeStyle = STROKE_COLOR;
+  targetCtx.lineWidth = lw * 0.85;
+  targetCtx.stroke();
+  targetCtx.restore();
+
+  // черенок
+  targetCtx.beginPath();
+  STEM.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = '#5a4433';
+  targetCtx.fill();
+  targetCtx.strokeStyle = STROKE_COLOR;
+  targetCtx.lineWidth = lw;
+  targetCtx.stroke();
+
+  targetCtx.beginPath();
+  STEM_BAR.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.strokeStyle = STROKE_COLOR;
+  targetCtx.lineWidth = lw;
+  targetCtx.lineCap = 'round';
+  targetCtx.stroke();
+
+  // лицо
+  targetCtx.save();
+  targetCtx.beginPath();
+  OUTLINE.forEach(([x, y], i) => {
+    const [nx, ny] = deform(x, y, p);
+    i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+  });
+  targetCtx.closePath();
+  targetCtx.clip();
+
+  const emo = getEmotionParams(p.emo);
+  const e = applyIntensity(emo, p.int);
+
+  targetCtx.lineJoin = 'round';
+  targetCtx.lineCap = 'round';
+
+  const eyeSize = 0.22 * e.eyeSize;
+  const eyeY = -0.15;
+  const eyeDX = 0.35;
+  const faceColor = FACE_COLOR;
+  const haloColor = p.fill;
+  const haloWidth = lw * HALO_SCALE;
+
+  function traceEye(side) {
+    const eye = buildEye(e.eyeShape, e.eyeTilt * side, eyeSize, e.eyeScaleY);
+    targetCtx.beginPath();
+    eye.forEach(([x, y], i) => {
+      const [nx, ny] = facePointToBody(x + side * eyeDX, y + eyeY, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+  }
+  function traceBrow(side) {
+    const brow = buildBrow(e.browAngle * side, 0.42);
+    targetCtx.beginPath();
+    brow.forEach(([x, y], i) => {
+      const [nx, ny] = facePointToBody(x + side * eyeDX, y + eyeY - 0.24 + e.browY, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+  }
+  function tracePupil(side) {
+    const pupilR = eyeSize * e.pupilSize;
+    const px = side * eyeDX;
+    const py = eyeY + e.pupilOffset * eyeSize;
+    const pup = buildEye(1, 0, pupilR);
+    targetCtx.beginPath();
+    pup.forEach(([x, y], i) => {
+      const [nx, ny] = facePointToBody(x + px, y + py, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+  }
+  function traceMouth() {
+    const mouth = buildMouth(e.mouthCurve, e.mouthOpen * 0.5, e.mouthWidth * 0.8);
+    targetCtx.beginPath();
+    mouth.forEach(([x, y], i) => {
+      const [nx, ny] = facePointToBody(x, y + 0.35, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+  }
+
+  // подложка
+  targetCtx.strokeStyle = haloColor;
+  targetCtx.fillStyle = haloColor;
+  targetCtx.lineWidth = haloWidth;
+  for (const side of [-1, 1]) {
+    traceEye(side);
+    targetCtx.fill();
+    targetCtx.stroke();
+    traceBrow(side);
+    targetCtx.stroke();
+  }
+  traceMouth();
+  if (e.mouthOpen > 0.15) { targetCtx.fill(); targetCtx.stroke(); }
+  else targetCtx.stroke();
+
+  // чёрные элементы
+  targetCtx.strokeStyle = faceColor;
+  targetCtx.fillStyle = faceColor;
+  targetCtx.lineWidth = lw;
+  for (const side of [-1, 1]) {
+    traceEye(side);
+    if (e.eyeShape > 0.7) targetCtx.stroke();
+    else targetCtx.fill();
+
+    if (e.eyeShape > 0.55) {
+      tracePupil(side);
+      targetCtx.fillStyle = faceColor;
+      targetCtx.fill();
+
+      const pupilR = eyeSize * e.pupilSize;
+      const px = side * eyeDX;
+      const py = eyeY + e.pupilOffset * eyeSize;
+      const glint = buildEye(1, 0, pupilR * 0.3);
+      targetCtx.beginPath();
+      glint.forEach(([x, y], i) => {
+        const [nx, ny] = facePointToBody(x + px - pupilR * 0.3, y + py - pupilR * 0.3, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+      targetCtx.closePath();
+      targetCtx.fillStyle = p.fill;
+      targetCtx.fill();
+      targetCtx.fillStyle = faceColor;
+    }
+
+    targetCtx.lineWidth = lw * 0.9;
+    traceBrow(side);
+    targetCtx.stroke();
+    targetCtx.lineWidth = lw;
+  }
+  traceMouth();
+  if (e.mouthOpen > 0.15) {
+    targetCtx.fillStyle = faceColor;
+    targetCtx.fill();
+  }
+  targetCtx.strokeStyle = faceColor;
+  targetCtx.lineWidth = lw;
+  targetCtx.stroke();
+
+  targetCtx.restore();
+  targetCtx.restore();
+}
+
+// ============================================================
+//  ПОКАЗ
+// ============================================================
+function draw() {
+  const p = readParams();
+  renderPumpkin(ctx, cv.width, cv.height, p, false);
+}
+
+function readParams() {
+  return {
+    emo: +$('emo').value, int: +$('int').value,
+    shade: +$('shade').value,
+    lit: +$('lit').value,
+    tw: +$('tw').value, mw: +$('mw').value, bw: +$('bw').value,
+    lw: +$('lw').value, rw: +$('rw').value, hh: +$('hh').value,
+    ts: +$('ts').value, ms: +$('ms').value, bs: +$('bs').value,
+    sk: +$('sk').value, rt: +$('rt').value,
+    fx: +$('fx').value, fy: +$('fy').value, fs: +$('fs').value,
+    fill: $('fill').value,
+  };
+}
+
+function updateLabels(p) {
+  $('v-emo').textContent = p.emo.toFixed(2);
+  $('v-int').textContent = p.int.toFixed(2);
+  $('v-shade').textContent = p.shade.toFixed(2);
+  $('v-lit').textContent = p.lit.toFixed(2);
+  $('v-tw').textContent = p.tw.toFixed(2);
+  $('v-mw').textContent = p.mw.toFixed(2);
+  $('v-bw').textContent = p.bw.toFixed(2);
+  $('v-lw').textContent = p.lw.toFixed(2);
+  $('v-rw').textContent = p.rw.toFixed(2);
+  $('v-hh').textContent = p.hh.toFixed(2);
+  $('v-ts').textContent = p.ts;
+  $('v-ms').textContent = p.ms;
+  $('v-bs').textContent = p.bs;
+  $('v-sk').textContent = p.sk;
+  $('v-rt').textContent = p.rt;
+  $('v-fx').textContent = p.fx.toFixed(2);
+  $('v-fy').textContent = p.fy.toFixed(2);
+  $('v-fs').textContent = p.fs.toFixed(2);
+}
+
+function resizeCanvas() {
+  const stage = $('stage');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = stage.getBoundingClientRect();
+  cv.width  = Math.max(200, rect.width  * dpr);
+  cv.height = Math.max(200, rect.height * dpr);
+  cv.style.width  = rect.width  + 'px';
+  cv.style.height = rect.height + 'px';
+  loop();
+}
+
+function loop() {
+  const p = readParams();
+  updateLabels(p);
+  draw();
+}
+
+// ============================================================
+//  ЭКСПОРТ В WEBP
+// ============================================================
+function makeExport() {
+  const p = readParams();
+
+  const pts = collectPoints(p);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const w = maxX - minX || 1;
+  const h = maxY - minY || 1;
+
+  const aspect = w / h;
+  let outW, outH;
+  if (aspect >= 1) {
+    outW = EXPORT_MAX;
+    outH = Math.max(1, Math.round(EXPORT_MAX / aspect));
+  } else {
+    outH = EXPORT_MAX;
+    outW = Math.max(1, Math.round(EXPORT_MAX * aspect));
+  }
+
+  const off = document.createElement('canvas');
+  off.width = outW;
+  off.height = outH;
+  const octx = off.getContext('2d');
+
+  renderPumpkin(octx, outW, outH, p, true);
+
+  const dataURL = off.toDataURL('image/webp', 1.0);
+  const isWebP = dataURL.startsWith('data:image/webp');
+  const format = isWebP ? 'WebP' : 'PNG (WebP не поддерживается)';
+
+  return { dataURL, outW, outH, format, isWebP };
+}
+
+// ============================================================
+//  UI ЭКСПОРТА
+// ============================================================
+function openExport() {
+  const { dataURL, outW, outH, format } = makeExport();
+
+  $('exportPreview').src = dataURL;
+  $('exportPreview').width = outW;
+  $('exportPreview').height = outH;
+  $('exportBase64').value = dataURL;
+
+  const kb = (dataURL.length / 1024).toFixed(1);
+  $('exportMeta').textContent =
+    `Размер: ${outW}×${outH} px · ${format} с прозрачностью · base64 ≈ ${kb} КБ`;
+
+  // сбрасываем предыдущий результат загрузки
+  $('imgbbResult').classList.remove('on');
+  $('imgbbStatus').textContent = '';
+  $('imgbbStatus').className = '';
+
+  $('exportBox').classList.add('on');
+}
+
+$('export').addEventListener('click', openExport);
+$('closeExport').addEventListener('click', () => {
+  $('exportBox').classList.remove('on');
+});
+$('exportBox').addEventListener('click', (e) => {
+  if (e.target === $('exportBox')) $('exportBox').classList.remove('on');
+});
+
+$('copyBtn').addEventListener('click', async () => {
+  const ta = $('exportBase64');
+  ta.select();
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    $('copyBtn').textContent = '✓ Скопировано!';
+    setTimeout(() => $('copyBtn').textContent = '📋 Скопировать base64', 1500);
+  } catch (e) {
+    document.execCommand('copy');
+  }
+});
+
+$('copyImgBtn').addEventListener('click', async () => {
+  try {
+    const img = $('exportPreview');
+    const res = await fetch(img.src);
+    const blob = await res.blob();
+    const mime = blob.type || 'image/webp';
+    await navigator.clipboard.write([
+      new ClipboardItem({ [mime]: blob })
+    ]);
+    $('copyImgBtn').textContent = '✓ Картинка в буфере!';
+    setTimeout(() => $('copyImgBtn').textContent = '🖼 Скопировать как картинку', 1500);
+  } catch (e) {
+    alert('Не удалось скопировать картинку: ' + e.message);
+  }
+});
+
+// ============================================================
+//  ЗАГРУЗКА НА IMGBB
+// ============================================================
+async function uploadToImgbb() {
+  const btn = $('uploadBtn');
+  const status = $('imgbbStatus');
+  const result = $('imgbbResult');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Загрузка...';
+  status.className = '';
+  status.textContent = 'Загружаем на imgbb.com...';
+  result.classList.remove('on');
+
+  try {
+    // Готовим свежий экспорт (на случай, если ползунки менялись после открытия окна)
+    const { dataURL } = makeExport();
+
+    // imgbb API принимает base64 БЕЗ префикса "data:image/...;base64,"
+    const base64 = dataURL.split(',')[1];
+
+    const form = new FormData();
+    form.append('key', IMGBB_API_KEY);
+    form.append('image', base64);
+    form.append('name', 'pumpkin_' + Date.now());
+
+    const res = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: form,
+    });
+
+    const json = await res.json();
+
+    if (!res.ok || !json.success) {
+      const msg = json?.error?.message || ('HTTP ' + res.status);
+      throw new Error(msg);
+    }
+
+    const d = json.data;
+    $('imgbbDirect').value = d.image?.url || d.url || '';
+    $('imgbbPage').value   = d.url_viewer || d.url || '';
+    $('imgbbDelete').value = d.delete_url || '';
+
+    status.className = 'ok';
+    status.textContent = '✓ Загружено!';
+    result.classList.add('on');
+  } catch (err) {
+    status.className = 'err';
+    status.textContent = '✗ Ошибка: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '☁ Загрузить на imgbb';
+  }
+}
+
+$('uploadBtn').addEventListener('click', uploadToImgbb);
+
+// кнопки «Копировать» в блоке результатов
+document.querySelectorAll('#imgbbResult [data-copy]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const input = $(btn.dataset.copy);
+    if (!input || !input.value) return;
+    try {
+      await navigator.clipboard.writeText(input.value);
+      const old = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => btn.textContent = old, 1200);
+    } catch (e) {
+      input.select();
+      document.execCommand('copy');
+    }
+  });
+});
+
+// обработчики
+document.querySelectorAll('input').forEach(el =>
+  el.addEventListener('input', loop));
+
+document.querySelectorAll('.emotion-scale span').forEach(el => {
+  el.addEventListener('click', () => {
+    $('emo').value = el.dataset.emo;
+    loop();
+  });
+});
+
+$('reset').addEventListener('click', () => {
+  ['tw','mw','bw','lw','rw','hh','fs'].forEach(id => $(id).value = 1);
+  ['ts','ms','bs','sk','rt','fx','fy'].forEach(id => $(id).value = 0);
+  $('emo').value = 0.5;
+  $('int').value = 1;
+  $('shade').value = 0.55;
+  $('lit').value = 0.35;
+  $('fill').value = '#f28c1a';
+  loop();
+});
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+</script>
+</body>
+</html>
