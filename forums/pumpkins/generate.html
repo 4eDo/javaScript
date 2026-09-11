@@ -22,7 +22,7 @@
   canvas { max-width: 100%; max-height: 100%; display: block; }
 
   #panel {
-    width: 400px; padding: 18px 20px; overflow-y: auto;
+    width: 420px; padding: 18px 20px; overflow-y: auto;
     background: #2b2b34; border-left: 1px solid #3a3a45;
     flex-shrink: 0;
     display: flex; flex-direction: column; gap: 12px;
@@ -52,25 +52,22 @@
   .row { display: flex; gap: 8px; }
   .row button { margin: 0; }
 
-  /* таблица разбора */
   #breakdown {
     background: #1e1e24; border: 1px solid #3a3a45;
     border-radius: 6px; padding: 10px;
     font-family: ui-monospace, monospace; font-size: 11px;
-    max-height: 260px; overflow-y: auto;
+    max-height: 280px; overflow-y: auto;
   }
   #breakdown .cat { color: #6cf; margin-top: 8px; }
   #breakdown .cat:first-child { margin-top: 0; }
-  #breakdown .line { padding-left: 10px; }
+  #breakdown .line { padding-left: 10px; line-height: 1.5; }
   #breakdown .hit { color: #8fdc8f; }
   #breakdown .score { color: #ff8c1a; }
   #breakdown .muted { color: #666; }
-  #breakdown .warn { color: #ff7676; }
 
   .stats { font-size: 12px; color: #9ab; }
   .stats b { color: #eee; }
 
-  /* маленький превью-параметров */
   #params {
     display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
     font-size: 11px; color: #bbb;
@@ -79,8 +76,6 @@
     border-radius: 6px; padding: 8px;
   }
   #params span { color: #6cf; float: right; }
-
-  details summary { cursor: pointer; color: #9ab; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -92,8 +87,7 @@
 <div id="panel">
   <h2>🎃 Тыква из текста</h2>
 
-  <textarea id="input" placeholder="Вставьте текст сюда...
-Например: &quot;Мне так грустно и тоскливо на душе. Всё кажется унылым и печальным.&quot;"></textarea>
+  <textarea id="input" placeholder="Вставьте текст сюда..."></textarea>
 
   <div class="row">
     <button id="gen">✨ Сгенерировать</button>
@@ -110,6 +104,7 @@
 </div>
 
 <script src="pumpkin.js"></script>
+<script src="words.js"></script>
 <script src="generate.js"></script>
 </body>
 </html>

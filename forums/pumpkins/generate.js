@@ -1,13 +1,19 @@
 /* ============================================================
  *  Генерация параметров тыквы из текста.
  *
- *  Идея: у нас есть словарь триггеров. Каждый триггер — это
- *  одно или несколько слов, которые «тянут» один параметр
- *  тыквы в определённую сторону. По тексту считаем попадания
- *  и превращаем их в значения параметров.
+ *  Зависимости:
+ *    - pumpkin.js : класс Pumpkin
+ *    - words.js   : объект RULES со словарём слов
  *
- *  Все параметры тыквы — из класса Pumpkin (см. pumpkin.js).
- *  Если какого-то поля там нет, мы его просто не трогаем.
+ *  Принципы:
+ *    1) Один параметр тыквы = одна шкала из двух категорий
+ *       <param>_plus / <param>_minus. Они считаются независимо
+ *       и вычитаются друг из друга.
+ *    2) Эмоции — три шкалы, из которых считается ПРОПОРЦИЯ.
+ *       Слайдер emo ставится на взвешенную позицию между
+ *       грустью (0), радостью (0.5) и злостью (1).
+ *    3) Цвет — три канала RGB + шкала чёрное/белое. Все сдвиги
+ *       применяются ОТ ТЕКУЩЕГО базового цвета.
  * ============================================================ */
 
 (function () {
@@ -15,355 +21,372 @@
 
   const $ = id => document.getElementById(id);
 
-  // ---------- экземпляр класса ----------
   const pumpkin = new Pumpkin($('cv'));
 
-  // ============================================================
-  //  СЛОВАРЬ ВЛИЯНИЙ
-  // ============================================================
-  //
-  //  Каждая запись — это правило:
-  //    words   — массив подстрок (буквально, регистр не важен)
-  //    weight  — сила влияния: сколько «очков» добавляет одно
-  //              вхождение к счётчику своей категории
-  //
-  //  Категории:
-  //    emo_sad, emo_joy, emo_angry   → три опорные эмоции
-  //    int_up, int_down              → интенсивность
-  //    shade_up, shade_down          → сила теней
-  //    lit_up, lit_down              → сила блика
-  //    size_big, size_small          → общий масштаб (fs)
-  //    wide, narrow                  → пузо (mw)
-  //    tall, low                     → высота (hh)
-  //    warm, cold                    → цвет заливки (сдвиг оттенка)
-  //    asym_left, asym_right         → асимметрия lw/rw
-  //    up, down                      → сдвиг вверх/вниз (ts/bs)
-  //    round, angular                → форма (eyes round vs angular)
-  //
-  //  words — массив ПОДСТРОК. «грусть» найдётся и в «грустный»,
-  //  и в «грустно», и в «грусть». Это упрощает словарь.
-  // ============================================================
+  // ---------- НАСТРОЙКИ ----------
+  // Доля слов, при которой счётчик категории считается «насыщенным» (1.0)
+  const SATURATION = 0.06;
 
-  const RULES = {
-    // ---- эмоции ----
-    emo_sad: {
-      weight: 1,
-      words: ['груст', 'печаль', 'тоск', 'уныл', 'слез', 'плак', 'одинок', 'хмур'],
-    },
-    emo_joy: {
-      weight: 1,
-      words: ['весел', 'бодр', 'улыб', 'радост', 'счаст', 'смеш', 'улыбн', 'празд'],
-    },
-    emo_angry: {
-      weight: 1,
-      words: ['зло', 'ярост', 'грозн', 'крик', 'бешен', 'раздраж', 'ненавист', 'рыч'],
-    },
+  // Базовый цвет заливки, от которого работают сдвиги RGB
+  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };  // #f28c1a
 
-    // ---- интенсивность ----
-    int_up:   { weight: 1, words: ['бурн', 'эмоциональн', 'нервн', 'страст', 'ярк', 'сильн', 'интенсив'] },
-    int_down: { weight: 1, words: ['тих', 'спокойн', 'расслаблен', 'мягк', 'нежн', 'ленив', 'умиротвор'] },
-
-    // ---- тени ----
-    shade_up:   { weight: 1, words: ['мрачн', 'тёмн', 'темн', 'тень', 'густ', 'глубок'] },
-    shade_down: { weight: 1, words: ['светл', 'ярк', 'сия', 'блеск', 'солнечн', 'воздушн'] },
-
-    // ---- блик ----
-    lit_up:   { weight: 1, words: ['блест', 'глянц', 'сия', 'сверк', 'искр', 'лосн'] },
-    lit_down: { weight: 1, words: ['матов', 'тускл', 'блёкл', 'блекл', 'пыльн'] },
-
-    // ---- размер ----
-    size_big:   { weight: 1, words: ['больш', 'огромн', 'гигант', 'широк', 'разду', 'толст'] },
-    size_small: { weight: 1, words: ['мал', 'крох', 'мелк', 'узк', 'тонк', 'сжат'] },
-
-    // ---- пузо ----
-    wide:   { weight: 1, words: ['широк', 'толст', 'пухл', 'кругл', 'наду', 'раскорм'] },
-    narrow: { weight: 1, words: ['узк', 'тонк', 'худ', 'стройн', 'подтянут'] },
-
-    // ---- высота ----
-    tall: { weight: 1, words: ['высок', 'длинн', 'вытянут', 'стройн', 'долговяз'] },
-    low:  { weight: 1, words: ['низк', 'коротк', 'призем', 'коренаст', 'низеньк'] },
-
-    // ---- асимметрия ----
-    asym_left:  { weight: 1, words: ['лев', 'влево', 'наклон влево', 'скособоч'] },
-    asym_right: { weight: 1, words: ['прав', 'вправо', 'наклон вправо'] },
-
-    // ---- сдвиг ----
-    up:   { weight: 1, words: ['вверх', 'вверх', 'взлет', 'взлёт', 'подн', 'ввысь'] },
-    down: { weight: 1, words: ['вниз', 'пад', 'провис', 'осел', 'осёл', 'просел'] },
+  // Базовые значения параметров (совпадают с Pumpkin.DEFAULTS)
+  const BASE = {
+    emo: 0.5, int: 1,
+    shade: 0.55, lit: 0.35,
+    tw: 1, mw: 1, bw: 1,
+    lw: 1, rw: 1, hh: 1,
+    ts: 0, ms: 0, bs: 0,
+    sk: 0, rt: 0,
+    fx: 0, fy: 0, fs: 1,
   };
 
-  // ============================================================
-  //  НАСТРОЙКИ ИНТЕРПРЕТАЦИИ
-  // ============================================================
-
-  // доля слов, при которой категория считается «насыщенной»
-  // (после saturation score обрезается до 1)
-  const SATURATION = 0.08;
-
-  // насколько сильно каждое «насыщение» сдвигает параметр
-  // (множитель для нормализованного score 0..1)
-  const INFLUENCE = {
-    emo: 1.0,
-    int: 1.0,
-    shade: 1.0,
-    lit: 1.0,
-    size: 0.6,
-    mw: 1.2,
-    hh: 1.2,
-    asym: 0.6,
-    shift: 0.5,
+  // Насколько сильно нормированный score (0..1) двигает параметр.
+  // Каждый параметр — своя чувствительность.
+  const SENS = {
+    int:   0.7,
+    shade: 0.5,
+    lit:   0.5,
+    tw:    0.9,
+    mw:    1.0,
+    bw:    0.7,
+    lw:    0.5,
+    rw:    0.5,
+    hh:    0.7,
+    ts:    30,   // в «пикселях» ползунка
+    ms:    30,
+    bs:    30,
+    sk:    25,   // в градусах
+    rt:    90,
+    fx:    0.25,
+    fy:    0.25,
+    fs:    0.4,
   };
 
-  // базовый цвет и его «тепло/холод»
-  const BASE_HUE = 30;       // оранжевый оттенок заливки
-  const HUE_RANGE = 25;      // насколько градусов сдвигаем максимум
+  // Насколько сдвигается RGB-канал за единицу score
+  const RGB_SHIFT = 90;    // из 255
+  const BW_SHIFT  = 0.7;   // доля приближения к чёрному/белому
 
   // ============================================================
   //  ТОКЕНИЗАЦИЯ
   // ============================================================
   function tokenize(text) {
-    // Оставляем только буквы (включая русские), цифры и пробелы.
-    // Остальное превращаем в пробелы. Потом режем по пробелам.
     const cleaned = text
       .toLowerCase()
       .replace(/[^a-zа-яё0-9\s]/gi, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    if (!cleaned) return [];
-    return cleaned.split(' ');
+    return cleaned ? cleaned.split(' ') : [];
   }
 
   // ============================================================
-  //  ПОДСЧЁТ ПОПАДАНИЙ
+  //  АНАЛИЗ
   // ============================================================
   function analyze(words) {
-    // scores[category] = число (может быть > 1 из-за weight, но у нас weight=1)
-    const scores = {};
-    // hits[category] = [сами слова, которые сработали]
-    const hits = {};
+    const raw = {};    // сырые попадания по категориям
+    const hits = {};   // какие слова сработали
 
     for (const word of words) {
       for (const [cat, rule] of Object.entries(RULES)) {
+        if (!rule.words || rule.words.length === 0) continue;
+        const w = rule.weight ?? 1;
         for (const trigger of rule.words) {
-          if (word.includes(trigger)) {
-            scores[cat] = (scores[cat] || 0) + rule.weight;
-            if (!hits[cat]) hits[cat] = [];
-            if (!hits[cat].includes(word)) hits[cat].push(word);
-            break; // одно слово — один раз на категорию
+          if (trigger && word.includes(trigger)) {
+            raw[cat] = (raw[cat] || 0) + w;
+            (hits[cat] = hits[cat] || []).push(word);
+            break;
           }
         }
       }
     }
 
-    // нормализуем: hits / wordCount, потом обрезаем по SATURATION
+    // нормируем сырые попадания по длине текста и насыщению
     const wordCount = Math.max(1, words.length);
-    const normalized = {};
-    for (const [cat, raw] of Object.entries(scores)) {
-      normalized[cat] = Math.min(1, (raw / wordCount) / SATURATION);
+    const scores = {};
+    for (const [cat, n] of Object.entries(raw)) {
+      scores[cat] = Math.min(1, (n / wordCount) / SATURATION);
     }
 
-    return { wordCount, raw: scores, scores: normalized, hits };
+    return { wordCount, raw, scores, hits };
+  }
+
+  // ============================================================
+  //  ЭМОЦИИ: пропорция
+  // ============================================================
+  //
+  //  Берём три счётчика (нормированные) и считаем, какую долю
+  //  от их суммы занимает каждая эмоция. Затем ставим emo-слайдер
+  //  на взвешенную позицию:
+  //     sad   → 0.0
+  //     joy   → 0.5
+  //     angry → 1.0
+  //
+  //  Если счётчиков нет — emo = 0.5 (нейтральная радость).
+  //
+  function computeEmotion(scores) {
+    const sad   = scores.emo_sad   || 0;
+    const joy   = scores.emo_joy   || 0;
+    const angry = scores.emo_angry || 0;
+    const total = sad + joy + angry;
+
+    if (total < 0.001) {
+      return {
+        emo: 0.5,
+        intBonus: 0,
+        proportions: { sad: 0, joy: 0, angry: 0 },
+      };
+    }
+
+    const pSad   = sad   / total;
+    const pJoy   = joy   / total;
+    const pAngry = angry / total;
+
+    // взвешенная позиция на шкале 0..1
+    const emo = pSad * 0 + pJoy * 0.5 + pAngry * 1.0;
+
+    // интенсивность эмоции: суммарная насыщенность × 0.5 — бонус к int
+    const intBonus = Math.min(0.5, total * 0.5);
+
+    return {
+      emo,
+      intBonus,
+      proportions: { sad: pSad, joy: pJoy, angry: pAngry },
+    };
   }
 
   // ============================================================
   //  ПАРАМЕТРЫ ИЗ АНАЛИЗА
   // ============================================================
+  //
+  //  Каждая шкала <param>_plus / <param>_minus вычитается как
+  //     delta = scores[plus] - scores[minus]
+  //  и умножается на чувствительность из SENS.
+  //
+  function applyScale(baseValue, plusScore, minusScore, sens) {
+    const delta = (plusScore || 0) - (minusScore || 0);
+    return baseValue + delta * sens;
+  }
+
   function computeParams(a) {
     const s = a.scores;
 
-    // --- эмоции ---
-    // три эмоции: sad, joy, angry. Берём суммарное влияние и
-    // решаем, куда сдвинуть emo-слайдер (0..1):
-    //   0 = грусть, 0.5 = радость, 1 = гнев
-    //
-    // Если одна эмоция доминирует — сдвигаем к ней. Если ничего
-    // не сработало — emo = 0.5.
-    const sad   = s.emo_sad   || 0;
-    const joy   = s.emo_joy   || 0;
-    const angry = s.emo_angry || 0;
-    const emoTotal = sad + joy + angry;
+    // ----- эмоции -----
+    const emo = computeEmotion(s);
 
-    let emo = 0.5; // радость по умолчанию
-    if (emoTotal > 0.01) {
-      // позиция на шкале: sad → 0, joy → 0.5, angry → 1
-      emo = (sad * 0 + joy * 0.5 + angry * 1) / emoTotal;
-    }
-
-    // интенсивность эмоции: сколько всего эмоциональных попаданий
-    // относительно длины. Если эмоций много — выражение ярче.
-    let int = 0.5 + emoTotal * 0.7;
+    // ----- интенсивность -----
+    let int = applyScale(BASE.int, s.int_plus, s.int_minus, SENS.int);
+    int += emo.intBonus;         // эмоциональная насыщенность повышает интенсивность
     int = clamp(int, 0, 1.5);
 
-    // --- тени / блик ---
-    let shade = 0.55;
-    if (s.shade_up)   shade += s.shade_up   * INFLUENCE.shade * 0.4;
-    if (s.shade_down) shade -= s.shade_down * INFLUENCE.shade * 0.4;
-    shade = clamp(shade, 0, 1);
+    // ----- тени / блик -----
+    const shade = clamp(
+      applyScale(BASE.shade, s.shade_plus, s.shade_minus, SENS.shade),
+      0, 1
+    );
+    const lit = clamp(
+      applyScale(BASE.lit, s.lit_plus, s.lit_minus, SENS.lit),
+      0, 1
+    );
 
-    let lit = 0.35;
-    if (s.lit_up)   lit += s.lit_up   * INFLUENCE.lit * 0.5;
-    if (s.lit_down) lit -= s.lit_down * INFLUENCE.lit * 0.4;
-    lit = clamp(lit, 0, 1);
+    // ----- форма -----
+    const tw = clamp(applyScale(BASE.tw, s.tw_plus, s.tw_minus, SENS.tw), 0.2, 2);
+    const mw = clamp(applyScale(BASE.mw, s.mw_plus, s.mw_minus, SENS.mw), 0.2, 2.5);
+    const bw = clamp(applyScale(BASE.bw, s.bw_plus, s.bw_minus, SENS.bw), 0.2, 2);
+    const lw = clamp(applyScale(BASE.lw, s.lw_plus, s.lw_minus, SENS.lw), 0.3, 2);
+    const rw = clamp(applyScale(BASE.rw, s.rw_plus, s.rw_minus, SENS.rw), 0.3, 2);
+    const hh = clamp(applyScale(BASE.hh, s.hh_plus, s.hh_minus, SENS.hh), 0.3, 2);
 
-    // --- размер (fs), пузо (mw), высота (hh) ---
-    let fs = 1;
-    if (s.size_big)   fs += s.size_big   * INFLUENCE.size;
-    if (s.size_small) fs -= s.size_small * INFLUENCE.size;
-    fs = clamp(fs, 0.5, 1.6);
+    // ----- сдвиги -----
+    const ts = clamp(applyScale(BASE.ts, s.ts_plus, s.ts_minus, SENS.ts), -80, 80);
+    const ms = clamp(applyScale(BASE.ms, s.ms_plus, s.ms_minus, SENS.ms), -80, 80);
+    const bs = clamp(applyScale(BASE.bs, s.bs_plus, s.bs_minus, SENS.bs), -80, 80);
 
-    let mw = 1;
-    if (s.wide)   mw += s.wide   * INFLUENCE.mw * 0.5;
-    if (s.narrow) mw -= s.narrow * INFLUENCE.mw * 0.5;
-    mw = clamp(mw, 0.4, 2.5);
+    // ----- наклон / поворот -----
+    const sk = clamp(applyScale(BASE.sk, s.sk_plus, s.sk_minus, SENS.sk), -45, 45);
+    const rt = clamp(applyScale(BASE.rt, s.rt_plus, s.rt_minus, SENS.rt), -180, 180);
 
-    let hh = 1;
-    if (s.tall) hh += s.tall * INFLUENCE.hh * 0.4;
-    if (s.low)  hh -= s.low  * INFLUENCE.hh * 0.4;
-    hh = clamp(hh, 0.5, 2);
+    // ----- лицо -----
+    let fx = clamp(applyScale(BASE.fx, s.fx_plus, s.fx_minus, SENS.fx), -0.4, 0.4);
+    let fy = clamp(applyScale(BASE.fy, s.fy_plus, s.fy_minus, SENS.fy), -0.4, 0.4);
+    let fs = clamp(applyScale(BASE.fs, s.fs_plus, s.fs_minus, SENS.fs), 0.4, 1.6);
 
-    // --- асимметрия ---
-    // сдвигаем lw/rw в стороны от 1
-    let lw = 1, rw = 1;
-    if (s.asym_left) {
-      lw -= s.asym_left  * INFLUENCE.asym * 0.4;
-      rw += s.asym_left  * INFLUENCE.asym * 0.2;
-    }
-    if (s.asym_right) {
-      rw -= s.asym_right * INFLUENCE.asym * 0.4;
-      lw += s.asym_right * INFLUENCE.asym * 0.2;
-    }
-    lw = clamp(lw, 0.5, 1.6);
-    rw = clamp(rw, 0.5, 1.6);
+    // общий размер текста тоже влияет на лицо
+    const sizeDelta = (s.size_plus || 0) - (s.size_minus || 0);
+    fs = clamp(fs + sizeDelta * SENS.fs * 0.5, 0.4, 1.6);
 
-    // --- вертикальные сдвиги ---
-    let ts = 0, bs = 0;
-    if (s.up)   { ts -= s.up   * INFLUENCE.shift * 30; }
-    if (s.down) { bs += s.down * INFLUENCE.shift * 30; }
-    ts = clamp(ts, -60, 60);
-    bs = clamp(bs, -60, 60);
-
-    // --- цвет заливки ---
-    // базовый оранжевый. "Тёплое"/светлое тянет к жёлтому,
-    // "холодное"/мрачное — к красному.
-    let hue = BASE_HUE;
-    if (s.lit_up)   hue += s.lit_up   * HUE_RANGE * 0.4;
-    if (s.shade_up) hue -= s.shade_up * HUE_RANGE * 0.4;
-    hue = clamp(hue, 0, 60);
-
-    const fill = hslToHex(hue, 90, 55);
+    // ----- цвет -----
+    const fill = computeColor(s);
 
     return {
-      emo: round3(emo),
-      int: round3(int),
-      shade: round3(shade),
-      lit: round3(lit),
-      tw: 1,
-      mw: round3(mw),
-      bw: 1,
-      lw: round3(lw),
-      rw: round3(rw),
-      hh: round3(hh),
-      ts: Math.round(ts),
-      ms: 0,
-      bs: Math.round(bs),
-      sk: 0,
-      rt: 0,
-      fx: 0,
-      fy: 0,
-      fs: round3(fs),
+      emo: r3(emo.emo),
+      int: r3(int),
+      shade: r3(shade),
+      lit: r3(lit),
+      tw: r3(tw), mw: r3(mw), bw: r3(bw),
+      lw: r3(lw), rw: r3(rw), hh: r3(hh),
+      ts: Math.round(ts), ms: Math.round(ms), bs: Math.round(bs),
+      sk: Math.round(sk), rt: Math.round(rt),
+      fx: r3(fx), fy: r3(fy), fs: r3(fs),
       fill,
     };
+  }
+
+  // ============================================================
+  //  ЦВЕТ ОТ ТЕКУЩЕГО
+  // ============================================================
+  //
+  //  1) Стартуем от BASE_COLOR.
+  //  2) Сдвигаем каналы R, G, B каждый своей шкалой.
+  //  3) Применяем ч/б сдвиг: тянем к 0 или к 255.
+  //
+  function computeColor(s) {
+    let { r, g, b } = BASE_COLOR;
+
+    const rDelta = (s.r_plus || 0) - (s.r_minus || 0);
+    const gDelta = (s.g_plus || 0) - (s.g_minus || 0);
+    const bDelta = (s.b_plus || 0) - (s.b_minus || 0);
+
+    r += rDelta * RGB_SHIFT;
+    g += gDelta * RGB_SHIFT;
+    b += bDelta * RGB_SHIFT;
+
+    // Ч/б: считаем единый коэффициент
+    const blackK = (s.to_black || 0) * BW_SHIFT;
+    const whiteK = (s.to_white || 0) * BW_SHIFT;
+
+    // к чёрному — умножение, к белому — смешивание с 255
+    r = r * (1 - blackK) + 255 * whiteK;
+    g = g * (1 - blackK) + 255 * whiteK;
+    b = b * (1 - blackK) + 255 * whiteK;
+
+    r = Math.round(clamp(r, 0, 255));
+    g = Math.round(clamp(g, 0, 255));
+    b = Math.round(clamp(b, 0, 255));
+
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
   }
 
   // ============================================================
   //  УТИЛИТЫ
   // ============================================================
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const round3 = v => Math.round(v * 1000) / 1000;
-
-  function hslToHex(h, s, l) {
-    s /= 100; l /= 100;
-    const k = n => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = n => {
-      const c = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-      return Math.round(255 * c).toString(16).padStart(2, '0');
-    };
-    return '#' + f(0) + f(8) + f(4);
-  }
+  const r3 = v => Math.round(v * 1000) / 1000;
 
   // ============================================================
-  //  UI
+  //  UI: РАЗБОР
   // ============================================================
-  function renderBreakdown(a, params) {
+  //
+  //  Каждая категория показывается отдельной строкой с её
+  //  сырым счётчиком и словами, которые сработали.
+  //
+  function renderBreakdown(a, emotion) {
     const box = $('breakdown');
     box.innerHTML = '';
 
-    if (a.wordCount === 0 || Object.keys(a.raw).length === 0) {
-      box.innerHTML = '<span class="muted">Ничего не сработало — параметры по умолчанию.</span>';
-      return;
-    }
-
-    // группируем категории в удобные блоки
-    const GROUPS = [
-      { title: 'Эмоции', cats: ['emo_sad', 'emo_joy', 'emo_angry'] },
-      { title: 'Интенсивность', cats: ['int_up', 'int_down'] },
-      { title: 'Тени', cats: ['shade_up', 'shade_down'] },
-      { title: 'Блик', cats: ['lit_up', 'lit_down'] },
-      { title: 'Размер', cats: ['size_big', 'size_small'] },
-      { title: 'Пузо', cats: ['wide', 'narrow'] },
-      { title: 'Высота', cats: ['tall', 'low'] },
-      { title: 'Асимметрия', cats: ['asym_left', 'asym_right'] },
-      { title: 'Сдвиг', cats: ['up', 'down'] },
-    ];
-
-    for (const g of GROUPS) {
-      const active = g.cats.filter(c => a.raw[c]);
-      if (active.length === 0) continue;
+    // сначала эмоции — они особенные, показываем пропорции
+    if (emotion.proportions.sad + emotion.proportions.joy + emotion.proportions.angry > 0) {
       const catEl = document.createElement('div');
       catEl.className = 'cat';
-      catEl.textContent = g.title;
+      catEl.textContent = 'Эмоции (пропорции)';
+      box.appendChild(catEl);
+
+      const p = emotion.proportions;
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.innerHTML =
+        `<span class="hit">грусть ${(p.sad * 100).toFixed(0)}%</span> · ` +
+        `<span class="hit">радость ${(p.joy * 100).toFixed(0)}%</span> · ` +
+        `<span class="hit">злость ${(p.angry * 100).toFixed(0)}%</span> ` +
+        `<span class="muted">→ emo=${a ? '' : ''}</span>`;
+      box.appendChild(line);
+    }
+
+    // группируем оставшиеся категории по префиксу (param_plus / param_minus)
+    const byParam = {};
+    for (const [cat, rule] of Object.entries(RULES)) {
+      if (cat.startsWith('emo_')) continue; // эмоции уже показали
+      const m = cat.match(/^(.+?)_(plus|minus)$/);
+      const key = m ? m[1] : cat;
+      const dir = m ? m[2] : '';
+      if (!byParam[key]) byParam[key] = { plus: null, minus: null, other: [] };
+      if (dir === 'plus')       byParam[key].plus = cat;
+      else if (dir === 'minus') byParam[key].minus = cat;
+      else                      byParam[key].other.push(cat);
+    }
+
+    // красивые названия параметров
+    const NICE = {
+      int: 'интенсивность', shade: 'тени', lit: 'блик',
+      tw: 'ширина верха', mw: 'ширина середины', bw: 'ширина низа',
+      lw: 'левая половина', rw: 'правая половина', hh: 'общая высота',
+      ts: 'сдвиг верха', ms: 'сдвиг середины', bs: 'сдвиг низа',
+      sk: 'наклон', rt: 'поворот',
+      fx: 'лицо X', fy: 'лицо Y', fs: 'масштаб лица',
+      size: 'общий размер',
+      r: 'красный', g: 'зелёный', b: 'синий',
+      to_black: 'к чёрному', to_white: 'к белому',
+    };
+
+    for (const [key, grp] of Object.entries(byParam)) {
+      const cats = [grp.plus, grp.minus, ...grp.other].filter(Boolean);
+      const active = cats.filter(c => a.raw[c]);
+      if (active.length === 0) continue;
+
+      const catEl = document.createElement('div');
+      catEl.className = 'cat';
+      catEl.textContent = NICE[key] || key;
       box.appendChild(catEl);
 
       for (const c of active) {
         const line = document.createElement('div');
         line.className = 'line';
-        const words = a.hits[c] || [];
+        const words = (a.hits[c] || []).slice(0, 12);
+        const more = (a.hits[c] || []).length > 12 ? '…' : '';
         line.innerHTML =
           `<span class="muted">${c}</span> ` +
           `<span class="score">${a.raw[c]}</span> · ` +
-          words.map(w => `<span class="hit">${w}</span>`).join(', ');
+          words.map(w => `<span class="hit">${w}</span>`).join(', ') + more;
         box.appendChild(line);
       }
     }
   }
 
   function renderParams(p) {
+    const fields = [
+      'emo', 'int', 'shade', 'lit',
+      'tw', 'mw', 'bw', 'lw', 'rw', 'hh',
+      'ts', 'ms', 'bs', 'sk', 'rt',
+      'fx', 'fy', 'fs',
+    ];
     const box = $('params');
-    const fields = ['emo', 'int', 'shade', 'lit', 'mw', 'lw', 'rw', 'hh', 'fs', 'ts', 'bs'];
     box.innerHTML = fields
-      .map(f => `<div>${f} <span>${typeof p[f] === 'number' ? p[f] : p[f]}</span></div>`)
-      .join('');
+      .map(f => `<div>${f} <span>${p[f]}</span></div>`)
+      .join('') +
+      `<div>fill <span>${p.fill}</span></div>`;
   }
 
+  // ============================================================
+  //  ГЛАВНАЯ ФУНКЦИЯ
+  // ============================================================
   function generate() {
     const text = $('input').value;
     const words = tokenize(text);
     const a = analyze(words);
     const params = computeParams(a);
 
-    // применяем к тыкве
     pumpkin.setParams(params);
     pumpkin.render();
 
-    // UI
-    renderBreakdown(a, params);
+    // пропорции эмоций — для отображения
+    const emotion = computeEmotion(a.scores);
+    renderBreakdown(a, emotion);
     renderParams(params);
 
+    const totalHits = Object.values(a.raw).reduce((s, x) => s + x, 0);
     $('stats').innerHTML =
       `Слов: <b>${a.wordCount}</b> · ` +
-      `сработало категорий: <b>${Object.keys(a.raw).length}</b> · ` +
-      `всего попаданий: <b>${Object.values(a.raw).reduce((s, x) => s + x, 0)}</b>`;
+      `категорий: <b>${Object.keys(a.raw).length}</b> · ` +
+      `попаданий: <b>${totalHits}</b>`;
   }
 
   // ---------- обработчики ----------
@@ -376,7 +399,6 @@
     generate();
   });
 
-  // горячая клавиша: Ctrl+Enter — сгенерировать
   $('input').addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -384,13 +406,11 @@
     }
   });
 
-  // подгонка canvas под контейнер + первичная отрисовка
   function resize() {
     pumpkin.resizeToContainer($('stage'));
   }
   window.addEventListener('resize', resize);
   resize();
 
-  // стартовый рендер — тыква по умолчанию
   pumpkin.render();
 })();
