@@ -9,14 +9,13 @@
  *  с ползунков в левой панели UI при каждом пересчёте.
  *  Глобальный множитель intensity умножается поверх.
  *
- *  ЦВЕТ:
- *    - три канала R, G, B считаются независимо;
- *    - канал, который «победил», тянет свой канал к 255;
- *    - канал, который «проиграл», тянет свой к 0;
- *    - доминирующие каналы взаимно подавляют остальные
- *      (чтобы цвет был насыщеннее, а не серым);
- *    - чёрное/белое считается РАЗНОСТЬЮ и применяется
- *      поверх как общий сдвиг яркости.
+ *  ЦВЕТ — через HSL-тонирование:
+ *    - rgb-шкалы переосмыслены как сдвиги ОТТЕНКА (hue);
+ *    - каждое срабатывание даёт вектор на hue-круге,
+ *      векторы складываются, итог — результирующий угол;
+ *    - ч/б считается разностью и меняет светлоту L;
+ *    - насыщенность слегка снижается при уходе от базы,
+ *      чтобы цвета не выглядели кислотно.
  * ============================================================ */
 
 (function () {
@@ -52,7 +51,6 @@
     bwshift: 1.0,
   };
 
-  // Текущие значения — читаются с ползунков.
   const SENS = { ...DEFAULTS };
 
   // Глобальный множитель (правый ползунок)
@@ -209,100 +207,132 @@
   }
 
   // ============================================================
-  //  ЦВЕТ
+  //  ЦВЕТ ЧЕРЕЗ HSL-ТОНИРОВАНИЕ
   // ============================================================
-  //
-  //  Алгоритм:
-  //
-  //  1) Считаем веса каналов: wR, wG, wB.
-  //     >0 — канал хочет быть ярким (тянется к 255),
-  //     <0 — канал хочет быть тёмным (тянется к 0).
-  //
-  //  2) Нормируем: RGB_MIX = SENS.rgb / 60 (подобрано так,
-  //     чтобы одно попадание давало заметный сдвиг).
-  //
-  //  3) Считаем целевые значения каналов от базы. Канал
-  //     с положительным весом тянется к 255, с отрицательным —
-  //     к 0, пропорционально |w| * RGB_MIX (clamp до 1).
-  //
-  //  4) Взаимное подавление: если канал доминирует (w > 0),
-  //     он придавливает остальные каналы — это делает цвет
-  //     более насыщенным и не даёт ему уйти в серо-белый.
-  //
-  //  5) Ч/б применяется РАЗНОСТЬЮ поверх всего. Если
-  //     blackScore и whiteScore равны — ничего не происходит.
-  //
+
+  // --- конвертеры ---
+  function hexToHsl(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    const r = ((n >> 16) & 255) / 255;
+    const g = ((n >> 8) & 255) / 255;
+    const b = (n & 255) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+        case g: h = ((b - r) / d + 2); break;
+        case b: h = ((r - g) / d + 4); break;
+      }
+      h /= 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }
+
+  function hslToHex(h, s, l) {
+    h = ((h % 360) + 360) % 360;
+    s = Math.max(0, Math.min(100, s)) / 100;
+    l = Math.max(0, Math.min(100, l)) / 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const hp = h / 60;
+    const x = c * (1 - Math.abs((hp % 2) - 1));
+    let r1 = 0, g1 = 0, b1 = 0;
+    if (hp < 1)      [r1, g1, b1] = [c, x, 0];
+    else if (hp < 2) [r1, g1, b1] = [x, c, 0];
+    else if (hp < 3) [r1, g1, b1] = [0, c, x];
+    else if (hp < 4) [r1, g1, b1] = [0, x, c];
+    else if (hp < 5) [r1, g1, b1] = [x, 0, c];
+    else             [r1, g1, b1] = [c, 0, x];
+    const m = l - c / 2;
+    const to255 = v => Math.round(Math.max(0, Math.min(255, (v + m) * 255)));
+    return '#' + [to255(r1), to255(g1), to255(b1)]
+      .map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  // --- базовый HSL — считаем один раз из BASE_COLOR ---
+  const BASE_HSL = hexToHsl('#' +
+    [BASE_COLOR.r, BASE_COLOR.g, BASE_COLOR.b]
+      .map(v => v.toString(16).padStart(2, '0')).join(''));
+
+  // --- куда тянет каждая шкала на hue-круге ---
+  const HUE_TARGET = {
+    r_plus:  0,     // красный
+    r_minus: 180,   // голубой
+    g_plus:  120,   // зелёный
+    g_minus: 300,   // пурпурный
+    b_plus:  240,   // синий (240 — «настоящий» синий)
+    b_minus: 45,    // жёлто-оранжевый
+  };
+
+  // --- нелинейная функция mix: быстро насыщается, плавно упирается в 1 ---
+  function mixCurve(weight, k) {
+    if (weight <= 0) return 0;
+    return 1 - Math.exp(-weight * k);
+  }
+
   function computeColor(s) {
-    // 1) веса каналов
-    const rW = (s.r_plus || 0) - (s.r_minus || 0);
-    const gW = (s.g_plus || 0) - (s.g_minus || 0);
-    const bW = (s.b_plus || 0) - (s.b_minus || 0);
+    // 1) Собираем векторы hue от всех сработавших шкал.
+    //    Каждый вектор: длина = вес, угол = HUE_TARGET.
+    let vx = 0, vy = 0;
+    let hueWeight = 0;
 
-    // 2) коэффициент пропорции
-    const RGB_MIX = (SENS.rgb / 60) * globalSens;
+    for (const [cat, targetDeg] of Object.entries(HUE_TARGET)) {
+      const w = s[cat] || 0;
+      if (w <= 0) continue;
+      const rad = targetDeg * Math.PI / 180;
+      vx += Math.cos(rad) * w;
+      vy += Math.sin(rad) * w;
+      hueWeight += w;
+    }
 
-    // 3) целевые значения каналов
-    let rT = BASE_COLOR.r;
-    let gT = BASE_COLOR.g;
-    let bT = BASE_COLOR.b;
+    // 2) Стартуем от базового hue
+    let hue = BASE_HSL.h;
 
-    // положительный вес — тянем к 255, отрицательный — к 0
-    if (rW > 0)      rT = rT + (255 - rT) * Math.min(1, rW * RGB_MIX);
-    else if (rW < 0) rT = rT * (1 - Math.min(1, -rW * RGB_MIX));
+    if (hueWeight > 0.01) {
+      // Угол суммарного вектора
+      const targetHue = (Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360;
 
-    if (gW > 0)      gT = gT + (255 - gT) * Math.min(1, gW * RGB_MIX);
-    else if (gW < 0) gT = gT * (1 - Math.min(1, -gW * RGB_MIX));
+      // Нелинейный mix: быстро насыщается, потом плавно к 1.
+      // k = 2.0 даёт: вес 0.3 → mix 0.45, вес 0.6 → mix 0.70, вес 1.0 → mix 0.86.
+      // Множитель SENS.rgb / 140 растягивает/сжимает кривую.
+      const k = 2.0 * (SENS.rgb / 140) * globalSens;
+      const mix = mixCurve(hueWeight, k);
 
-    if (bW > 0)      bT = bT + (255 - bT) * Math.min(1, bW * RGB_MIX);
-    else if (bW < 0) bT = bT * (1 - Math.min(1, -bW * RGB_MIX));
+      // Круговое смешивание: идём по короткой дуге
+      let delta = targetHue - hue;
+      if (delta > 180)  delta -= 360;
+      if (delta < -180) delta += 360;
 
-    // 4) ВЗАИМНОЕ ПОДАВЛЕНИЕ.
-    //    Считаем «силу» каждого положительного канала.
-    //    Если канал доминирует, остальные получают штраф.
-    //    Штраф — доля, на которую уменьшается канал.
-    const rBoost = Math.max(0, rW);
-    const gBoost = Math.max(0, gW);
-    const bBoost = Math.max(0, bW);
+      hue = hue + delta * mix;
+    }
 
-    // коэффициент подавления: 0.4 значит, что при полной
-    // доминации одного канала другие падают почти в 2 раза.
-    // Можно регулировать через SENS — здесь жёстко 0.4.
-    const SUPPRESS = 0.4;
+    // 3) Насыщенность: слегка снижается при уходе от базы
+    let sat = BASE_HSL.s;
+    if (hueWeight > 0.01) {
+      const k = 2.0 * (SENS.rgb / 140) * globalSens;
+      const mix = mixCurve(hueWeight, k);
+      sat = sat * (1 - 0.3 * mix);
+    }
 
-    // каждый канал штрафуется суммой чужих boost'ов
-    const rSuppress = Math.min(1, (gBoost + bBoost) * RGB_MIX * SUPPRESS);
-    const gSuppress = Math.min(1, (rBoost + bBoost) * RGB_MIX * SUPPRESS);
-    const bSuppress = Math.min(1, (rBoost + gBoost) * RGB_MIX * SUPPRESS);
+    // 4) Светлота: ч/б — разностью
+    let light = BASE_HSL.l;
 
-    // если сам канал «плюсовой» — его штраф слабее
-    // (он же хочет быть ярким), если нет — штраф полный.
-    rT = rT * (1 - (rBoost > 0 ? rSuppress * 0.3 : rSuppress));
-    gT = gT * (1 - (gBoost > 0 ? gSuppress * 0.3 : gSuppress));
-    bT = bT * (1 - (bBoost > 0 ? bSuppress * 0.3 : bSuppress));
-
-    // 5) Ч/Б — разность. blackScore и whiteScore взаимно
-    //    компенсируются, а не складываются.
     const blackScore = s.to_black || 0;
     const whiteScore = s.to_white || 0;
     const bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
 
     if (bwNet > 0) {
       const k = Math.min(1, bwNet);
-      rT = rT * (1 - k) + 255 * k;
-      gT = gT * (1 - k) + 255 * k;
-      bT = bT * (1 - k) + 255 * k;
+      light = light + (100 - light) * k;
     } else if (bwNet < 0) {
       const k = Math.min(1, -bwNet);
-      rT = rT * (1 - k);
-      gT = gT * (1 - k);
-      bT = bT * (1 - k);
+      light = light * (1 - k);
     }
 
-    const r = Math.round(clamp(rT, 0, 255));
-    const g = Math.round(clamp(gT, 0, 255));
-    const b = Math.round(clamp(bT, 0, 255));
-
-    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    return hslToHex(hue, sat, light);
   }
 
   // ============================================================
