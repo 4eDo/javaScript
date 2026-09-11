@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Тыква из текста</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, sans-serif;
+    display: flex; height: 100vh; background: #1e1e24; color: #eee;
+  }
+  #stage {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    background:
+      linear-gradient(45deg, #2a2a33 25%, transparent 25%) 0 0/24px 24px,
+      linear-gradient(-45deg, #2a2a33 25%, transparent 25%) 0 12px/24px 24px,
+      linear-gradient(45deg, transparent 75%, #2a2a33 75%) 12px -12px/24px 24px,
+      linear-gradient(-45deg, transparent 75%, #2a2a33 75%) -12px 0/24px 24px,
+      #23232b;
+    overflow: hidden;
+  }
+  canvas { max-width: 100%; max-height: 100%; display: block; }
+
+  #panel {
+    width: 400px; padding: 18px 20px; overflow-y: auto;
+    background: #2b2b34; border-left: 1px solid #3a3a45;
+    flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  #panel h2 { margin: 0; font-size: 16px; }
+  #panel h3 { margin: 14px 0 6px; font-size: 12px; color: #9ab;
+              text-transform: uppercase; letter-spacing: .5px; }
+
+  textarea {
+    width: 100%; min-height: 140px;
+    background: #1e1e24; color: #eee;
+    border: 1px solid #3a3a45; border-radius: 6px;
+    padding: 8px; font-family: inherit; font-size: 13px;
+    resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: #ff8c1a; }
+
+  button {
+    width: 100%; padding: 8px; cursor: pointer;
+    background: #ff8c1a; border: none; border-radius: 6px; font-weight: 600;
+    color: #1e1e24;
+  }
+  button:hover { background: #ffa947; }
+  button.secondary { background: #4a4a58; color: #eee; }
+  button.secondary:hover { background: #5a5a6a; }
+
+  .row { display: flex; gap: 8px; }
+  .row button { margin: 0; }
+
+  /* таблица разбора */
+  #breakdown {
+    background: #1e1e24; border: 1px solid #3a3a45;
+    border-radius: 6px; padding: 10px;
+    font-family: ui-monospace, monospace; font-size: 11px;
+    max-height: 260px; overflow-y: auto;
+  }
+  #breakdown .cat { color: #6cf; margin-top: 8px; }
+  #breakdown .cat:first-child { margin-top: 0; }
+  #breakdown .line { padding-left: 10px; }
+  #breakdown .hit { color: #8fdc8f; }
+  #breakdown .score { color: #ff8c1a; }
+  #breakdown .muted { color: #666; }
+  #breakdown .warn { color: #ff7676; }
+
+  .stats { font-size: 12px; color: #9ab; }
+  .stats b { color: #eee; }
+
+  /* маленький превью-параметров */
+  #params {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
+    font-size: 11px; color: #bbb;
+    font-family: ui-monospace, monospace;
+    background: #1e1e24; border: 1px solid #3a3a45;
+    border-radius: 6px; padding: 8px;
+  }
+  #params span { color: #6cf; float: right; }
+
+  details summary { cursor: pointer; color: #9ab; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="cv"></canvas>
+</div>
+
+<div id="panel">
+  <h2>🎃 Тыква из текста</h2>
+
+  <textarea id="input" placeholder="Вставьте текст сюда...
+Например: &quot;Мне так грустно и тоскливо на душе. Всё кажется унылым и печальным.&quot;"></textarea>
+
+  <div class="row">
+    <button id="gen">✨ Сгенерировать</button>
+    <button id="demo" class="secondary">Пример</button>
+  </div>
+
+  <h3>Параметры</h3>
+  <div id="params"></div>
+
+  <h3>Разбор</h3>
+  <div id="breakdown"><span class="muted">— пока пусто —</span></div>
+
+  <div class="stats" id="stats"></div>
+</div>
+
+<script src="pumpkin.js"></script>
+<script src="generate.js"></script>
+</body>
+</html>
