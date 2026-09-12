@@ -74,7 +74,7 @@ class Pumpkin {
       eyeShape: 0.4, eyeTilt: 0.0, eyeSize: 0.95, eyeScaleY: 1.0,
       pupilSize: 0.75, pupilOffset: 0,
       browAngle: 0.0, browY: -0.03,
-      mouthCurve: 0.0, mouthOpen: 0.15, mouthWidth: 0.65,
+      mouthCurve: 0.0, mouthOpen: 0.0, mouthWidth: 0.65,
     },
   };
 
