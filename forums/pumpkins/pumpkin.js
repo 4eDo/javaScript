@@ -6,14 +6,6 @@
  *    mood ∈ [-1, 1]  — не-радость (-1) ↔ радость (+1)
  *    int  ∈ [0, ~1.5] — радиус от центра (0 = нейтраль)
  *
- *  Внутри — 7 опорных лиц:
- *    sad, joy, angry                 — три вершины
- *    mid_sad_joy, mid_joy_angry, mid_sad_angry — середины граней
- *    center                          — нейтральное лицо
- *
- *  Между ними — барицентрическая интерполяция по маленьким
- *  треугольникам.
- *
  *  Совместимость: если передать только emo (0..1), работает
  *  старый линейный путь (_getEmotionParamsLegacy).
  * ============================================================ */
@@ -86,7 +78,6 @@ class Pumpkin {
     },
   };
 
-  // ---------- СТАРЫЕ ОПОРНЫЕ ЭМОЦИИ (для совместимости) ----------
   static EMOTIONS = [
     Pumpkin.FACE.sad,
     Pumpkin.FACE.joy,
@@ -177,11 +168,6 @@ class Pumpkin {
              bytes: Math.round(dataURL.length * 0.75) };
   }
 
-  /**
-   * Экспорт с заданной ВЫСОТОЙ.
-   * Сначала рендер в 512 по большей стороне, потом уменьшение
-   * через drawImage с высоким качеством.
-   */
   exportWithHeight(outH, opts = {}) {
     const format     = opts.format     || 'webp';
     const quality    = opts.quality    ?? 1.0;
@@ -403,22 +389,8 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  ЭМОЦИИ: 7 ОПОРНЫХ ТОЧЕК + БАРИЦЕНТРИКА
+  //  ЭМОЦИИ: 7 ОПОРНЫХ ТОЧЕК
   // ============================================================
-  //
-  //  Треугольник в декартовых координатах:
-  //    tone ∈ [-1, 1] — грусть (-1) ↔ гнев (+1)
-  //    mood ∈ [-1, 1] — не-радость (-1) ↔ радость (+1)
-  //
-  //  Вершины:
-  //    грусть:  tone = -1, mood = -1
-  //    гнев:    tone = +1, mood = -1
-  //    радость: tone =  0, mood = +1
-  //
-  //  Три медианы делят треугольник на 6 маленьких. Точка
-  //  попадает в один из них; там интерполируем по трём
-  //  ближайшим опорным лицам.
-  //
   _getEmotionParams(tone, mood) {
     const P = [
       { key: 'sad',           tone: -1,   mood: -1 },
@@ -431,12 +403,12 @@ class Pumpkin {
     ];
 
     const TRIS = [
-      ['sad',           'mid_sad_angry', 'mid_sad_joy'],    // нижний левый
-      ['mid_sad_angry', 'angry',         'mid_joy_angry'],  // нижний правый
-      ['mid_sad_joy',   'mid_sad_angry', 'center'],         // центр-левый
-      ['mid_sad_angry', 'mid_joy_angry', 'center'],         // центр-нижний
-      ['mid_sad_joy',   'center',        'joy'],            // верхний левый
-      ['mid_joy_angry', 'center',        'joy'],            // верхний правый
+      ['sad',           'mid_sad_angry', 'mid_sad_joy'],
+      ['mid_sad_angry', 'angry',         'mid_joy_angry'],
+      ['mid_sad_joy',   'mid_sad_angry', 'center'],
+      ['mid_sad_angry', 'mid_joy_angry', 'center'],
+      ['mid_sad_joy',   'center',        'joy'],
+      ['mid_joy_angry', 'center',        'joy'],
     ];
 
     let chosen = null;
@@ -468,11 +440,6 @@ class Pumpkin {
   }
 
   _lerpFaceLinear(tone, mood) {
-    // Разложение (tone, mood) в доли трёх вершин:
-    //   pJoy   = (mood + 1) / 2
-    //   rest   = 1 - pJoy
-    //   pSad   = (rest - tone) / 2
-    //   pAngry = (rest + tone) / 2
     let pJoy = (mood + 1) / 2;
     let rest = 1 - pJoy;
     let pSad   = (rest - tone) / 2;
@@ -496,8 +463,6 @@ class Pumpkin {
     return out;
   }
 
-  // Перегрузка: если передали число (старый emo 0..1),
-  // интерпретируем как mood и tone из старой шкалы.
   _getEmotionParamsLegacy(emo) {
     let tone, mood;
     if (emo <= 0.5) {
@@ -635,7 +600,9 @@ class Pumpkin {
 
   _resolveFaceParams(p) {
     let base;
-    if (p.tone !== undefined && p.mood !== undefined) {
+    if (p.tone !== undefined && p.mood !== undefined && p.emo === undefined) {
+      base = this._getEmotionParams(p.tone, p.mood);
+    } else if (p.tone !== undefined && p.mood !== undefined && p._useTriangle) {
       base = this._getEmotionParams(p.tone, p.mood);
     } else {
       base = this._getEmotionParamsLegacy(p.emo ?? 0.5);
