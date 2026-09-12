@@ -6,16 +6,16 @@
  *    mood ∈ [-1, 1]  — не-радость (-1) ↔ радость (+1)
  *    int  ∈ [0, ~1.5] — радиус от центра (0 = нейтраль)
  *
- *  Внутри используется 7 опорных лиц:
- *    ГРУСТЬ, РАДОСТЬ, ГНЕВ      — три вершины
- *    СЕРЕДИНА_ГР, СЕРЕДИНА_РЗ, СЕРЕДИНА_ГЗ — середины граней
- *    ЦЕНТР                       — нейтральное лицо
+ *  Внутри — 7 опорных лиц:
+ *    sad, joy, angry                 — три вершины
+ *    mid_sad_joy, mid_joy_angry, mid_sad_angry — середины граней
+ *    center                          — нейтральное лицо
  *
  *  Между ними — барицентрическая интерполяция по маленьким
  *  треугольникам.
  *
  *  Совместимость: если передать только emo (0..1), работает
- *  старый линейный путь через _getEmotionParams_legacy.
+ *  старый линейный путь (_getEmotionParamsLegacy).
  * ============================================================ */
 
 class Pumpkin {
@@ -29,10 +29,8 @@ class Pumpkin {
 
   // ---------- ПАРАМЕТРЫ ПО УМОЛЧАНИЮ ----------
   static DEFAULTS = {
-    // старые — для совместимости
     emo: 0.5, int: 1,
-    // новые — точка в треугольнике
-    tone: 0, mood: 1,     // по умолчанию радость (верх)
+    tone: 0, mood: 1,
     shade: 0.55, lit: 0.35,
     tw: 1, mw: 1, bw: 1,
     lw: 1, rw: 1,
@@ -44,7 +42,6 @@ class Pumpkin {
 
   // ---------- 7 ОПОРНЫХ ЛИЦ ----------
   static FACE = {
-    // три вершины
     sad: {
       eyeShape: 0.3, eyeTilt: -0.4, eyeSize: 0.9, eyeScaleY: 1.0,
       pupilSize: 0.7, pupilOffset: 0.3,
@@ -63,7 +60,6 @@ class Pumpkin {
       browAngle: -0.5, browY: -0.06,
       mouthCurve: -0.5, mouthOpen: 0.35, mouthWidth: 0.65,
     },
-    // три середины граней
     mid_sad_joy: {
       eyeShape: 0.4, eyeTilt: -0.2, eyeSize: 0.95, eyeScaleY: 1.0,
       pupilSize: 0.78, pupilOffset: 0.15,
@@ -82,7 +78,6 @@ class Pumpkin {
       browAngle: -0.075, browY: -0.04,
       mouthCurve: -0.6, mouthOpen: 0.2, mouthWidth: 0.6,
     },
-    // центр
     center: {
       eyeShape: 0.4, eyeTilt: 0.0, eyeSize: 0.95, eyeScaleY: 1.0,
       pupilSize: 0.75, pupilOffset: 0,
@@ -408,47 +403,42 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  ЭМОЦИИ: 7 ОПОРНЫХ ТОЧЕК
+  //  ЭМОЦИИ: 7 ОПОРНЫХ ТОЧЕК + БАРИЦЕНТРИКА
   // ============================================================
   //
   //  Треугольник в декартовых координатах:
-  //    tone ∈ [-1, 1]  — грусть (-1) ↔ гнев (+1)
-  //    mood ∈ [-1, 1]  — не-радость (-1) ↔ радость (+1)
+  //    tone ∈ [-1, 1] — грусть (-1) ↔ гнев (+1)
+  //    mood ∈ [-1, 1] — не-радость (-1) ↔ радость (+1)
   //
   //  Вершины:
-  //    грусть: tone=-1, mood=-1
-  //    гнев:   tone=+1, mood=-1
-  //    радость:tone= 0, mood=+1
+  //    грусть:  tone = -1, mood = -1
+  //    гнев:    tone = +1, mood = -1
+  //    радость: tone =  0, mood = +1
   //
-  //  Три медианы делят треугольник на 6 маленьких. В каждом
-  //  маленьком треугольнике — три вершины из наших 7 опорных.
-  //  Находим барицентрические координаты и интерполируем.
+  //  Три медианы делят треугольник на 6 маленьких. Точка
+  //  попадает в один из них; там интерполируем по трём
+  //  ближайшим опорным лицам.
   //
   _getEmotionParams(tone, mood) {
-    // 7 опорных точек с их координатами в (tone, mood)
     const P = [
-      { key: 'sad',           tone: -1,    mood: -1 },
-      { key: 'angry',         tone:  1,    mood: -1 },
-      { key: 'joy',           tone:  0,    mood:  1 },
-      { key: 'mid_sad_angry', tone:  0,    mood: -1 },
-      { key: 'mid_sad_joy',   tone: -0.5,  mood:  0 },
-      { key: 'mid_joy_angry', tone:  0.5,  mood:  0 },
-      { key: 'center',        tone:  0,    mood:  0 },
+      { key: 'sad',           tone: -1,   mood: -1 },
+      { key: 'angry',         tone:  1,   mood: -1 },
+      { key: 'joy',           tone:  0,   mood:  1 },
+      { key: 'mid_sad_angry', tone:  0,   mood: -1 },
+      { key: 'mid_sad_joy',   tone: -0.5, mood:  0 },
+      { key: 'mid_joy_angry', tone:  0.5, mood:  0 },
+      { key: 'center',        tone:  0,   mood:  0 },
     ];
 
-    // разбиение на 6 треугольников (по медианам)
     const TRIS = [
-      ['sad',           'mid_sad_angry', 'mid_sad_joy'],    // низ-лево
-      ['mid_sad_angry', 'angry',         'mid_joy_angry'],  // низ-право
-      ['mid_sad_joy',   'mid_sad_angry', 'center'],         // центр-лево
-      ['mid_sad_angry', 'mid_joy_angry', 'center'],         // центр-низ
-      ['mid_sad_joy',   'center',        'joy'],            // верх-лево
-      ['mid_joy_angry', 'center',        'joy'],            // верх-право
-      ['mid_joy_angry', 'mid_sad_angry', 'angry'],          // хм, дублирует
+      ['sad',           'mid_sad_angry', 'mid_sad_joy'],    // нижний левый
+      ['mid_sad_angry', 'angry',         'mid_joy_angry'],  // нижний правый
+      ['mid_sad_joy',   'mid_sad_angry', 'center'],         // центр-левый
+      ['mid_sad_angry', 'mid_joy_angry', 'center'],         // центр-нижний
+      ['mid_sad_joy',   'center',        'joy'],            // верхний левый
+      ['mid_joy_angry', 'center',        'joy'],            // верхний правый
     ];
 
-    // Найдём, в каком треугольнике лежит точка.
-    // Проходим по всем TRIS и берём тот, где точка внутри.
     let chosen = null;
     let bary = null;
 
@@ -463,12 +453,9 @@ class Pumpkin {
     }
 
     if (!chosen) {
-      // fallback — интерполируем линейно между тремя вершинами
-      // (это старая логика, если точка вне треугольника)
       return this._lerpFaceLinear(tone, mood);
     }
 
-    // Смешиваем опорные лица по барицентрическим весам
     const faces = chosen.map(k => Pumpkin.FACE[k]);
     const keys = Object.keys(faces[0]);
     const out = {};
@@ -481,33 +468,24 @@ class Pumpkin {
   }
 
   _lerpFaceLinear(tone, mood) {
-    // Старая логика — линейная интерполяция через три вершины.
-    // Используется как fallback, а также при передаче только emo.
-    // tone: -1..1 (грусть..гнев), mood: -1..1 (низ..верх)
-    // Преобразуем в три доли:
-    //   pSad   = (1 - tone) / 2 * (1 - mood) / 2 * 2   — не совсем
-    // Проще: считаем pSad, pJoy, pAngry из (tone, mood).
-    const pSad   = Math.max(0, (-tone - mood + 1) / 3 * 1);   // хм
-    // Проще — через старую формулу:
-    // emo ∈ [0,1] = pSad*0 + pJoy*0.5 + pAngry*1
-    // tone = pAngry - pSad
-    // mood = pJoy*2 - 1
-
-    // Разложим: pJoy = (mood + 1) / 2
-    // pSad + pAngry = 1 - pJoy
-    // pAngry - pSad = tone
-    // => pAngry = ((1 - pJoy) + tone) / 2
-    //    pSad   = ((1 - pJoy) - tone) / 2
+    // Разложение (tone, mood) в доли трёх вершин:
+    //   pJoy   = (mood + 1) / 2
+    //   rest   = 1 - pJoy
+    //   pSad   = (rest - tone) / 2
+    //   pAngry = (rest + tone) / 2
     let pJoy = (mood + 1) / 2;
     let rest = 1 - pJoy;
-    let pSad = (rest - tone) / 2;
+    let pSad   = (rest - tone) / 2;
     let pAngry = (rest + tone) / 2;
-    // нормализуем (на случай выхода за пределы)
-    pSad = Math.max(0, Math.min(1, pSad));
+
+    pSad   = Math.max(0, Math.min(1, pSad));
     pAngry = Math.max(0, Math.min(1, pAngry));
-    pJoy = Math.max(0, Math.min(1, pJoy));
+    pJoy   = Math.max(0, Math.min(1, pJoy));
+
     const sum = pSad + pJoy + pAngry || 1;
-    pSad /= sum; pJoy /= sum; pAngry /= sum;
+    pSad /= sum;
+    pJoy /= sum;
+    pAngry /= sum;
 
     const F = Pumpkin.FACE;
     const keys = Object.keys(F.sad);
@@ -518,29 +496,23 @@ class Pumpkin {
     return out;
   }
 
-  // Перегрузка: если передали число (старый emo 0..1) —
-  // интерпретируем как mood и tone из старой шкалы
+  // Перегрузка: если передали число (старый emo 0..1),
+  // интерпретируем как mood и tone из старой шкалы.
   _getEmotionParamsLegacy(emo) {
-    // Старая шкала: 0 = грусть, 0.5 = радость, 1 = гнев
-    // Разложим в (tone, mood):
-    // - при emo = 0.5: tone = 0, mood = 1
-    // - при emo = 0:   tone = -1, mood = -1
-    // - при emo = 1:   tone = +1, mood = -1
     let tone, mood;
     if (emo <= 0.5) {
-      const t = emo / 0.5;        // 0..1
-      tone = -1 + t;              // -1..0
-      mood = -1 + 2 * t;          // -1..1
+      const t = emo / 0.5;
+      tone = -1 + t;
+      mood = -1 + 2 * t;
     } else {
-      const t = (emo - 0.5) / 0.5; // 0..1
-      tone = 0 + t;                // 0..1
-      mood = 1 - 2 * t;            // 1..-1
+      const t = (emo - 0.5) / 0.5;
+      tone = 0 + t;
+      mood = 1 - 2 * t;
     }
     return this._getEmotionParams(tone, mood);
   }
 
   _applyIntensity(face, intensity) {
-    // Центр = нейтральное лицо. intensity — радиус от центра.
     const center = Pumpkin.FACE.center;
     const out = {};
     for (const k in face) {
@@ -661,8 +633,6 @@ class Pumpkin {
     return all;
   }
 
-  // определяет, каким путём считать лицо:
-  // старый emo или новые tone/mood
   _resolveFaceParams(p) {
     let base;
     if (p.tone !== undefined && p.mood !== undefined) {
@@ -699,7 +669,7 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  РЕНДЕР (главный)
+  //  РЕНДЕР
   // ============================================================
   _renderTo(targetCtx, targetW, targetH, exportMode) {
     const p = this.params;
@@ -728,254 +698,12 @@ class Pumpkin {
 
     const lw = Pumpkin.BASE_LWD / fitScale;
 
-    // заливка
-    targetCtx.beginPath();
-    this.OUTLINE.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.fillStyle = p.fill;
-    targetCtx.fill();
+    this._drawBody(targetCtx, p, lw);
+    this._drawFace(targetCtx, p, lw);
 
-    // тени и блик
-    targetCtx.save();
-    targetCtx.beginPath();
-    this.OUTLINE.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.clip();
-
-    targetCtx.beginPath();
-    this.SHADE_RIGHT.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.fillStyle = this._darken(p.fill, p.shade);
-    targetCtx.fill();
-
-    targetCtx.beginPath();
-    this.SHADE_BOTTOM.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.fillStyle = this._darken(p.fill, p.shade * 0.75);
-    targetCtx.fill();
-
-    targetCtx.fillStyle = this._darken(p.fill, p.shade * 0.85);
-    for (const ribbon of this.RIB_SHADOWS) {
-      targetCtx.beginPath();
-      ribbon.forEach(([x, y], i) => {
-        const [nx, ny] = this._deform(x, y, p);
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-      targetCtx.closePath();
-      targetCtx.fill();
-    }
-
-    targetCtx.beginPath();
-    this.HIGHLIGHT.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.fillStyle = this._lighten(p.fill, p.lit);
-    targetCtx.fill();
-
-    targetCtx.restore();
-
-    // контур
-    targetCtx.lineJoin = 'round';
-    targetCtx.lineCap = 'round';
-    targetCtx.beginPath();
-    this.OUTLINE.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
-    targetCtx.lineWidth = lw;
-    targetCtx.stroke();
-
-    // рёбра
-    targetCtx.save();
-    targetCtx.beginPath();
-    this.OUTLINE.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.clip();
-    targetCtx.beginPath();
-    for (const rib of this.RIBS) {
-      rib.forEach(([x, y], i) => {
-        const [nx, ny] = this._deform(x, y, p);
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-    }
-    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
-    targetCtx.lineWidth = lw * 0.85;
-    targetCtx.stroke();
-    targetCtx.restore();
-
-    // черенок
-    targetCtx.beginPath();
-    this.STEM.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.fillStyle = '#5a4433';
-    targetCtx.fill();
-    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
-    targetCtx.lineWidth = lw;
-    targetCtx.stroke();
-
-    targetCtx.beginPath();
-    this.STEM_BAR.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
-    targetCtx.lineWidth = lw;
-    targetCtx.lineCap = 'round';
-    targetCtx.stroke();
-
-    // лицо
-    targetCtx.save();
-    targetCtx.beginPath();
-    this.OUTLINE.forEach(([x, y], i) => {
-      const [nx, ny] = this._deform(x, y, p);
-      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-    });
-    targetCtx.closePath();
-    targetCtx.clip();
-
-    const e = this._resolveFaceParams(p);
-
-    targetCtx.lineJoin = 'round';
-    targetCtx.lineCap = 'round';
-
-    const eyeSize = 0.22 * e.eyeSize;
-    const eyeY = -0.15;
-    const eyeDX = 0.35;
-    const faceColor = Pumpkin.FACE_COLOR;
-    const haloColor = p.fill;
-    const haloWidth = lw * Pumpkin.HALO_SCALE;
-
-    const self = this;
-    function traceEye(side) {
-      const eye = self._buildEye(e.eyeShape, e.eyeTilt * side, eyeSize, e.eyeScaleY);
-      targetCtx.beginPath();
-      eye.forEach(([x, y], i) => {
-        const [nx, ny] = self._facePointToBody(x + side * eyeDX, y + eyeY, p);
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-      targetCtx.closePath();
-    }
-    function traceBrow(side) {
-      const brow = self._buildBrow(e.browAngle * side, 0.42);
-      targetCtx.beginPath();
-      brow.forEach(([x, y], i) => {
-        const [nx, ny] = self._facePointToBody(x + side * eyeDX, y + eyeY - 0.24 + e.browY, p);
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-    }
-    function tracePupil(side) {
-      const pupilR = eyeSize * e.pupilSize;
-      const pup = self._buildEye(1, 0, pupilR);
-      targetCtx.beginPath();
-      pup.forEach(([x, y], i) => {
-        const [nx, ny] = self._facePointToBody(
-          x + side * eyeDX,
-          y + eyeY + e.pupilOffset * eyeSize,
-          p
-        );
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-      targetCtx.closePath();
-    }
-    function traceMouth() {
-      const mouth = self._buildMouth(e.mouthCurve, e.mouthOpen * 0.5, e.mouthWidth * 0.8);
-      targetCtx.beginPath();
-      mouth.forEach(([x, y], i) => {
-        const [nx, ny] = self._facePointToBody(x, y + 0.35, p);
-        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-      });
-      targetCtx.closePath();
-    }
-
-    // подложка
-    targetCtx.strokeStyle = haloColor;
-    targetCtx.fillStyle = haloColor;
-    targetCtx.lineWidth = haloWidth;
-    for (const side of [-1, 1]) {
-      traceEye(side);
-      targetCtx.fill();
-      targetCtx.stroke();
-      traceBrow(side);
-      targetCtx.stroke();
-    }
-    traceMouth();
-    if (e.mouthOpen > 0.15) { targetCtx.fill(); targetCtx.stroke(); }
-    else targetCtx.stroke();
-
-    // чёрные элементы
-    targetCtx.strokeStyle = faceColor;
-    targetCtx.fillStyle = faceColor;
-    targetCtx.lineWidth = lw;
-    for (const side of [-1, 1]) {
-      traceEye(side);
-      if (e.eyeShape > 0.7) targetCtx.stroke();
-      else targetCtx.fill();
-
-      if (e.eyeShape > 0.55) {
-        tracePupil(side);
-        targetCtx.fillStyle = faceColor;
-        targetCtx.fill();
-
-        const pupilR = eyeSize * e.pupilSize;
-        const glint = self._buildEye(1, 0, pupilR * 0.3);
-        targetCtx.beginPath();
-        glint.forEach(([x, y], i) => {
-          const [nx, ny] = self._facePointToBody(
-            x + side * eyeDX - pupilR * 0.3,
-            y + eyeY + e.pupilOffset * eyeSize - pupilR * 0.3,
-            p
-          );
-          i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
-        });
-        targetCtx.closePath();
-        targetCtx.fillStyle = p.fill;
-        targetCtx.fill();
-        targetCtx.fillStyle = faceColor;
-      }
-
-      targetCtx.lineWidth = lw * 0.9;
-      traceBrow(side);
-      targetCtx.stroke();
-      targetCtx.lineWidth = lw;
-    }
-    traceMouth();
-    if (e.mouthOpen > 0.15) {
-      targetCtx.fillStyle = faceColor;
-      targetCtx.fill();
-    }
-    targetCtx.strokeStyle = faceColor;
-    targetCtx.lineWidth = lw;
-    targetCtx.stroke();
-
-    targetCtx.restore();
     targetCtx.restore();
   }
 
-  // ============================================================
-  //  RENDER TO FIT (для exportWithHeight)
-  // ============================================================
   _renderToFit(targetCtx, targetW, targetH, p, pad) {
     targetCtx.clearRect(0, 0, targetW, targetH);
 
@@ -1001,15 +729,12 @@ class Pumpkin {
 
     const lw = Pumpkin.BASE_LWD / fitScale;
 
-    // Копия логики _renderTo без ветвления exportMode.
-    // Чтобы не дублировать код, вызовем внутреннюю отрисовку.
     this._drawBody(targetCtx, p, lw);
     this._drawFace(targetCtx, p, lw);
 
     targetCtx.restore();
   }
 
-  // ---- отдельные этапы отрисовки для _renderToFit ----
   _drawBody(targetCtx, p, lw) {
     // заливка
     targetCtx.beginPath();

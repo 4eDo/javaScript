@@ -1,7 +1,7 @@
 /* ============================================================
  *  Генерация параметров тыквы из текста.
  *
- *  Эмоции теперь — точка в треугольнике:
+ *  Эмоции — точка в треугольнике:
  *    tone ∈ [-1, 1] — грусть (-1) ↔ гнев (+1)
  *    mood ∈ [-1, 1] — не-радость (-1) ↔ радость (+1)
  *    int   — радиус от центра
@@ -116,7 +116,6 @@
     const total = sad + joy + angry;
 
     if (total < 0.001) {
-      // нет эмоций — точка в центре
       return {
         tone: 0,
         mood: 0,
@@ -129,13 +128,9 @@
     const pJoy   = joy   / total;
     const pAngry = angry / total;
 
-    // Декартовы координаты в треугольнике
-    const tone = pAngry - pSad;        // -1..1
-    const mood = pJoy * 2 - 1;         // -1..1
+    const tone = pAngry - pSad;
+    const mood = pJoy * 2 - 1;
 
-    // Интенсивность — «насколько далеко от центра».
-    // Ориентируемся на total (насыщенность эмоциональных
-    // слов в тексте): 0 → ничего, 1 → максимум.
     const intensity = Math.min(1.5, total * 1.0 * globalSens);
 
     return {
@@ -171,7 +166,6 @@
 
     const emo = computeEmotionTriangle(s);
 
-    // Интенсивность: базовая + радиус эмоции
     let int = applyScale(BASE.int, s.int_plus, s.int_minus, SENS.int);
     int = clamp(int, 0, 1.5);
 
@@ -208,7 +202,6 @@
     const exportHeight = computeExportHeight(s);
 
     return {
-      // новые параметры эмоции
       tone: r3(emo.tone),
       mood: r3(emo.mood),
       int: r3(int),
@@ -222,8 +215,6 @@
       fx: r3(fx), fy: r3(fy), fs: r3(fs),
       fill,
       exportHeight,
-
-      // метаданные для UI
       _emotion: emo,
     };
   }
@@ -360,16 +351,10 @@
   //  UI: РАЗБОР
   // ============================================================
   function renderTriangleSVG(emo) {
-    // треугольник в координатах SVG:
-    //   грусть (внизу слева):   (20, 100)
-    //   гнев   (внизу справа):  (100, 100)
-    //   радость (сверху):       (60, 20)
-    const cx = 60, cy = 20;   // радость
-    const lx = 20, ly = 100;  // грусть
-    const rx = 100, ry = 100; // гнев
+    const cx = 60, cy = 20;
+    const lx = 20, ly = 100;
+    const rx = 100, ry = 100;
 
-    // точка внутри: перевод из (tone, mood) в координаты треугольника
-    // Через барицентрические доли:
     const pSad   = emo.proportions.sad;
     const pJoy   = emo.proportions.joy;
     const pAngry = emo.proportions.angry;
@@ -394,7 +379,6 @@
     const box = $('breakdown');
     box.innerHTML = '';
 
-    // треугольник + пропорции
     if (emo.proportions.sad + emo.proportions.joy + emo.proportions.angry > 0) {
       const catEl = document.createElement('div');
       catEl.className = 'cat';
@@ -426,7 +410,6 @@
       box.appendChild(wrap);
     }
 
-    // остальные категории
     const byParam = {};
     for (const [cat, rule] of Object.entries(RULES)) {
       if (cat.startsWith('emo_')) continue;
@@ -506,7 +489,6 @@
   function applyFromAnalysis(a) {
     const params = computeParams(a);
 
-    // в Pumpkin передаём tone, mood, int — и остальные поля
     const forPumpkin = { ...params };
     delete forPumpkin.exportHeight;
     delete forPumpkin._emotion;
