@@ -13,7 +13,7 @@
 
   /* ================= левая панель: чувствительности ================= */
   #tuner {
-    width: 280px; flex-shrink: 0;
+    width: 300px; flex-shrink: 0;
     background: #23232b; border-right: 1px solid #3a3a45;
     display: flex; flex-direction: column;
     transition: width .2s ease;
@@ -53,14 +53,17 @@
 
   .tuner-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-size: 11px;
     color: #bbb;
     font-family: ui-monospace, monospace;
+    margin-top: 4px;
   }
-  .tuner-row span {
+  .tuner-row .code { color: #888; min-width: 26px; }
+  .tuner-row .ru   { color: #ccc; font-family: inherit; font-size: 11px; }
+  .tuner-row .val {
     color: #ff8c1a;
     font-variant-numeric: tabular-nums;
     min-width: 42px;
@@ -152,7 +155,7 @@
     background: #1e1e24; border: 1px solid #3a3a45;
     border-radius: 6px; padding: 10px;
     font-family: ui-monospace, monospace; font-size: 11px;
-    max-height: 280px; overflow-y: auto;
+    max-height: 340px; overflow-y: auto;
   }
   #breakdown .cat { color: #6cf; margin-top: 8px; }
   #breakdown .cat:first-child { margin-top: 0; }
@@ -172,6 +175,37 @@
     border-radius: 6px; padding: 8px;
   }
   #params span { color: #6cf; float: right; }
+
+  /* спойлер для параметров */
+  details.params-details {
+    background: #1e1e24;
+    border: 1px solid #3a3a45;
+    border-radius: 6px;
+    padding: 0;
+  }
+  details.params-details > summary {
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #9ab;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    user-select: none;
+    list-style: none;
+  }
+  details.params-details > summary::-webkit-details-marker { display: none; }
+  details.params-details > summary::before {
+    content: '▸ ';
+    color: #6cf;
+  }
+  details.params-details[open] > summary::before {
+    content: '▾ ';
+  }
+  details.params-details #params {
+    border: none;
+    border-top: 1px solid #3a3a45;
+    border-radius: 0;
+  }
 </style>
 </head>
 <body>
@@ -185,57 +219,59 @@
   <div id="tunerBody">
 
     <div class="tuner-section">Форма</div>
-    <div class="tuner-row">tw <span id="l-tw">1.50</span>
+    <div class="tuner-row"><span class="code">tw</span><span class="ru">ширина верха</span><span class="val" id="l-tw">1.50</span>
       <input type="range" id="s-tw" min="0" max="6" step="0.05" value="1.5"></div>
-    <div class="tuner-row">mw <span id="l-mw">2.00</span>
+    <div class="tuner-row"><span class="code">mw</span><span class="ru">ширина середины</span><span class="val" id="l-mw">2.00</span>
       <input type="range" id="s-mw" min="0" max="6" step="0.05" value="2"></div>
-    <div class="tuner-row">bw <span id="l-bw">1.50</span>
+    <div class="tuner-row"><span class="code">bw</span><span class="ru">ширина низа</span><span class="val" id="l-bw">1.50</span>
       <input type="range" id="s-bw" min="0" max="6" step="0.05" value="1.5"></div>
-    <div class="tuner-row">lw <span id="l-lw">1.20</span>
+    <div class="tuner-row"><span class="code">lw</span><span class="ru">левая половина</span><span class="val" id="l-lw">1.20</span>
       <input type="range" id="s-lw" min="0" max="6" step="0.05" value="1.2"></div>
-    <div class="tuner-row">rw <span id="l-rw">1.20</span>
+    <div class="tuner-row"><span class="code">rw</span><span class="ru">правая половина</span><span class="val" id="l-rw">1.20</span>
       <input type="range" id="s-rw" min="0" max="6" step="0.05" value="1.2"></div>
-    <div class="tuner-row">hh <span id="l-hh">1.50</span>
+    <div class="tuner-row"><span class="code">hh</span><span class="ru">общая высота</span><span class="val" id="l-hh">1.50</span>
       <input type="range" id="s-hh" min="0" max="6" step="0.05" value="1.5"></div>
-    <div class="tuner-row">fs <span id="l-fs">0.80</span>
+    <div class="tuner-row"><span class="code">fs</span><span class="ru">масштаб лица</span><span class="val" id="l-fs">0.80</span>
       <input type="range" id="s-fs" min="0" max="3" step="0.05" value="0.8"></div>
 
     <div class="tuner-section">Сдвиги</div>
-    <div class="tuner-row">ts <span id="l-ts">60</span>
+    <div class="tuner-row"><span class="code">ts</span><span class="ru">сдвиг верха</span><span class="val" id="l-ts">60</span>
       <input type="range" id="s-ts" min="0" max="200" step="5" value="60"></div>
-    <div class="tuner-row">ms <span id="l-ms">60</span>
+    <div class="tuner-row"><span class="code">ms</span><span class="ru">сдвиг середины</span><span class="val" id="l-ms">60</span>
       <input type="range" id="s-ms" min="0" max="200" step="5" value="60"></div>
-    <div class="tuner-row">bs <span id="l-bs">60</span>
+    <div class="tuner-row"><span class="code">bs</span><span class="ru">сдвиг низа</span><span class="val" id="l-bs">60</span>
       <input type="range" id="s-bs" min="0" max="200" step="5" value="60"></div>
 
     <div class="tuner-section">Повороты</div>
-    <div class="tuner-row">sk <span id="l-sk">30</span>
+    <div class="tuner-row"><span class="code">sk</span><span class="ru">наклон</span><span class="val" id="l-sk">30</span>
       <input type="range" id="s-sk" min="0" max="90" step="1" value="30"></div>
-    <div class="tuner-row">rt <span id="l-rt">120</span>
+    <div class="tuner-row"><span class="code">rt</span><span class="ru">поворот</span><span class="val" id="l-rt">120</span>
       <input type="range" id="s-rt" min="0" max="360" step="5" value="120"></div>
 
     <div class="tuner-section">Лицо</div>
-    <div class="tuner-row">fx <span id="l-fx">0.50</span>
+    <div class="tuner-row"><span class="code">fx</span><span class="ru">лицо по X</span><span class="val" id="l-fx">0.50</span>
       <input type="range" id="s-fx" min="0" max="2" step="0.05" value="0.5"></div>
-    <div class="tuner-row">fy <span id="l-fy">0.50</span>
+    <div class="tuner-row"><span class="code">fy</span><span class="ru">лицо по Y</span><span class="val" id="l-fy">0.50</span>
       <input type="range" id="s-fy" min="0" max="2" step="0.05" value="0.5"></div>
 
     <div class="tuner-section">Эффекты</div>
-    <div class="tuner-row">int <span id="l-int">1.20</span>
+    <div class="tuner-row"><span class="code">int</span><span class="ru">интенсивность</span><span class="val" id="l-int">1.20</span>
       <input type="range" id="s-int" min="0" max="4" step="0.05" value="1.2"></div>
-    <div class="tuner-row">shade <span id="l-shade">1.00</span>
+    <div class="tuner-row"><span class="code">shade</span><span class="ru">тени</span><span class="val" id="l-shade">1.00</span>
       <input type="range" id="s-shade" min="0" max="4" step="0.05" value="1"></div>
-    <div class="tuner-row">lit <span id="l-lit">1.00</span>
+    <div class="tuner-row"><span class="code">lit</span><span class="ru">блик</span><span class="val" id="l-lit">1.00</span>
       <input type="range" id="s-lit" min="0" max="4" step="0.05" value="1"></div>
 
     <div class="tuner-section">Цвет</div>
-    <div class="tuner-row">rgb shift <span id="l-rgb">140</span>
+    <div class="tuner-row"><span class="code">rgb</span><span class="ru">сила тонирования</span><span class="val" id="l-rgb">140</span>
       <input type="range" id="s-rgb" min="0" max="255" step="5" value="140"></div>
-    <div class="tuner-row">bw shift <span id="l-bwshift">1.00</span>
+    <div class="tuner-row"><span class="code">bwshift</span><span class="ru">чёрное/белое</span><span class="val" id="l-bwshift">1.00</span>
       <input type="range" id="s-bwshift" min="0" max="1" step="0.05" value="1"></div>
+    <div class="tuner-row"><span class="code">tint</span><span class="ru">прозрачность перекраски</span><span class="val" id="l-tint">1.00</span>
+      <input type="range" id="s-tint" min="0" max="3" step="0.05" value="1"></div>
 
     <div class="tuner-section">Формула</div>
-    <div class="tuner-row">K (сатурация) <span id="l-K">2.50</span>
+    <div class="tuner-row"><span class="code">K</span><span class="ru">сатурация счётчиков</span><span class="val" id="l-K">2.50</span>
       <input type="range" id="s-K" min="0.5" max="20" step="0.25" value="2.5"></div>
 
     <button id="tunerReset">Сбросить чувствительности</button>
@@ -271,11 +307,13 @@
     <button id="demo" class="secondary">Пример</button>
   </div>
 
-  <h3>Параметры</h3>
-  <div id="params"></div>
-
   <h3>Разбор</h3>
   <div id="breakdown"><span class="muted">— пока пусто —</span></div>
+
+  <details class="params-details">
+    <summary>Параметры (для отладки)</summary>
+    <div id="params"></div>
+  </details>
 
   <div class="stats" id="stats"></div>
 </div>

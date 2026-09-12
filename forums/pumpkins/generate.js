@@ -14,8 +14,10 @@
  *    - каждое срабатывание даёт вектор на hue-круге,
  *      векторы складываются, итог — результирующий угол;
  *    - ч/б считается разностью и меняет светлоту L;
- *    - насыщенность слегка снижается при уходе от базы,
- *      чтобы цвета не выглядели кислотно.
+ *    - НОВЫЙ параметр tint регулирует «непрозрачность»
+ *      перекраски: при tint=0 цвет не меняется вообще,
+ *      при tint=1 тонирование применяется полностью,
+ *      при tint>1 — с перекрутом.
  * ============================================================ */
 
 (function () {
@@ -49,6 +51,7 @@
     fs:     0.8,
     rgb:    140,
     bwshift: 1.0,
+    tint:    1.0,
   };
 
   const SENS = { ...DEFAULTS };
@@ -210,7 +213,6 @@
   //  ЦВЕТ ЧЕРЕЗ HSL-ТОНИРОВАНИЕ
   // ============================================================
 
-  // --- конвертеры ---
   function hexToHsl(hex) {
     const n = parseInt(hex.slice(1), 16);
     const r = ((n >> 16) & 255) / 255;
@@ -252,33 +254,46 @@
       .map(v => v.toString(16).padStart(2, '0')).join('');
   }
 
-  // --- базовый HSL — считаем один раз из BASE_COLOR ---
   const BASE_HSL = hexToHsl('#' +
     [BASE_COLOR.r, BASE_COLOR.g, BASE_COLOR.b]
       .map(v => v.toString(16).padStart(2, '0')).join(''));
 
-  // --- куда тянет каждая шкала на hue-круге ---
   const HUE_TARGET = {
-    r_plus:  0,     // красный
-    r_minus: 180,   // голубой
-    g_plus:  120,   // зелёный
-    g_minus: 300,   // пурпурный
-    b_plus:  240,   // синий (240 — «настоящий» синий)
-    b_minus: 45,    // жёлто-оранжевый
+    r_plus:  0,
+    r_minus: 180,
+    g_plus:  120,
+    g_minus: 300,
+    b_plus:  240,
+    b_minus: 45,
   };
 
-  // --- нелинейная функция mix: быстро насыщается, плавно упирается в 1 ---
   function mixCurve(weight, k) {
     if (weight <= 0) return 0;
     return 1 - Math.exp(-weight * k);
   }
 
-  function computeColor(s) {
-    // 1) Собираем векторы hue от всех сработавших шкал.
-    //    Каждый вектор: длина = вес, угол = HUE_TARGET.
-    let vx = 0, vy = 0;
-    let hueWeight = 0;
+  // Считаем tint-фактор: сколько раз применять перекраску.
+  // 0 → вообще не красить, 1 → норма, >1 → перекрут.
+  function computeTintFactor(s) {
+    const plus  = s.tint_plus  || 0;
+    const minus = s.tint_minus || 0;
+    const delta = plus - minus;
+    // база 1.0, сдвиг вниз/вверх с учётом SENS.tint
+    const factor = 1 + delta * SENS.tint * globalSens;
+    return Math.max(0, factor);
+  }
 
+  function computeColor(s) {
+    const tint = computeTintFactor(s);
+
+    // Если прозрачность нулевая — вообще не тонируем,
+    // возвращаем чистый базовый цвет.
+    if (tint <= 0.001) {
+      return hslToHex(BASE_HSL.h, BASE_HSL.s, BASE_HSL.l);
+    }
+
+    // 1) Векторы hue
+    let vx = 0, vy = 0, hueWeight = 0;
     for (const [cat, targetDeg] of Object.entries(HUE_TARGET)) {
       const w = s[cat] || 0;
       if (w <= 0) continue;
@@ -288,20 +303,20 @@
       hueWeight += w;
     }
 
-    // 2) Стартуем от базового hue
     let hue = BASE_HSL.h;
 
     if (hueWeight > 0.01) {
-      // Угол суммарного вектора
       const targetHue = (Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360;
 
-      // Нелинейный mix: быстро насыщается, потом плавно к 1.
-      // k = 2.0 даёт: вес 0.3 → mix 0.45, вес 0.6 → mix 0.70, вес 1.0 → mix 0.86.
-      // Множитель SENS.rgb / 140 растягивает/сжимает кривую.
+      // нелинейный mix
       const k = 2.0 * (SENS.rgb / 140) * globalSens;
-      const mix = mixCurve(hueWeight, k);
+      let mix = mixCurve(hueWeight, k);
 
-      // Круговое смешивание: идём по короткой дуге
+      // ПРИМЕНЯЕМ TINT: непрозрачность перекраски.
+      // tint=1 → mix как есть, tint=0.5 → половинный сдвиг,
+      // tint=2 → удвоенный (перекрут).
+      mix = Math.min(1, mix * tint);
+
       let delta = targetHue - hue;
       if (delta > 180)  delta -= 360;
       if (delta < -180) delta += 360;
@@ -309,20 +324,22 @@
       hue = hue + delta * mix;
     }
 
-    // 3) Насыщенность: слегка снижается при уходе от базы
+    // 2) Насыщенность
     let sat = BASE_HSL.s;
     if (hueWeight > 0.01) {
       const k = 2.0 * (SENS.rgb / 140) * globalSens;
-      const mix = mixCurve(hueWeight, k);
+      let mix = mixCurve(hueWeight, k);
+      mix = Math.min(1, mix * tint);
       sat = sat * (1 - 0.3 * mix);
     }
 
-    // 4) Светлота: ч/б — разностью
+    // 3) Светлота. Ч/б — разностью, тоже с учётом tint.
     let light = BASE_HSL.l;
 
     const blackScore = s.to_black || 0;
     const whiteScore = s.to_white || 0;
-    const bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
+    let bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
+    bwNet = bwNet * tint;  // прозрачность влияет и на ч/б
 
     if (bwNet > 0) {
       const k = Math.min(1, bwNet);
@@ -385,6 +402,7 @@
       fx: 'лицо X', fy: 'лицо Y', fs: 'масштаб лица',
       size: 'общий размер',
       r: 'красный', g: 'зелёный', b: 'синий',
+      tint: 'сила перекраски',
       to_black: 'к чёрному', to_white: 'к белому',
     };
 
@@ -477,6 +495,7 @@
     ['lit',     's-lit',     'l-lit',     2],
     ['rgb',     's-rgb',     'l-rgb',     0],
     ['bwshift', 's-bwshift', 'l-bwshift', 2],
+    ['tint',    's-tint',    'l-tint',    2],
     ['K',       's-K',       'l-K',       2],
   ];
 
