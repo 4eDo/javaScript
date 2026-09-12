@@ -11,7 +11,6 @@
     overflow: hidden;
   }
 
-  /* ================= левая панель: чувствительности ================= */
   #tuner {
     width: 300px; flex-shrink: 0;
     background: #23232b; border-right: 1px solid #3a3a45;
@@ -83,7 +82,6 @@
   }
   #tunerReset:hover { background: #5a5a6a; }
 
-  /* ================= центр ================= */
   #stage {
     flex: 1; display: flex; align-items: center; justify-content: center;
     background:
@@ -96,7 +94,6 @@
   }
   canvas { max-width: 100%; max-height: 100%; display: block; }
 
-  /* ================= правая панель: текст ================= */
   #panel {
     width: 420px; padding: 18px 20px; overflow-y: auto;
     background: #2b2b34; border-left: 1px solid #3a3a45;
@@ -155,7 +152,7 @@
     background: #1e1e24; border: 1px solid #3a3a45;
     border-radius: 6px; padding: 10px;
     font-family: ui-monospace, monospace; font-size: 11px;
-    max-height: 340px; overflow-y: auto;
+    max-height: 380px; overflow-y: auto;
   }
   #breakdown .cat { color: #6cf; margin-top: 8px; }
   #breakdown .cat:first-child { margin-top: 0; }
@@ -209,7 +206,6 @@
 </head>
 <body>
 
-<!-- ================= ЛЕВАЯ ПАНЕЛЬ: ЧУВСТВИТЕЛЬНОСТИ ================= -->
 <aside id="tuner">
   <div id="tunerHeader">
     <h3>Чувствительность</h3>
@@ -275,12 +271,10 @@
   </div>
 </aside>
 
-<!-- ================= ЦЕНТР ================= -->
 <div id="stage">
   <canvas id="cv"></canvas>
 </div>
 
-<!-- ================= ПРАВАЯ ПАНЕЛЬ: ТЕКСТ ================= -->
 <div id="panel">
   <h2>🎃 Тыква из текста</h2>
 

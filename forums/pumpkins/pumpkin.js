@@ -1,13 +1,21 @@
 /* ============================================================
  *  Pumpkin — рисует тыкву с эмоциями и объёмом на canvas.
  *
- *  Использование:
- *      const p = new Pumpkin(canvasElement);
- *      p.setParams({ emo: 0.5, tw: 1.2, ... });
- *      p.render();
+ *  Эмоции задаются точкой в треугольнике:
+ *    tone ∈ [-1, 1]  — грусть (-1) ↔ гнев (+1)
+ *    mood ∈ [-1, 1]  — не-радость (-1) ↔ радость (+1)
+ *    int  ∈ [0, ~1.5] — радиус от центра (0 = нейтраль)
  *
- *      const dataURL = p.exportDataURL({ format: 'webp', max: 200 });
- *      const result  = await p.uploadToImgbb('API_KEY');
+ *  Внутри используется 7 опорных лиц:
+ *    ГРУСТЬ, РАДОСТЬ, ГНЕВ      — три вершины
+ *    СЕРЕДИНА_ГР, СЕРЕДИНА_РЗ, СЕРЕДИНА_ГЗ — середины граней
+ *    ЦЕНТР                       — нейтральное лицо
+ *
+ *  Между ними — барицентрическая интерполяция по маленьким
+ *  треугольникам.
+ *
+ *  Совместимость: если передать только emo (0..1), работает
+ *  старый линейный путь через _getEmotionParams_legacy.
  * ============================================================ */
 
 class Pumpkin {
@@ -21,15 +29,74 @@ class Pumpkin {
 
   // ---------- ПАРАМЕТРЫ ПО УМОЛЧАНИЮ ----------
   static DEFAULTS = {
+    // старые — для совместимости
     emo: 0.5, int: 1,
+    // новые — точка в треугольнике
+    tone: 0, mood: 1,     // по умолчанию радость (верх)
     shade: 0.55, lit: 0.35,
     tw: 1, mw: 1, bw: 1,
-    lw: 1, rw: 1, hh: 1,
+    lw: 1, rw: 1,
     ts: 0, ms: 0, bs: 0,
     sk: 0, rt: 0,
     fx: 0, fy: 0, fs: 1,
     fill: '#f28c1a',
   };
+
+  // ---------- 7 ОПОРНЫХ ЛИЦ ----------
+  static FACE = {
+    // три вершины
+    sad: {
+      eyeShape: 0.3, eyeTilt: -0.4, eyeSize: 0.9, eyeScaleY: 1.0,
+      pupilSize: 0.7, pupilOffset: 0.3,
+      browAngle: 0.35, browY: -0.02,
+      mouthCurve: -0.7, mouthOpen: 0.05, mouthWidth: 0.55,
+    },
+    joy: {
+      eyeShape: 0.5, eyeTilt: 0.0, eyeSize: 1.0, eyeScaleY: 1.0,
+      pupilSize: 0.85, pupilOffset: 0,
+      browAngle: -0.08, browY: -0.05,
+      mouthCurve: 0.9, mouthOpen: 0.5, mouthWidth: 0.75,
+    },
+    angry: {
+      eyeShape: 0.0, eyeTilt: 0.6, eyeSize: 0.95, eyeScaleY: 0.72,
+      pupilSize: 0.6, pupilOffset: -0.05,
+      browAngle: -0.5, browY: -0.06,
+      mouthCurve: -0.5, mouthOpen: 0.35, mouthWidth: 0.65,
+    },
+    // три середины граней
+    mid_sad_joy: {
+      eyeShape: 0.4, eyeTilt: -0.2, eyeSize: 0.95, eyeScaleY: 1.0,
+      pupilSize: 0.78, pupilOffset: 0.15,
+      browAngle: 0.14, browY: -0.035,
+      mouthCurve: 0.1, mouthOpen: 0.28, mouthWidth: 0.65,
+    },
+    mid_joy_angry: {
+      eyeShape: 0.25, eyeTilt: 0.3, eyeSize: 0.975, eyeScaleY: 0.86,
+      pupilSize: 0.72, pupilOffset: -0.025,
+      browAngle: -0.29, browY: -0.055,
+      mouthCurve: 0.2, mouthOpen: 0.42, mouthWidth: 0.7,
+    },
+    mid_sad_angry: {
+      eyeShape: 0.15, eyeTilt: 0.1, eyeSize: 0.93, eyeScaleY: 0.86,
+      pupilSize: 0.65, pupilOffset: 0.1,
+      browAngle: -0.075, browY: -0.04,
+      mouthCurve: -0.6, mouthOpen: 0.2, mouthWidth: 0.6,
+    },
+    // центр
+    center: {
+      eyeShape: 0.4, eyeTilt: 0.0, eyeSize: 0.95, eyeScaleY: 1.0,
+      pupilSize: 0.75, pupilOffset: 0,
+      browAngle: 0.0, browY: -0.03,
+      mouthCurve: 0.0, mouthOpen: 0.15, mouthWidth: 0.65,
+    },
+  };
+
+  // ---------- СТАРЫЕ ОПОРНЫЕ ЭМОЦИИ (для совместимости) ----------
+  static EMOTIONS = [
+    Pumpkin.FACE.sad,
+    Pumpkin.FACE.joy,
+    Pumpkin.FACE.angry,
+  ];
 
   constructor(canvas) {
     if (!canvas) throw new Error('Pumpkin: canvas не передан');
@@ -37,7 +104,6 @@ class Pumpkin {
     this.ctx = canvas.getContext('2d');
     this.params = { ...Pumpkin.DEFAULTS };
 
-    // предрассчитанная геометрия (не зависит от параметров)
     this.OUTLINE  = this._buildOutline();
     this.RIBS     = this._buildRibs();
     this.STEM     = this._buildStem();
@@ -47,9 +113,6 @@ class Pumpkin {
     this.SHADE_BOTTOM = this._buildShadeBottom();
     this.HIGHLIGHT    = this._buildHighlight();
     this.RIB_SHADOWS  = this._buildRibShadows();
-
-    // кривые эмоций
-    this.EMOTIONS = Pumpkin.EMOTIONS;
   }
 
   // ============================================================
@@ -75,25 +138,16 @@ class Pumpkin {
     return this;
   }
 
-  /** Отрисовать на основном canvas. */
   render() {
     this._renderTo(this.ctx, this.canvas.width, this.canvas.height, false);
   }
 
-  /**
-   * Вернуть data URL картинки с прозрачным фоном.
-   * @param {object} opts
-   *   format: 'webp' | 'png'  (по умолчанию 'webp')
-   *   quality: number 0..1      (по умолчанию 1.0)
-   *   max: максимальная сторона в px (по умолчанию 200)
-   */
   exportDataURL(opts = {}) {
     const format  = opts.format  || 'webp';
     const quality = opts.quality ?? 1.0;
     const max     = opts.max     ?? Pumpkin.EXPORT_MAX;
 
     const p = this.params;
-
     const pts = this._collectPoints(p);
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const [x, y] of pts) {
@@ -108,7 +162,7 @@ class Pumpkin {
     const aspect = w / h;
     let outW, outH;
     if (aspect >= 1) { outW = max; outH = Math.max(1, Math.round(max / aspect)); }
-    else            { outH = max; outW = Math.max(1, Math.round(max * aspect)); }
+    else             { outH = max; outW = Math.max(1, Math.round(max * aspect)); }
 
     const off = document.createElement('canvas');
     off.width = outW;
@@ -120,26 +174,75 @@ class Pumpkin {
     const mime = format === 'png' ? 'image/png' : 'image/webp';
     const dataURL = off.toDataURL(mime, quality);
 
-    // определяем фактический формат (на случай фолбэка)
     const actual = dataURL.startsWith('data:image/webp') ? 'webp'
                  : dataURL.startsWith('data:image/png')  ? 'png'
                  : 'unknown';
 
-    return {
-      dataURL,
-      width: outW,
-      height: outH,
-      format: actual,
-      bytes: Math.round(dataURL.length * 0.75), // приблизительно бинарный размер
-    };
+    return { dataURL, width: outW, height: outH, format: actual,
+             bytes: Math.round(dataURL.length * 0.75) };
   }
 
   /**
-   * Загрузить свежую картинку на imgbb.
-   * @param {string} apiKey
-   * @param {object} opts — те же, что и exportDataURL
-   * @returns {Promise<{direct:string,page:string,deleteUrl:string,raw:object}>}
+   * Экспорт с заданной ВЫСОТОЙ.
+   * Сначала рендер в 512 по большей стороне, потом уменьшение
+   * через drawImage с высоким качеством.
    */
+  exportWithHeight(outH, opts = {}) {
+    const format     = opts.format     || 'webp';
+    const quality    = opts.quality    ?? 1.0;
+    const renderSize = opts.renderSize ?? 512;
+
+    const p = this.params;
+    const pts = this._collectPoints(p);
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const [x, y] of pts) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const bboxW = (maxX - minX) || 1;
+    const bboxH = (maxY - minY) || 1;
+    const aspect = bboxW / bboxH;
+
+    const finalH = Math.max(1, Math.round(outH));
+    const finalW = Math.max(1, Math.round(outH * aspect));
+
+    let bigW, bigH;
+    if (bboxW >= bboxH) { bigW = renderSize; bigH = Math.round(renderSize / aspect); }
+    else                { bigH = renderSize; bigW = Math.round(renderSize * aspect); }
+    bigW = Math.max(1, bigW);
+    bigH = Math.max(1, bigH);
+
+    const big = document.createElement('canvas');
+    big.width = bigW;
+    big.height = bigH;
+    const bigCtx = big.getContext('2d');
+
+    const bigPad = Math.ceil(Pumpkin.BASE_LWD / 2) + 2;
+    this._renderToFit(bigCtx, bigW, bigH, p, bigPad);
+
+    const small = document.createElement('canvas');
+    small.width = finalW;
+    small.height = finalH;
+    const smallCtx = small.getContext('2d');
+
+    smallCtx.imageSmoothingEnabled = true;
+    smallCtx.imageSmoothingQuality = 'high';
+    smallCtx.clearRect(0, 0, finalW, finalH);
+    smallCtx.drawImage(big, 0, 0, bigW, bigH, 0, 0, finalW, finalH);
+
+    const mime = format === 'png' ? 'image/png' : 'image/webp';
+    const dataURL = small.toDataURL(mime, quality);
+
+    const actual = dataURL.startsWith('data:image/webp') ? 'webp'
+                 : dataURL.startsWith('data:image/png')  ? 'png'
+                 : 'unknown';
+
+    return { dataURL, width: finalW, height: finalH, format: actual,
+             bytes: Math.round(dataURL.length * 0.75) };
+  }
+
   async uploadToImgbb(apiKey, opts = {}) {
     if (!apiKey) throw new Error('imgbb: не указан API-ключ');
     const { dataURL } = this.exportDataURL(opts);
@@ -170,7 +273,6 @@ class Pumpkin {
     };
   }
 
-  /** Подогнать размер canvas под контейнер с учётом DPR. */
   resizeToContainer(container) {
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
@@ -182,9 +284,8 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  ВНУТРЕННЕЕ — ГЕОМЕТРИЯ
+  //  ГЕОМЕТРИЯ
   // ============================================================
-
   _buildOutline(steps = 240) {
     const pts = [];
     for (let i = 0; i <= steps; i++) {
@@ -307,49 +408,144 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  ЭМОЦИИ
+  //  ЭМОЦИИ: 7 ОПОРНЫХ ТОЧЕК
   // ============================================================
-  static EMOTIONS = [
-    { // 0: ГРУСТЬ
-      eyeShape: 0.3, eyeTilt: -0.4, eyeSize: 0.9, eyeScaleY: 1.0,
-      pupilSize: 0.7, pupilOffset: 0.3,
-      browAngle: 0.35, browY: -0.02,
-      mouthCurve: -0.7, mouthOpen: 0.05, mouthWidth: 0.55,
-    },
-    { // 1: РАДОСТЬ
-      eyeShape: 0.5, eyeTilt: 0.0, eyeSize: 1.0, eyeScaleY: 1.0,
-      pupilSize: 0.85, pupilOffset: 0,
-      browAngle: -0.08, browY: -0.05,
-      mouthCurve: 0.9, mouthOpen: 0.5, mouthWidth: 0.75,
-    },
-    { // 2: ГНЕВ
-      eyeShape: 0.0, eyeTilt: 0.6, eyeSize: 0.95, eyeScaleY: 0.72,
-      pupilSize: 0.6, pupilOffset: -0.05,
-      browAngle: -0.5, browY: -0.06,
-      mouthCurve: -0.5, mouthOpen: 0.35, mouthWidth: 0.65,
-    },
-  ];
+  //
+  //  Треугольник в декартовых координатах:
+  //    tone ∈ [-1, 1]  — грусть (-1) ↔ гнев (+1)
+  //    mood ∈ [-1, 1]  — не-радость (-1) ↔ радость (+1)
+  //
+  //  Вершины:
+  //    грусть: tone=-1, mood=-1
+  //    гнев:   tone=+1, mood=-1
+  //    радость:tone= 0, mood=+1
+  //
+  //  Три медианы делят треугольник на 6 маленьких. В каждом
+  //  маленьком треугольнике — три вершины из наших 7 опорных.
+  //  Находим барицентрические координаты и интерполируем.
+  //
+  _getEmotionParams(tone, mood) {
+    // 7 опорных точек с их координатами в (tone, mood)
+    const P = [
+      { key: 'sad',           tone: -1,    mood: -1 },
+      { key: 'angry',         tone:  1,    mood: -1 },
+      { key: 'joy',           tone:  0,    mood:  1 },
+      { key: 'mid_sad_angry', tone:  0,    mood: -1 },
+      { key: 'mid_sad_joy',   tone: -0.5,  mood:  0 },
+      { key: 'mid_joy_angry', tone:  0.5,  mood:  0 },
+      { key: 'center',        tone:  0,    mood:  0 },
+    ];
 
-  _lerpEmotions(a, b, t) {
+    // разбиение на 6 треугольников (по медианам)
+    const TRIS = [
+      ['sad',           'mid_sad_angry', 'mid_sad_joy'],    // низ-лево
+      ['mid_sad_angry', 'angry',         'mid_joy_angry'],  // низ-право
+      ['mid_sad_joy',   'mid_sad_angry', 'center'],         // центр-лево
+      ['mid_sad_angry', 'mid_joy_angry', 'center'],         // центр-низ
+      ['mid_sad_joy',   'center',        'joy'],            // верх-лево
+      ['mid_joy_angry', 'center',        'joy'],            // верх-право
+      ['mid_joy_angry', 'mid_sad_angry', 'angry'],          // хм, дублирует
+    ];
+
+    // Найдём, в каком треугольнике лежит точка.
+    // Проходим по всем TRIS и берём тот, где точка внутри.
+    let chosen = null;
+    let bary = null;
+
+    for (const tri of TRIS) {
+      const [a, b, c] = tri.map(k => P.find(p => p.key === k));
+      const w = barycentric(tone, mood, a, b, c);
+      if (w && w.every(x => x >= -1e-6)) {
+        chosen = tri;
+        bary = w;
+        break;
+      }
+    }
+
+    if (!chosen) {
+      // fallback — интерполируем линейно между тремя вершинами
+      // (это старая логика, если точка вне треугольника)
+      return this._lerpFaceLinear(tone, mood);
+    }
+
+    // Смешиваем опорные лица по барицентрическим весам
+    const faces = chosen.map(k => Pumpkin.FACE[k]);
+    const keys = Object.keys(faces[0]);
     const out = {};
-    for (const k in a) out[k] = a[k] + (b[k] - a[k]) * t;
+    for (const k of keys) {
+      out[k] = faces[0][k] * bary[0]
+             + faces[1][k] * bary[1]
+             + faces[2][k] * bary[2];
+    }
     return out;
   }
 
-  _getEmotionParams(slider) {
-    if (slider <= 0.5) return this._lerpEmotions(this.EMOTIONS[0], this.EMOTIONS[1], slider / 0.5);
-    return this._lerpEmotions(this.EMOTIONS[1], this.EMOTIONS[2], (slider - 0.5) / 0.5);
+  _lerpFaceLinear(tone, mood) {
+    // Старая логика — линейная интерполяция через три вершины.
+    // Используется как fallback, а также при передаче только emo.
+    // tone: -1..1 (грусть..гнев), mood: -1..1 (низ..верх)
+    // Преобразуем в три доли:
+    //   pSad   = (1 - tone) / 2 * (1 - mood) / 2 * 2   — не совсем
+    // Проще: считаем pSad, pJoy, pAngry из (tone, mood).
+    const pSad   = Math.max(0, (-tone - mood + 1) / 3 * 1);   // хм
+    // Проще — через старую формулу:
+    // emo ∈ [0,1] = pSad*0 + pJoy*0.5 + pAngry*1
+    // tone = pAngry - pSad
+    // mood = pJoy*2 - 1
+
+    // Разложим: pJoy = (mood + 1) / 2
+    // pSad + pAngry = 1 - pJoy
+    // pAngry - pSad = tone
+    // => pAngry = ((1 - pJoy) + tone) / 2
+    //    pSad   = ((1 - pJoy) - tone) / 2
+    let pJoy = (mood + 1) / 2;
+    let rest = 1 - pJoy;
+    let pSad = (rest - tone) / 2;
+    let pAngry = (rest + tone) / 2;
+    // нормализуем (на случай выхода за пределы)
+    pSad = Math.max(0, Math.min(1, pSad));
+    pAngry = Math.max(0, Math.min(1, pAngry));
+    pJoy = Math.max(0, Math.min(1, pJoy));
+    const sum = pSad + pJoy + pAngry || 1;
+    pSad /= sum; pJoy /= sum; pAngry /= sum;
+
+    const F = Pumpkin.FACE;
+    const keys = Object.keys(F.sad);
+    const out = {};
+    for (const k of keys) {
+      out[k] = F.sad[k] * pSad + F.joy[k] * pJoy + F.angry[k] * pAngry;
+    }
+    return out;
   }
 
-  _applyIntensity(e, intensity) {
-    const neutral = {
-      eyeShape: 0.5, eyeTilt: 0, eyeSize: 1, eyeScaleY: 1,
-      pupilSize: 0.8, pupilOffset: 0,
-      browAngle: 0, browY: 0,
-      mouthCurve: 0, mouthOpen: 0, mouthWidth: 0.6,
-    };
+  // Перегрузка: если передали число (старый emo 0..1) —
+  // интерпретируем как mood и tone из старой шкалы
+  _getEmotionParamsLegacy(emo) {
+    // Старая шкала: 0 = грусть, 0.5 = радость, 1 = гнев
+    // Разложим в (tone, mood):
+    // - при emo = 0.5: tone = 0, mood = 1
+    // - при emo = 0:   tone = -1, mood = -1
+    // - при emo = 1:   tone = +1, mood = -1
+    let tone, mood;
+    if (emo <= 0.5) {
+      const t = emo / 0.5;        // 0..1
+      tone = -1 + t;              // -1..0
+      mood = -1 + 2 * t;          // -1..1
+    } else {
+      const t = (emo - 0.5) / 0.5; // 0..1
+      tone = 0 + t;                // 0..1
+      mood = 1 - 2 * t;            // 1..-1
+    }
+    return this._getEmotionParams(tone, mood);
+  }
+
+  _applyIntensity(face, intensity) {
+    // Центр = нейтральное лицо. intensity — радиус от центра.
+    const center = Pumpkin.FACE.center;
     const out = {};
-    for (const k in e) out[k] = neutral[k] + (e[k] - neutral[k]) * intensity;
+    for (const k in face) {
+      out[k] = center[k] + (face[k] - center[k]) * intensity;
+    }
     return out;
   }
 
@@ -431,7 +627,7 @@ class Pumpkin {
     const localW = wt * p.tw + wm * p.mw + wb * p.bw;
     const sideW = x >= 0 ? p.rw : p.lw;
 
-    let ny = y * p.hh;
+    let ny = y;
     const dy = wt * p.ts + wm * p.ms + wb * p.bs;
     ny += dy / 300;
 
@@ -457,12 +653,24 @@ class Pumpkin {
     for (const rib of this.RIBS) for (const [x, y] of rib) all.push(this._deform(x, y, p));
     for (const [x, y] of this.STEM)     all.push(this._deform(x, y, p));
     for (const [x, y] of this.STEM_BAR) all.push(this._deform(x, y, p));
-    const emo = this._getEmotionParams(p.emo);
-    const e = this._applyIntensity(emo, p.int);
-    const eye = this._buildEye(e.eyeShape, e.eyeTilt, e.eyeSize * 0.22, e.eyeScaleY);
+
+    const face = this._resolveFaceParams(p);
+    const eye = this._buildEye(face.eyeShape, face.eyeTilt, face.eyeSize * 0.22, face.eyeScaleY);
     for (const [x, y] of eye) all.push(this._facePointToBody(x - 0.35, y - 0.15, p));
     for (const [x, y] of eye) all.push(this._facePointToBody(x + 0.35, y - 0.15, p));
     return all;
+  }
+
+  // определяет, каким путём считать лицо:
+  // старый emo или новые tone/mood
+  _resolveFaceParams(p) {
+    let base;
+    if (p.tone !== undefined && p.mood !== undefined) {
+      base = this._getEmotionParams(p.tone, p.mood);
+    } else {
+      base = this._getEmotionParamsLegacy(p.emo ?? 0.5);
+    }
+    return this._applyIntensity(base, p.int ?? 1);
   }
 
   // ============================================================
@@ -491,11 +699,10 @@ class Pumpkin {
   }
 
   // ============================================================
-  //  ГЛАВНАЯ ОТРИСОВКА
+  //  РЕНДЕР (главный)
   // ============================================================
   _renderTo(targetCtx, targetW, targetH, exportMode) {
     const p = this.params;
-
     targetCtx.clearRect(0, 0, targetW, targetH);
 
     const pts = this._collectPoints(p);
@@ -521,7 +728,7 @@ class Pumpkin {
 
     const lw = Pumpkin.BASE_LWD / fitScale;
 
-    // --- ЗАЛИВКА ---
+    // заливка
     targetCtx.beginPath();
     this.OUTLINE.forEach(([x, y], i) => {
       const [nx, ny] = this._deform(x, y, p);
@@ -531,7 +738,7 @@ class Pumpkin {
     targetCtx.fillStyle = p.fill;
     targetCtx.fill();
 
-    // --- ТЕНИ И БЛИК ---
+    // тени и блик
     targetCtx.save();
     targetCtx.beginPath();
     this.OUTLINE.forEach(([x, y], i) => {
@@ -581,7 +788,7 @@ class Pumpkin {
 
     targetCtx.restore();
 
-    // --- КОНТУР ---
+    // контур
     targetCtx.lineJoin = 'round';
     targetCtx.lineCap = 'round';
     targetCtx.beginPath();
@@ -594,7 +801,7 @@ class Pumpkin {
     targetCtx.lineWidth = lw;
     targetCtx.stroke();
 
-    // --- РЁБРА ---
+    // рёбра
     targetCtx.save();
     targetCtx.beginPath();
     this.OUTLINE.forEach(([x, y], i) => {
@@ -615,7 +822,7 @@ class Pumpkin {
     targetCtx.stroke();
     targetCtx.restore();
 
-    // --- ЧЕРЕНОК ---
+    // черенок
     targetCtx.beginPath();
     this.STEM.forEach(([x, y], i) => {
       const [nx, ny] = this._deform(x, y, p);
@@ -638,7 +845,7 @@ class Pumpkin {
     targetCtx.lineCap = 'round';
     targetCtx.stroke();
 
-    // --- ЛИЦО ---
+    // лицо
     targetCtx.save();
     targetCtx.beginPath();
     this.OUTLINE.forEach(([x, y], i) => {
@@ -648,8 +855,7 @@ class Pumpkin {
     targetCtx.closePath();
     targetCtx.clip();
 
-    const emo = this._getEmotionParams(p.emo);
-    const e = this._applyIntensity(emo, p.int);
+    const e = this._resolveFaceParams(p);
 
     targetCtx.lineJoin = 'round';
     targetCtx.lineCap = 'round';
@@ -684,7 +890,11 @@ class Pumpkin {
       const pup = self._buildEye(1, 0, pupilR);
       targetCtx.beginPath();
       pup.forEach(([x, y], i) => {
-        const [nx, ny] = self._facePointToBody(x + side * eyeDX, y + eyeY + e.pupilOffset * eyeSize, p);
+        const [nx, ny] = self._facePointToBody(
+          x + side * eyeDX,
+          y + eyeY + e.pupilOffset * eyeSize,
+          p
+        );
         i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
       });
       targetCtx.closePath();
@@ -762,4 +972,309 @@ class Pumpkin {
     targetCtx.restore();
     targetCtx.restore();
   }
+
+  // ============================================================
+  //  RENDER TO FIT (для exportWithHeight)
+  // ============================================================
+  _renderToFit(targetCtx, targetW, targetH, p, pad) {
+    targetCtx.clearRect(0, 0, targetW, targetH);
+
+    const pts = this._collectPoints(p);
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const [x, y] of pts) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const w = maxX - minX || 1;
+    const h = maxY - minY || 1;
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    const fitScale = Math.min((targetW - pad * 2) / w, (targetH - pad * 2) / h);
+
+    targetCtx.save();
+    targetCtx.setTransform(1, 0, 0, 1, targetW / 2, targetH / 2);
+    targetCtx.scale(fitScale, fitScale);
+    targetCtx.translate(-cx, -cy);
+
+    const lw = Pumpkin.BASE_LWD / fitScale;
+
+    // Копия логики _renderTo без ветвления exportMode.
+    // Чтобы не дублировать код, вызовем внутреннюю отрисовку.
+    this._drawBody(targetCtx, p, lw);
+    this._drawFace(targetCtx, p, lw);
+
+    targetCtx.restore();
+  }
+
+  // ---- отдельные этапы отрисовки для _renderToFit ----
+  _drawBody(targetCtx, p, lw) {
+    // заливка
+    targetCtx.beginPath();
+    this.OUTLINE.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fillStyle = p.fill;
+    targetCtx.fill();
+
+    // тени и блик
+    targetCtx.save();
+    targetCtx.beginPath();
+    this.OUTLINE.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.clip();
+
+    targetCtx.beginPath();
+    this.SHADE_RIGHT.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fillStyle = this._darken(p.fill, p.shade);
+    targetCtx.fill();
+
+    targetCtx.beginPath();
+    this.SHADE_BOTTOM.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fillStyle = this._darken(p.fill, p.shade * 0.75);
+    targetCtx.fill();
+
+    targetCtx.fillStyle = this._darken(p.fill, p.shade * 0.85);
+    for (const ribbon of this.RIB_SHADOWS) {
+      targetCtx.beginPath();
+      ribbon.forEach(([x, y], i) => {
+        const [nx, ny] = this._deform(x, y, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+      targetCtx.closePath();
+      targetCtx.fill();
+    }
+
+    targetCtx.beginPath();
+    this.HIGHLIGHT.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fillStyle = this._lighten(p.fill, p.lit);
+    targetCtx.fill();
+
+    targetCtx.restore();
+
+    // контур
+    targetCtx.lineJoin = 'round';
+    targetCtx.lineCap = 'round';
+    targetCtx.beginPath();
+    this.OUTLINE.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
+    targetCtx.lineWidth = lw;
+    targetCtx.stroke();
+
+    // рёбра
+    targetCtx.save();
+    targetCtx.beginPath();
+    this.OUTLINE.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.clip();
+    targetCtx.beginPath();
+    for (const rib of this.RIBS) {
+      rib.forEach(([x, y], i) => {
+        const [nx, ny] = this._deform(x, y, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+    }
+    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
+    targetCtx.lineWidth = lw * 0.85;
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // черенок
+    targetCtx.beginPath();
+    this.STEM.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.fillStyle = '#5a4433';
+    targetCtx.fill();
+    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
+    targetCtx.lineWidth = lw;
+    targetCtx.stroke();
+
+    targetCtx.beginPath();
+    this.STEM_BAR.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.strokeStyle = Pumpkin.STROKE_COLOR;
+    targetCtx.lineWidth = lw;
+    targetCtx.lineCap = 'round';
+    targetCtx.stroke();
+  }
+
+  _drawFace(targetCtx, p, lw) {
+    targetCtx.save();
+    targetCtx.beginPath();
+    this.OUTLINE.forEach(([x, y], i) => {
+      const [nx, ny] = this._deform(x, y, p);
+      i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+    });
+    targetCtx.closePath();
+    targetCtx.clip();
+
+    const e = this._resolveFaceParams(p);
+
+    targetCtx.lineJoin = 'round';
+    targetCtx.lineCap = 'round';
+
+    const eyeSize = 0.22 * e.eyeSize;
+    const eyeY = -0.15;
+    const eyeDX = 0.35;
+    const faceColor = Pumpkin.FACE_COLOR;
+    const haloColor = p.fill;
+    const haloWidth = lw * Pumpkin.HALO_SCALE;
+
+    const self = this;
+    function traceEye(side) {
+      const eye = self._buildEye(e.eyeShape, e.eyeTilt * side, eyeSize, e.eyeScaleY);
+      targetCtx.beginPath();
+      eye.forEach(([x, y], i) => {
+        const [nx, ny] = self._facePointToBody(x + side * eyeDX, y + eyeY, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+      targetCtx.closePath();
+    }
+    function traceBrow(side) {
+      const brow = self._buildBrow(e.browAngle * side, 0.42);
+      targetCtx.beginPath();
+      brow.forEach(([x, y], i) => {
+        const [nx, ny] = self._facePointToBody(x + side * eyeDX, y + eyeY - 0.24 + e.browY, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+    }
+    function tracePupil(side) {
+      const pupilR = eyeSize * e.pupilSize;
+      const pup = self._buildEye(1, 0, pupilR);
+      targetCtx.beginPath();
+      pup.forEach(([x, y], i) => {
+        const [nx, ny] = self._facePointToBody(
+          x + side * eyeDX,
+          y + eyeY + e.pupilOffset * eyeSize,
+          p
+        );
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+      targetCtx.closePath();
+    }
+    function traceMouth() {
+      const mouth = self._buildMouth(e.mouthCurve, e.mouthOpen * 0.5, e.mouthWidth * 0.8);
+      targetCtx.beginPath();
+      mouth.forEach(([x, y], i) => {
+        const [nx, ny] = self._facePointToBody(x, y + 0.35, p);
+        i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+      });
+      targetCtx.closePath();
+    }
+
+    // подложка
+    targetCtx.strokeStyle = haloColor;
+    targetCtx.fillStyle = haloColor;
+    targetCtx.lineWidth = haloWidth;
+    for (const side of [-1, 1]) {
+      traceEye(side);
+      targetCtx.fill();
+      targetCtx.stroke();
+      traceBrow(side);
+      targetCtx.stroke();
+    }
+    traceMouth();
+    if (e.mouthOpen > 0.15) { targetCtx.fill(); targetCtx.stroke(); }
+    else targetCtx.stroke();
+
+    // чёрные элементы
+    targetCtx.strokeStyle = faceColor;
+    targetCtx.fillStyle = faceColor;
+    targetCtx.lineWidth = lw;
+    for (const side of [-1, 1]) {
+      traceEye(side);
+      if (e.eyeShape > 0.7) targetCtx.stroke();
+      else targetCtx.fill();
+
+      if (e.eyeShape > 0.55) {
+        tracePupil(side);
+        targetCtx.fillStyle = faceColor;
+        targetCtx.fill();
+
+        const pupilR = eyeSize * e.pupilSize;
+        const glint = self._buildEye(1, 0, pupilR * 0.3);
+        targetCtx.beginPath();
+        glint.forEach(([x, y], i) => {
+          const [nx, ny] = self._facePointToBody(
+            x + side * eyeDX - pupilR * 0.3,
+            y + eyeY + e.pupilOffset * eyeSize - pupilR * 0.3,
+            p
+          );
+          i ? targetCtx.lineTo(nx, ny) : targetCtx.moveTo(nx, ny);
+        });
+        targetCtx.closePath();
+        targetCtx.fillStyle = p.fill;
+        targetCtx.fill();
+        targetCtx.fillStyle = faceColor;
+      }
+
+      targetCtx.lineWidth = lw * 0.9;
+      traceBrow(side);
+      targetCtx.stroke();
+      targetCtx.lineWidth = lw;
+    }
+    traceMouth();
+    if (e.mouthOpen > 0.15) {
+      targetCtx.fillStyle = faceColor;
+      targetCtx.fill();
+    }
+    targetCtx.strokeStyle = faceColor;
+    targetCtx.lineWidth = lw;
+    targetCtx.stroke();
+
+    targetCtx.restore();
+  }
+}
+
+/* ---------- утилита барицентрических координат ---------- */
+function barycentric(px, py, a, b, c) {
+  const v0x = b.tone - a.tone, v0y = b.mood - a.mood;
+  const v1x = c.tone - a.tone, v1y = c.mood - a.mood;
+  const v2x = px - a.tone,     v2y = py - a.mood;
+
+  const d00 = v0x * v0x + v0y * v0y;
+  const d01 = v0x * v1x + v0y * v1y;
+  const d11 = v1x * v1x + v1y * v1y;
+  const d20 = v2x * v0x + v2y * v0y;
+  const d21 = v2x * v1x + v2y * v1y;
+
+  const denom = d00 * d11 - d01 * d01;
+  if (Math.abs(denom) < 1e-12) return null;
+
+  const v = (d11 * d20 - d01 * d21) / denom;
+  const w = (d00 * d21 - d01 * d20) / denom;
+  const u = 1 - v - w;
+
+  return [u, v, w];
 }

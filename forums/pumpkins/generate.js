@@ -1,16 +1,12 @@
 /* ============================================================
  *  Генерация параметров тыквы из текста.
  *
- *  Зависимости:
- *    - pumpkin.js : класс Pumpkin
- *    - words.js   : объект RULES со словарём слов
+ *  Эмоции теперь — точка в треугольнике:
+ *    tone ∈ [-1, 1] — грусть (-1) ↔ гнев (+1)
+ *    mood ∈ [-1, 1] — не-радость (-1) ↔ радость (+1)
+ *    int   — радиус от центра
  *
- *  Изменения:
- *    - hh больше НЕ влияет на форму тыквы.
- *    - hh теперь управляет ВЫСОТОЙ итоговой картинки (100..250).
- *    - Экспорт идёт через pumpkin.exportWithHeight:
- *      рендер в 512, потом уменьшение через drawImage
- *      с высоким качеством.
+ *  Экспорт — через exportWithHeight, высота из hh (100..250).
  * ============================================================ */
 
 (function () {
@@ -23,14 +19,12 @@
   // ============================================================
   //  НАСТРОЙКИ РАЗМЕРА ЭКСПОРТА
   // ============================================================
-  const HH_MIN = 100;       // минимальная высота картинки
-  const HH_MAX = 250;       // максимальная высота картинки
-  const HH_DEFAULT = 175;   // если hh не сработал
-
-  const RENDER_SIZE = 512;  // эталонный размер рендера по большей стороне
+  const HH_MIN = 100;
+  const HH_MAX = 250;
+  const RENDER_SIZE = 512;
 
   // ============================================================
-  //  БАЗОВЫЕ ЗНАЧЕНИЯ (сбрасываются кнопкой «Сбросить»)
+  //  БАЗОВЫЕ ЗНАЧЕНИЯ
   // ============================================================
   const DEFAULTS = {
     K:      2.5,
@@ -42,7 +36,6 @@
     bw:     1.5,
     lw:     1.2,
     rw:     1.2,
-    // hh здесь больше нет — оно не параметр формы
     ts:     60,
     ms:     60,
     bs:     60,
@@ -57,13 +50,12 @@
   };
 
   const SENS = { ...DEFAULTS };
-
   let globalSens = 1.0;
 
   const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };
 
   const BASE = {
-    emo: 0.5, int: 1,
+    int: 1,
     shade: 0.55, lit: 0.35,
     tw: 1, mw: 1, bw: 1,
     lw: 1, rw: 1,
@@ -115,18 +107,20 @@
   }
 
   // ============================================================
-  //  ЭМОЦИИ
+  //  ЭМОЦИИ: точка в треугольнике
   // ============================================================
-  function computeEmotion(scores) {
+  function computeEmotionTriangle(scores) {
     const sad   = scores.emo_sad   || 0;
     const joy   = scores.emo_joy   || 0;
     const angry = scores.emo_angry || 0;
     const total = sad + joy + angry;
 
     if (total < 0.001) {
+      // нет эмоций — точка в центре
       return {
-        emo: 0.5,
-        intBonus: 0,
+        tone: 0,
+        mood: 0,
+        intensity: 0,
         proportions: { sad: 0, joy: 0, angry: 0 },
       };
     }
@@ -135,25 +129,29 @@
     const pJoy   = joy   / total;
     const pAngry = angry / total;
 
-    const emo = pSad * 0 + pJoy * 0.5 + pAngry * 1.0;
-    const intBonus = Math.min(0.8, total * 0.5 * globalSens);
+    // Декартовы координаты в треугольнике
+    const tone = pAngry - pSad;        // -1..1
+    const mood = pJoy * 2 - 1;         // -1..1
+
+    // Интенсивность — «насколько далеко от центра».
+    // Ориентируемся на total (насыщенность эмоциональных
+    // слов в тексте): 0 → ничего, 1 → максимум.
+    const intensity = Math.min(1.5, total * 1.0 * globalSens);
 
     return {
-      emo,
-      intBonus,
+      tone, mood, intensity,
       proportions: { sad: pSad, joy: pJoy, angry: pAngry },
     };
   }
 
   // ============================================================
-  //  ВЫСОТА ЭКСПОРТА ИЗ hh
+  //  ВЫСОТА ЭКСПОРТА
   // ============================================================
   function computeExportHeight(scores) {
     const plus  = scores.hh_plus  || 0;
     const minus = scores.hh_minus || 0;
-    const delta = plus - minus;   // -1..1
+    const delta = plus - minus;
 
-    // -1 → HH_MIN, 0 → середина, +1 → HH_MAX
     const mid = (HH_MIN + HH_MAX) / 2;
     const half = (HH_MAX - HH_MIN) / 2;
     const h = mid + delta * half * globalSens;
@@ -161,7 +159,7 @@
   }
 
   // ============================================================
-  //  ПАРАМЕТРЫ ИЗ АНАЛИЗА
+  //  ПАРАМЕТРЫ
   // ============================================================
   function applyScale(baseValue, plusScore, minusScore, sens) {
     const delta = (plusScore || 0) - (minusScore || 0);
@@ -171,10 +169,10 @@
   function computeParams(a) {
     const s = a.scores;
 
-    const emo = computeEmotion(s);
+    const emo = computeEmotionTriangle(s);
 
+    // Интенсивность: базовая + радиус эмоции
     let int = applyScale(BASE.int, s.int_plus, s.int_minus, SENS.int);
-    int += emo.intBonus;
     int = clamp(int, 0, 1.5);
 
     const shade = clamp(
@@ -191,7 +189,6 @@
     const bw = clamp(applyScale(BASE.bw, s.bw_plus, s.bw_minus, SENS.bw), 0.2, 2);
     const lw = clamp(applyScale(BASE.lw, s.lw_plus, s.lw_minus, SENS.lw), 0.3, 2);
     const rw = clamp(applyScale(BASE.rw, s.rw_plus, s.rw_minus, SENS.rw), 0.3, 2);
-    // hh НЕ считаем — форма больше не зависит от него
 
     const ts = clamp(applyScale(BASE.ts, s.ts_plus, s.ts_minus, SENS.ts), -80, 80);
     const ms = clamp(applyScale(BASE.ms, s.ms_plus, s.ms_minus, SENS.ms), -80, 80);
@@ -208,12 +205,14 @@
     fs = clamp(fs + sizeDelta * SENS.fs * 0.5 * globalSens, 0.4, 1.6);
 
     const fill = computeColor(s);
-
     const exportHeight = computeExportHeight(s);
 
     return {
-      emo: r3(emo.emo),
+      // новые параметры эмоции
+      tone: r3(emo.tone),
+      mood: r3(emo.mood),
       int: r3(int),
+
       shade: r3(shade),
       lit: r3(lit),
       tw: r3(tw), mw: r3(mw), bw: r3(bw),
@@ -222,14 +221,15 @@
       sk: Math.round(sk), rt: Math.round(rt),
       fx: r3(fx), fy: r3(fy), fs: r3(fs),
       fill,
-      // exportHeight не передаётся в Pumpkin.setParams —
-      // это отдельное поле, используемое только при экспорте
       exportHeight,
+
+      // метаданные для UI
+      _emotion: emo,
     };
   }
 
   // ============================================================
-  //  ЦВЕТ (HSL-тонирование)
+  //  ЦВЕТ
   // ============================================================
   function hexToHsl(hex) {
     const n = parseInt(hex.slice(1), 16);
@@ -294,13 +294,11 @@
     const plus  = s.tint_plus  || 0;
     const minus = s.tint_minus || 0;
     const delta = plus - minus;
-    const factor = 1 + delta * SENS.tint * globalSens;
-    return Math.max(0, factor);
+    return Math.max(0, 1 + delta * SENS.tint * globalSens);
   }
 
   function computeColor(s) {
     const tint = computeTintFactor(s);
-
     if (tint <= 0.001) {
       return hslToHex(BASE_HSL.h, BASE_HSL.s, BASE_HSL.l);
     }
@@ -316,7 +314,6 @@
     }
 
     let hue = BASE_HSL.h;
-
     if (hueWeight > 0.01) {
       const targetHue = (Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360;
       const k = 2.0 * (SENS.rgb / 140) * globalSens;
@@ -326,7 +323,6 @@
       let delta = targetHue - hue;
       if (delta > 180)  delta -= 360;
       if (delta < -180) delta += 360;
-
       hue = hue + delta * mix;
     }
 
@@ -339,11 +335,9 @@
     }
 
     let light = BASE_HSL.l;
-
     const blackScore = s.to_black || 0;
     const whiteScore = s.to_white || 0;
-    let bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
-    bwNet = bwNet * tint;
+    let bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens * tint;
 
     if (bwNet > 0) {
       const k = Math.min(1, bwNet);
@@ -365,26 +359,74 @@
   // ============================================================
   //  UI: РАЗБОР
   // ============================================================
-  function renderBreakdown(a, emotion, exportHeight) {
+  function renderTriangleSVG(emo) {
+    // треугольник в координатах SVG:
+    //   грусть (внизу слева):   (20, 100)
+    //   гнев   (внизу справа):  (100, 100)
+    //   радость (сверху):       (60, 20)
+    const cx = 60, cy = 20;   // радость
+    const lx = 20, ly = 100;  // грусть
+    const rx = 100, ry = 100; // гнев
+
+    // точка внутри: перевод из (tone, mood) в координаты треугольника
+    // Через барицентрические доли:
+    const pSad   = emo.proportions.sad;
+    const pJoy   = emo.proportions.joy;
+    const pAngry = emo.proportions.angry;
+    const px = pSad * lx + pJoy * cx + pAngry * rx;
+    const py = pSad * ly + pJoy * cy + pAngry * ry;
+
+    return `
+      <svg width="120" height="120" viewBox="0 0 120 120"
+           xmlns="http://www.w3.org/2000/svg" style="display:block">
+        <polygon points="${lx},${ly} ${cx},${cy} ${rx},${ry}"
+                 fill="none" stroke="#4a4a58" stroke-width="1.5"/>
+        <text x="${lx - 4}" y="${ly + 12}" fill="#9ab" font-size="9" text-anchor="middle">ГР</text>
+        <text x="${rx + 4}" y="${ry + 12}" fill="#9ab" font-size="9" text-anchor="middle">ЗЛ</text>
+        <text x="${cx}" y="${cy - 6}" fill="#9ab" font-size="9" text-anchor="middle">РД</text>
+        <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4"
+                fill="#ff8c1a" stroke="#1e1e24" stroke-width="1.5"/>
+      </svg>
+    `;
+  }
+
+  function renderBreakdown(a, emo, exportHeight) {
     const box = $('breakdown');
     box.innerHTML = '';
 
-    if (emotion.proportions.sad + emotion.proportions.joy + emotion.proportions.angry > 0) {
+    // треугольник + пропорции
+    if (emo.proportions.sad + emo.proportions.joy + emo.proportions.angry > 0) {
       const catEl = document.createElement('div');
       catEl.className = 'cat';
-      catEl.textContent = 'Эмоции (пропорции)';
+      catEl.textContent = 'Эмоции (треугольник)';
       box.appendChild(catEl);
 
-      const p = emotion.proportions;
-      const line = document.createElement('div');
-      line.className = 'line';
-      line.innerHTML =
-        `<span class="hit">грусть ${(p.sad * 100).toFixed(0)}%</span> · ` +
-        `<span class="hit">радость ${(p.joy * 100).toFixed(0)}%</span> · ` +
-        `<span class="hit">злость ${(p.angry * 100).toFixed(0)}%</span>`;
-      box.appendChild(line);
+      const wrap = document.createElement('div');
+      wrap.style.display = 'flex';
+      wrap.style.gap = '10px';
+      wrap.style.alignItems = 'center';
+      wrap.style.paddingLeft = '10px';
+      wrap.style.marginTop = '4px';
+
+      const svg = document.createElement('div');
+      svg.innerHTML = renderTriangleSVG(emo);
+      wrap.appendChild(svg);
+
+      const p = emo.proportions;
+      const info = document.createElement('div');
+      info.style.fontSize = '11px';
+      info.style.lineHeight = '1.6';
+      info.innerHTML =
+        `<span class="hit">грусть ${(p.sad * 100).toFixed(0)}%</span><br>` +
+        `<span class="hit">радость ${(p.joy * 100).toFixed(0)}%</span><br>` +
+        `<span class="hit">злость ${(p.angry * 100).toFixed(0)}%</span><br>` +
+        `<span class="muted">tone=${emo.tone.toFixed(2)} mood=${emo.mood.toFixed(2)}</span><br>` +
+        `<span class="muted">int=${emo.intensity.toFixed(2)}</span>`;
+      wrap.appendChild(info);
+      box.appendChild(wrap);
     }
 
+    // остальные категории
     const byParam = {};
     for (const [cat, rule] of Object.entries(RULES)) {
       if (cat.startsWith('emo_')) continue;
@@ -434,7 +476,6 @@
       }
     }
 
-    // строка про размер экспорта
     const sizeEl = document.createElement('div');
     sizeEl.className = 'cat';
     sizeEl.style.marginTop = '10px';
@@ -444,7 +485,7 @@
 
   function renderParams(p) {
     const fields = [
-      'emo', 'int', 'shade', 'lit',
+      'tone', 'mood', 'int', 'shade', 'lit',
       'tw', 'mw', 'bw', 'lw', 'rw',
       'ts', 'ms', 'bs', 'sk', 'rt',
       'fx', 'fy', 'fs',
@@ -461,22 +502,19 @@
   //  ГЛАВНАЯ ФУНКЦИЯ
   // ============================================================
   let lastAnalysis = null;
-  let lastParams = null;
 
   function applyFromAnalysis(a) {
     const params = computeParams(a);
-    lastParams = params;
 
-    // ВАЖНО: в Pumpkin.setParams НЕ передаём exportHeight
-    // и НЕ передаём hh — форма не зависит ни от того, ни от другого.
+    // в Pumpkin передаём tone, mood, int — и остальные поля
     const forPumpkin = { ...params };
     delete forPumpkin.exportHeight;
+    delete forPumpkin._emotion;
 
     pumpkin.setParams(forPumpkin);
     pumpkin.render();
 
-    const emotion = computeEmotion(a.scores);
-    renderBreakdown(a, emotion, params.exportHeight);
+    renderBreakdown(a, params._emotion, params.exportHeight);
     renderParams(params);
 
     const totalHits = Object.values(a.raw).reduce((s, x) => s + x, 0);
@@ -494,7 +532,7 @@
   }
 
   // ============================================================
-  //  ЛЕВАЯ ПАНЕЛЬ: ПОЛЗУНКИ ЧУВСТВИТЕЛЬНОСТИ
+  //  ЛЕВАЯ ПАНЕЛЬ: ПОЛЗУНКИ
   // ============================================================
   const SENS_CONTROLS = [
     ['tw',      's-tw',      'l-tw',      2],
@@ -558,7 +596,7 @@
   });
 
   // ============================================================
-  //  ПРАВАЯ ПАНЕЛЬ: ГЛОБАЛЬНЫЙ МНОЖИТЕЛЬ + ГЕНЕРАЦИЯ
+  //  ПРАВАЯ ПАНЕЛЬ
   // ============================================================
   const sensInput = $('sens');
   const sensLabel = $('v-sens');
