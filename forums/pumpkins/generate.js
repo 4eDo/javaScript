@@ -5,19 +5,12 @@
  *    - pumpkin.js : класс Pumpkin
  *    - words.js   : объект RULES со словарём слов
  *
- *  Все чувствительности хранятся в объекте SENS и читаются
- *  с ползунков в левой панели UI при каждом пересчёте.
- *  Глобальный множитель intensity умножается поверх.
- *
- *  ЦВЕТ — через HSL-тонирование:
- *    - rgb-шкалы переосмыслены как сдвиги ОТТЕНКА (hue);
- *    - каждое срабатывание даёт вектор на hue-круге,
- *      векторы складываются, итог — результирующий угол;
- *    - ч/б считается разностью и меняет светлоту L;
- *    - НОВЫЙ параметр tint регулирует «непрозрачность»
- *      перекраски: при tint=0 цвет не меняется вообще,
- *      при tint=1 тонирование применяется полностью,
- *      при tint>1 — с перекрутом.
+ *  Изменения:
+ *    - hh больше НЕ влияет на форму тыквы.
+ *    - hh теперь управляет ВЫСОТОЙ итоговой картинки (100..250).
+ *    - Экспорт идёт через pumpkin.exportWithHeight:
+ *      рендер в 512, потом уменьшение через drawImage
+ *      с высоким качеством.
  * ============================================================ */
 
 (function () {
@@ -26,6 +19,15 @@
   const $ = id => document.getElementById(id);
 
   const pumpkin = new Pumpkin($('cv'));
+
+  // ============================================================
+  //  НАСТРОЙКИ РАЗМЕРА ЭКСПОРТА
+  // ============================================================
+  const HH_MIN = 100;       // минимальная высота картинки
+  const HH_MAX = 250;       // максимальная высота картинки
+  const HH_DEFAULT = 175;   // если hh не сработал
+
+  const RENDER_SIZE = 512;  // эталонный размер рендера по большей стороне
 
   // ============================================================
   //  БАЗОВЫЕ ЗНАЧЕНИЯ (сбрасываются кнопкой «Сбросить»)
@@ -40,7 +42,7 @@
     bw:     1.5,
     lw:     1.2,
     rw:     1.2,
-    hh:     1.5,
+    // hh здесь больше нет — оно не параметр формы
     ts:     60,
     ms:     60,
     bs:     60,
@@ -56,17 +58,15 @@
 
   const SENS = { ...DEFAULTS };
 
-  // Глобальный множитель (правый ползунок)
   let globalSens = 1.0;
 
-  // Базовый цвет заливки
-  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };  // #f28c1a
+  const BASE_COLOR = { r: 0xf2, g: 0x8c, b: 0x1a };
 
   const BASE = {
     emo: 0.5, int: 1,
     shade: 0.55, lit: 0.35,
     tw: 1, mw: 1, bw: 1,
-    lw: 1, rw: 1, hh: 1,
+    lw: 1, rw: 1,
     ts: 0, ms: 0, bs: 0,
     sk: 0, rt: 0,
     fx: 0, fy: 0, fs: 1,
@@ -105,7 +105,6 @@
       }
     }
 
-    // Гиперболическая сатурация: score = n / (n + K)
     const K = SENS.K;
     const scores = {};
     for (const [cat, n] of Object.entries(raw)) {
@@ -147,6 +146,21 @@
   }
 
   // ============================================================
+  //  ВЫСОТА ЭКСПОРТА ИЗ hh
+  // ============================================================
+  function computeExportHeight(scores) {
+    const plus  = scores.hh_plus  || 0;
+    const minus = scores.hh_minus || 0;
+    const delta = plus - minus;   // -1..1
+
+    // -1 → HH_MIN, 0 → середина, +1 → HH_MAX
+    const mid = (HH_MIN + HH_MAX) / 2;
+    const half = (HH_MAX - HH_MIN) / 2;
+    const h = mid + delta * half * globalSens;
+    return Math.round(clamp(h, HH_MIN, HH_MAX));
+  }
+
+  // ============================================================
   //  ПАРАМЕТРЫ ИЗ АНАЛИЗА
   // ============================================================
   function applyScale(baseValue, plusScore, minusScore, sens) {
@@ -177,7 +191,7 @@
     const bw = clamp(applyScale(BASE.bw, s.bw_plus, s.bw_minus, SENS.bw), 0.2, 2);
     const lw = clamp(applyScale(BASE.lw, s.lw_plus, s.lw_minus, SENS.lw), 0.3, 2);
     const rw = clamp(applyScale(BASE.rw, s.rw_plus, s.rw_minus, SENS.rw), 0.3, 2);
-    const hh = clamp(applyScale(BASE.hh, s.hh_plus, s.hh_minus, SENS.hh), 0.3, 2);
+    // hh НЕ считаем — форма больше не зависит от него
 
     const ts = clamp(applyScale(BASE.ts, s.ts_plus, s.ts_minus, SENS.ts), -80, 80);
     const ms = clamp(applyScale(BASE.ms, s.ms_plus, s.ms_minus, SENS.ms), -80, 80);
@@ -195,24 +209,28 @@
 
     const fill = computeColor(s);
 
+    const exportHeight = computeExportHeight(s);
+
     return {
       emo: r3(emo.emo),
       int: r3(int),
       shade: r3(shade),
       lit: r3(lit),
       tw: r3(tw), mw: r3(mw), bw: r3(bw),
-      lw: r3(lw), rw: r3(rw), hh: r3(hh),
+      lw: r3(lw), rw: r3(rw),
       ts: Math.round(ts), ms: Math.round(ms), bs: Math.round(bs),
       sk: Math.round(sk), rt: Math.round(rt),
       fx: r3(fx), fy: r3(fy), fs: r3(fs),
       fill,
+      // exportHeight не передаётся в Pumpkin.setParams —
+      // это отдельное поле, используемое только при экспорте
+      exportHeight,
     };
   }
 
   // ============================================================
-  //  ЦВЕТ ЧЕРЕЗ HSL-ТОНИРОВАНИЕ
+  //  ЦВЕТ (HSL-тонирование)
   // ============================================================
-
   function hexToHsl(hex) {
     const n = parseInt(hex.slice(1), 16);
     const r = ((n >> 16) & 255) / 255;
@@ -272,13 +290,10 @@
     return 1 - Math.exp(-weight * k);
   }
 
-  // Считаем tint-фактор: сколько раз применять перекраску.
-  // 0 → вообще не красить, 1 → норма, >1 → перекрут.
   function computeTintFactor(s) {
     const plus  = s.tint_plus  || 0;
     const minus = s.tint_minus || 0;
     const delta = plus - minus;
-    // база 1.0, сдвиг вниз/вверх с учётом SENS.tint
     const factor = 1 + delta * SENS.tint * globalSens;
     return Math.max(0, factor);
   }
@@ -286,13 +301,10 @@
   function computeColor(s) {
     const tint = computeTintFactor(s);
 
-    // Если прозрачность нулевая — вообще не тонируем,
-    // возвращаем чистый базовый цвет.
     if (tint <= 0.001) {
       return hslToHex(BASE_HSL.h, BASE_HSL.s, BASE_HSL.l);
     }
 
-    // 1) Векторы hue
     let vx = 0, vy = 0, hueWeight = 0;
     for (const [cat, targetDeg] of Object.entries(HUE_TARGET)) {
       const w = s[cat] || 0;
@@ -307,14 +319,8 @@
 
     if (hueWeight > 0.01) {
       const targetHue = (Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360;
-
-      // нелинейный mix
       const k = 2.0 * (SENS.rgb / 140) * globalSens;
       let mix = mixCurve(hueWeight, k);
-
-      // ПРИМЕНЯЕМ TINT: непрозрачность перекраски.
-      // tint=1 → mix как есть, tint=0.5 → половинный сдвиг,
-      // tint=2 → удвоенный (перекрут).
       mix = Math.min(1, mix * tint);
 
       let delta = targetHue - hue;
@@ -324,7 +330,6 @@
       hue = hue + delta * mix;
     }
 
-    // 2) Насыщенность
     let sat = BASE_HSL.s;
     if (hueWeight > 0.01) {
       const k = 2.0 * (SENS.rgb / 140) * globalSens;
@@ -333,13 +338,12 @@
       sat = sat * (1 - 0.3 * mix);
     }
 
-    // 3) Светлота. Ч/б — разностью, тоже с учётом tint.
     let light = BASE_HSL.l;
 
     const blackScore = s.to_black || 0;
     const whiteScore = s.to_white || 0;
     let bwNet = (whiteScore - blackScore) * SENS.bwshift * globalSens;
-    bwNet = bwNet * tint;  // прозрачность влияет и на ч/б
+    bwNet = bwNet * tint;
 
     if (bwNet > 0) {
       const k = Math.min(1, bwNet);
@@ -361,7 +365,7 @@
   // ============================================================
   //  UI: РАЗБОР
   // ============================================================
-  function renderBreakdown(a, emotion) {
+  function renderBreakdown(a, emotion, exportHeight) {
     const box = $('breakdown');
     box.innerHTML = '';
 
@@ -396,7 +400,8 @@
     const NICE = {
       int: 'интенсивность', shade: 'тени', lit: 'блик',
       tw: 'ширина верха', mw: 'ширина середины', bw: 'ширина низа',
-      lw: 'левая половина', rw: 'правая половина', hh: 'общая высота',
+      lw: 'левая половина', rw: 'правая половина',
+      hh: 'высота картинки',
       ts: 'сдвиг верха', ms: 'сдвиг середины', bs: 'сдвиг низа',
       sk: 'наклон', rt: 'поворот',
       fx: 'лицо X', fy: 'лицо Y', fs: 'масштаб лица',
@@ -428,12 +433,19 @@
         box.appendChild(line);
       }
     }
+
+    // строка про размер экспорта
+    const sizeEl = document.createElement('div');
+    sizeEl.className = 'cat';
+    sizeEl.style.marginTop = '10px';
+    sizeEl.innerHTML = `Размер экспорта: <span class="score">${exportHeight}px</span> по высоте`;
+    box.appendChild(sizeEl);
   }
 
   function renderParams(p) {
     const fields = [
       'emo', 'int', 'shade', 'lit',
-      'tw', 'mw', 'bw', 'lw', 'rw', 'hh',
+      'tw', 'mw', 'bw', 'lw', 'rw',
       'ts', 'ms', 'bs', 'sk', 'rt',
       'fx', 'fy', 'fs',
     ];
@@ -441,21 +453,30 @@
     box.innerHTML = fields
       .map(f => `<div>${f} <span>${p[f]}</span></div>`)
       .join('') +
-      `<div>fill <span>${p.fill}</span></div>`;
+      `<div>fill <span>${p.fill}</span></div>` +
+      `<div>exportHeight <span>${p.exportHeight}</span></div>`;
   }
 
   // ============================================================
   //  ГЛАВНАЯ ФУНКЦИЯ
   // ============================================================
   let lastAnalysis = null;
+  let lastParams = null;
 
   function applyFromAnalysis(a) {
     const params = computeParams(a);
-    pumpkin.setParams(params);
+    lastParams = params;
+
+    // ВАЖНО: в Pumpkin.setParams НЕ передаём exportHeight
+    // и НЕ передаём hh — форма не зависит ни от того, ни от другого.
+    const forPumpkin = { ...params };
+    delete forPumpkin.exportHeight;
+
+    pumpkin.setParams(forPumpkin);
     pumpkin.render();
 
     const emotion = computeEmotion(a.scores);
-    renderBreakdown(a, emotion);
+    renderBreakdown(a, emotion, params.exportHeight);
     renderParams(params);
 
     const totalHits = Object.values(a.raw).reduce((s, x) => s + x, 0);
@@ -481,7 +502,6 @@
     ['bw',      's-bw',      'l-bw',      2],
     ['lw',      's-lw',      'l-lw',      2],
     ['rw',      's-rw',      'l-rw',      2],
-    ['hh',      's-hh',      'l-hh',      2],
     ['fs',      's-fs',      'l-fs',      2],
     ['ts',      's-ts',      'l-ts',      0],
     ['ms',      's-ms',      'l-ms',      0],
@@ -512,6 +532,7 @@
   function resetSensUI() {
     for (const [key, inputId, labelId, digits] of SENS_CONTROLS) {
       const v = DEFAULTS[key];
+      if (v === undefined) continue;
       $(inputId).value = v;
       $(labelId).textContent = v.toFixed(digits);
     }
