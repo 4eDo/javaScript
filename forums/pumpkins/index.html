@@ -36,6 +36,7 @@
   button {
     width: 100%; padding: 8px; margin-top: 6px; cursor: pointer;
     background: #ff8c1a; border: none; border-radius: 6px; font-weight: 600;
+    color: #1e1e24;
   }
   button:hover { background: #ffa947; }
   button.secondary { background: #4a4a58; color: #eee; }
@@ -43,6 +44,7 @@
   button.upload { background: #2f8fd8; color: #fff; }
   button.upload:hover { background: #3fa1ea; }
   button:disabled { opacity: .6; cursor: wait; }
+
   .emotion-scale {
     display: flex; justify-content: space-between;
     font-size: 10px; color: #777; margin-top: 4px;
@@ -121,22 +123,24 @@
 </div>
 
 <div id="panel">
-  <h2>🎃 Тыква с эмоциями</h2>
+  <h2>🎃 Тыква — редактор</h2>
 
   <div class="group">
-    <h3>Эмоция (общий слайдер)</h3>
-    <label>Грусть → Радость → Гнев <span id="v-emo">0.50</span></label>
-    <input type="range" id="emo" min="0" max="1" step="0.001" value="0.5">
+    <h3>Эмоция (треугольник)</h3>
+    <label>Грусть ↔ Гнев (tone) <span id="v-tone">0.00</span></label>
+    <input type="range" id="tone" min="-1" max="1" step="0.01" value="0">
+    <label>Не-радость ↔ Радость (mood) <span id="v-mood">1.00</span></label>
+    <input type="range" id="mood" min="-1" max="1" step="0.01" value="1">
     <div class="emotion-scale">
-      <span data-emo="0">😢 грусть</span>
-      <span data-emo="0.5">😀 радость</span>
-      <span data-emo="1">😠 гнев</span>
+      <span data-tone="-1" data-mood="-1">😢 грусть</span>
+      <span data-tone="0"  data-mood="1">😀 радость</span>
+      <span data-tone="1"  data-mood="-1">😠 гнев</span>
     </div>
   </div>
 
   <div class="group">
-    <h3>Сила эмоции / интенсивность</h3>
-    <label>Интенсивность <span id="v-int">1.00</span></label>
+    <h3>Интенсивность эмоции</h3>
+    <label>Радиус от центра (int) <span id="v-int">1.00</span></label>
     <input type="range" id="int" min="0" max="1.5" step="0.01" value="1">
   </div>
 
@@ -167,9 +171,7 @@
   </div>
 
   <div class="group">
-    <h3>Общая высота и смещения</h3>
-    <label>Общая высота <span id="v-hh">1.00</span></label>
-    <input type="range" id="hh" min="0.3" max="2" step="0.01" value="1">
+    <h3>Смещения зон</h3>
     <label>Сдвиг верха <span id="v-ts">0</span></label>
     <input type="range" id="ts" min="-80" max="80" step="1" value="0">
     <label>Сдвиг середины <span id="v-ms">0</span></label>

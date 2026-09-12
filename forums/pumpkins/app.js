@@ -1,5 +1,6 @@
 /* ============================================================
- *  UI-логика: связывает ползунки с экземпляром класса Pumpkin.
+ *  UI-логика редактора: связывает ползунки с экземпляром Pumpkin.
+ *  Работает через ТРЕУГОЛЬНИК эмоций (tone, mood, int).
  * ============================================================ */
 
 (function () {
@@ -7,29 +8,31 @@
 
   const IMGBB_API_KEY = '1e12d568c88876be45ce5c87b6753b67';
 
-  // ---- создаём экземпляр ----
   const pumpkin = new Pumpkin($('cv'));
 
-  // ---- поля, которые читаем с ползунков ----
+  // Поля-диапазоны, которые читаем с ползунков
   const RANGE_FIELDS = [
-    'emo','int','shade','lit',
-    'tw','mw','bw','lw','rw','hh',
+    'tone','mood','int','shade','lit',
+    'tw','mw','bw','lw','rw',
     'ts','ms','bs','sk','rt',
     'fx','fy','fs',
   ];
 
-  // карта подпись → id
+  // Карта: имя поля → id подписи
   const LABEL_MAP = {
-    emo: 'v-emo', int: 'v-int', shade: 'v-shade', lit: 'v-lit',
-    tw: 'v-tw', mw: 'v-mw', bw: 'v-bw', lw: 'v-lw', rw: 'v-rw', hh: 'v-hh',
-    ts: 'v-ts', ms: 'v-ms', bs: 'v-bs', sk: 'v-sk', rt: 'v-rt',
+    tone: 'v-tone', mood: 'v-mood', int: 'v-int',
+    shade: 'v-shade', lit: 'v-lit',
+    tw: 'v-tw', mw: 'v-mw', bw: 'v-bw',
+    lw: 'v-lw', rw: 'v-rw',
+    ts: 'v-ts', ms: 'v-ms', bs: 'v-bs',
+    sk: 'v-sk', rt: 'v-rt',
     fx: 'v-fx', fy: 'v-fy', fs: 'v-fs',
   };
 
-  // какие поля показывать с 2 знаками после запятой
+  // Какие поля — с двумя знаками после запятой
   const FLOAT_FIELDS = new Set([
-    'emo','int','shade','lit',
-    'tw','mw','bw','lw','rw','hh',
+    'tone','mood','int','shade','lit',
+    'tw','mw','bw','lw','rw',
     'fx','fy','fs',
   ]);
 
@@ -37,6 +40,9 @@
     const obj = {};
     for (const f of RANGE_FIELDS) obj[f] = +$(f).value;
     obj.fill = $('fill').value;
+    // ВАЖНО: ставим флаг, чтобы Pumpkin использовал треугольник,
+    // а не старый emo-путь.
+    obj._useTriangle = true;
     return obj;
   }
 
@@ -55,7 +61,6 @@
     pumpkin.setParams(params).render();
   }
 
-  // ---- инициализация ----
   function resize() {
     pumpkin.resizeToContainer($('stage'));
   }
@@ -93,8 +98,6 @@
     result.classList.remove('on');
 
     try {
-      // Свежий экспорт делается ВНУТРИ метода класса.
-      // Если ползунки менялись после открытия окна — загрузится актуальная версия.
       const res = await pumpkin.uploadToImgbb(IMGBB_API_KEY, {
         format: 'webp',
         quality: 1.0,
@@ -117,20 +120,21 @@
     }
   }
 
-  // ---- подключаем обработчики ----
+  // ---- обработчики ----
   document.querySelectorAll('input').forEach(el => {
     el.addEventListener('input', loop);
   });
 
+  // быстрые пресеты эмоций под ползунками tone/mood
   document.querySelectorAll('.emotion-scale span').forEach(el => {
     el.addEventListener('click', () => {
-      $('emo').value = el.dataset.emo;
+      $('tone').value = el.dataset.tone;
+      $('mood').value = el.dataset.mood;
       loop();
     });
   });
 
   $('reset').addEventListener('click', () => {
-    // сброс UI-ползунков к значениям по умолчанию из класса
     const d = Pumpkin.DEFAULTS;
     for (const f of RANGE_FIELDS) {
       if (f in d) $(f).value = d[f];
@@ -195,7 +199,7 @@
 
   window.addEventListener('resize', resize);
 
-  // первый запуск
+  // Первый запуск
   resize();
   loop();
 })();
