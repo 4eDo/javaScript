@@ -43,7 +43,7 @@ class Pumpkin {
     joy: {
       eyeShape: 0.5, eyeTilt: 0.0, eyeSize: 1.0, eyeScaleY: 1.0,
       pupilSize: 0.85, pupilOffset: 0,
-      browAngle: 0, browY: 0.05,
+      browAngle: 0, browY: -0.05,
       mouthCurve: 0.9, mouthOpen: 0.5, mouthWidth: 0.75,
     },
     angry: {
