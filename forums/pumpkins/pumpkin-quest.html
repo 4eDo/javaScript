@@ -1,0 +1,90 @@
+<!-- ============================================================
+     Страница квестов за тыквы.
+     Встраивается в форумную страницу. Без <html>, <head>, <body>.
+     ============================================================ -->
+
+<div id="pumpkinQuest">
+
+  <!-- Статус -->
+  <div id="pqStatus"></div>
+
+  <!-- Ошибки -->
+  <div id="pqErrors"></div>
+
+  <!-- Превью последней полученной тыквы -->
+  <div id="pqPreviewBlock" style="display:none;">
+    <div id="pqPreviewWrap"></div>
+    <div>
+      <a id="pqCollectionLink" href="#">Перейти к моей коллекции тыкв</a>
+    </div>
+  </div>
+
+  <!-- Таблица эпизодов -->
+  <table id="pqTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>№</th>
+        <th>Эпизод</th>
+        <th>Дата</th>
+        <th>Действие</th>
+      </tr>
+    </thead>
+    <tbody id="pqTableBody"></tbody>
+  </table>
+
+</div>
+
+<script>
+/* ============================================================
+ *  КОНФИГУРАЦИЯ
+ *  Меняется здесь, файлов больше нет.
+ * ============================================================ */
+
+window.PUMPKIN_QUEST_CONFIG = {
+
+  // С какой даты ищем посты (включительно). Формат YYYY-MM-DD.
+  // Время сравнивается с 00:00 локального времени пользователя.
+  START_DATE: '2026-09-01',
+
+  // Форум(-ы), в которых ищем посты.
+  GAME_FORUMS: [11, 12, 14, 22, 23],
+
+  // Топик, куда складываются тыквы.
+  PUMPKINS_TOPIC: 36,
+
+  // API imgbb.
+  IMGBB_API_KEY: '1e12d568c88876be45ce5c87b6753b67',
+
+  // Сколько дней хранить отметку о получении в Storage.
+  STORAGE_TTL_MINUTES: 40 * 24 * 60,
+
+  // Пауза между запросами к API (мс), чтобы не долбить сервер.
+  API_DELAY: 120,
+
+  // Сколько попыток на один запрос при сетевой ошибке.
+  MAX_RETRIES: 3,
+
+  // Размер превью тыквы в пикселях (квадрат).
+  PREVIEW_SIZE: 100,
+
+  // Шаблоны инвентаря — те же, что в третьем скрипте.
+  TEMPLATES: {
+    INVENTORY: `
+[b]Инвентарь пользователя[/b]
+[html]
+<style>.usr_inv {display: grid;gap: 10px;margin-top: 10px;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));}.inv_item {background: ;border: 1px solid #ddd;border-radius: 4px;padding: 10px;text-align: center;}.item-image {width: 64px;height: 64px;object-fit: cover;border-radius: 4px;}</style>
+<div class="usr_inv">
+    {{items}}
+</div>
+[/html]
+[b]Последнее обновление:[/b] {{currentTime}}
+    `,
+    IMAGE_IN_INVENTORY: `<div class="inv_item"><img src="{{src}}" title="{{name}}" alt="{{name}}" class="item-image"></div>`,
+  },
+};
+</script>
+
+<script src="pumpkin.js"></script>
+<script src="words.js"></script>
+<script src="pumpkin-core.js"></script>
+<script src="pumpkin-quest.js"></script>
