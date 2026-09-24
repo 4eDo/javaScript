@@ -6,13 +6,23 @@
 		free: 'Одиночки'
 	};
 
-	const ICON = (key) => `<span class="fr ${key}" title="${FR[key] || key}"></span>`;
+	const esc = (s) => String(s).replace(/"/g, '&quot;');
+
+	const ICON = (key) => `<span class="fr ${key}" title="${esc(FR[key] || key)}"></span>`;
 
 	const splitKeys = (str) => (str || '').split(/\s+/).filter(Boolean);
 
 	const names = (str) => splitKeys(str)
 		.map(k => FR[k] || k)
 		.join(', ');
+
+	const episode = (data) => {
+		if (!data.weplink && !data.weptitle) return '';
+		if (data.weplink && data.weptitle) {
+			return `<a href="${data.weplink}">${data.weptitle}</a>`;
+		}
+		return data.weplink || data.weptitle;
+	};
 
 	const addons = (data) => {
 		let rows = '';
@@ -60,12 +70,14 @@
 			${addons(data)}
 		`;
 
+		const ep = episode(data);
+
 		if (data.status === 'wip') {
 			return `
 				${head}
 				<div class="quote-box spoiler-box">
 					<div onclick="$(this).toggleClass('visible'); $(this).next().toggleClass('visible');" class="">
-						Занято за ${data.users || ''}${data.episode ? `: ${data.episode}` : ''}
+						Занято за ${data.users || ''}${ep ? `: ${ep}` : ''}
 					</div>
 					<blockquote class="">
 						${body}
@@ -86,15 +98,16 @@
 	if (!source) return;
 
 	const cards = Array.from(source.querySelectorAll('.card')).map(card => ({
-		status: card.querySelector('wstatus')?.textContent.trim() || 'open',
-		users: card.querySelector('wusers')?.textContent.trim() || '',
-		episode: card.querySelector('wepisode')?.innerHTML.trim() || '',
-		from: card.querySelector('wfrom')?.textContent.trim() || '',
-		to: card.querySelector('wto')?.textContent.trim() || '',
-		title: card.querySelector('wtitle')?.textContent.trim() || '',
-		descr: card.querySelector('wdescr')?.textContent.trim() || '',
-		date: card.querySelector('wdate')?.textContent.trim() || '',
-		bonus: card.querySelector('wbonus')?.textContent.trim() || ''
+		status:   card.querySelector('wstatus')?.textContent.trim() || 'open',
+		users:    card.querySelector('wusers')?.textContent.trim() || '',
+		weplink:  card.querySelector('weplink')?.textContent.trim() || '',
+		weptitle: card.querySelector('weptitle')?.textContent.trim() || '',
+		from:     card.querySelector('wfrom')?.textContent.trim() || '',
+		to:       card.querySelector('wto')?.textContent.trim() || '',
+		title:    card.querySelector('wtitle')?.textContent.trim() || '',
+		descr:    card.querySelector('wdescr')?.textContent.trim() || '',
+		date:     card.querySelector('wdate')?.textContent.trim() || '',
+		bonus:    card.querySelector('wbonus')?.textContent.trim() || ''
 	}));
 
 	const list = document.querySelector('.quests-list');
