@@ -80,7 +80,7 @@
 				<div class="quote-box spoiler-box">
 					<div onclick="$(this).toggleClass('visible'); $(this).next().toggleClass('visible');" class="">
 						${head}
-						<strong>${stateLabel}${data.users ? ` за ${data.users}` : ''}</strong>${ep ? `<br>Эпизод: ${ep}` : ''}
+						<p style="font-size: smaller;"><strong>[ ${stateLabel}${data.users ? ` ${data.users}` : ''}</strong>${ep ? `<br>Эпизод: ${ep}` : ''} ]</p>
 					</div>
 					<blockquote class="">
 						${body}
