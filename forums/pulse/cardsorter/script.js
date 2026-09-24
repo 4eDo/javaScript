@@ -10,12 +10,24 @@
 
 	const splitKeys = (str) => (str || '').split(/\s+/).filter(Boolean);
 
+	const names = (str) => splitKeys(str)
+		.map(k => FR[k] || k)
+		.join(', ');
+
+	const addons = (data) => {
+		let rows = '';
+		if (data.date)  rows += `<p><strong>Дата:</strong> ${data.date}</p>`;
+		if (data.users) rows += `<p><strong>Участники:</strong> ${data.users}</p>`;
+		if (data.from)  rows += `<p><strong>От кого:</strong> ${names(data.from)}</p>`;
+		if (data.to)    rows += `<p><strong>Для кого:</strong> ${names(data.to)}</p>`;
+		return rows;
+	};
+
 	const CARD_TEMPLATE = (data) => {
 		const fromKeys = splitKeys(data.from);
 		const toKeys   = splitKeys(data.to);
 
-		const allKeys  = Array.from(new Set([...fromKeys, ...toKeys]));
-		const same     = fromKeys.length === 1
+		const same = fromKeys.length === 1
 			&& toKeys.length === 1
 			&& fromKeys[0] === toKeys[0];
 
@@ -37,10 +49,8 @@
 		`;
 
 		const body = `
-			<p>
-				${data.descr}
-				<br><strong>Дата:</strong> ${data.date}
-			</p>
+			<p>${data.descr}</p>
+			${addons(data)}
 		`;
 
 		if (data.status === 'wip') {
