@@ -47,7 +47,7 @@ window.PUMPKIN_QUEST_CONFIG = {
   START_DATE: '2026-09-01',
 
   // Форум(-ы), в которых ищем посты.
-  GAME_FORUMS: [11, 12, 14, 22, 23],
+  GAME_FORUMS: [1, 11, 12, 14, 22, 23],
 
   // Топик, куда складываются тыквы.
   PUMPKINS_TOPIC: 2780,
@@ -72,19 +72,19 @@ window.PUMPKIN_QUEST_CONFIG = {
     INVENTORY: `
 [b]Инвентарь пользователя[/b]
 [html]
-<style>.usr_inv {display: grid;gap: 10px;margin-top: 10px;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));}.inv_item {background: ;border: 1px solid #ddd;border-radius: 4px;padding: 10px;text-align: center;}.item-image {width: 64px;height: 64px;object-fit: cover;border-radius: 4px;}</style>
-<div class="usr_inv">
+<style>.usr_pumps {display: grid;gap: 10px;margin-top: 10px;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));}.inv_pump {background: ;border: 1px solid #ddd;border-radius: 4px;padding: 10px;text-align: center;}.pump-image {object-fit: cover;border-radius: 4px;}</style>
+<div class="usr_pumps">
     {{items}}
 </div>
 [/html]
 [b]Последнее обновление:[/b] {{currentTime}}
     `,
-    IMAGE_IN_INVENTORY: `<div class="inv_item"><img src="{{src}}" title="{{name}}" alt="{{name}}" class="item-image"></div>`,
+    IMAGE_IN_INVENTORY: `<div class="inv_pump"><img src="{{src}}" title="{{name}}" class="pump-image"></div>`,
   },
 };
 </script>
 
-<script src="pumpkin.js"></script>
-<script src="words.js"></script>
-<script src="pumpkin-core.js"></script>
-<script src="pumpkin-quest.js"></script>
+<script src="https://4edo.github.io/javaScript/forums/pumpkins/pumpkin.js"></script>
+<script src="https://4edo.github.io/javaScript/forums/pumpkins/words.js"></script>
+<script src="https://4edo.github.io/javaScript/forums/pumpkins/pumpkin-core.js"></script>
+<script src="https://4edo.github.io/javaScript/forums/pumpkins/pumpkin-quest.js"></script>

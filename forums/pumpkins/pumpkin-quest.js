@@ -46,6 +46,40 @@
   const pumpkin = new Pumpkin($hiddenCanvas);
 
   // ============================================================
+  //  КЛАССЫ ИЗ ШАБЛОНОВ
+  // ============================================================
+  //
+  //  Достаём имена классов из шаблонов в конфиге, чтобы не
+  //  хардкодить их в JS. Если пользователь переименует
+  //  .usr_pumps и .inv_pump в конфиге — всё продолжит работать.
+  //
+
+  function extractContainerClass(inventoryTmpl) {
+    // ищем <div class="..."> ближайший перед {{items}}
+    const before = inventoryTmpl.substring(0, inventoryTmpl.indexOf('{{items}}'));
+    const matches = [...before.matchAll(/<div[^>]*class="([^"]+)"/g)];
+    if (!matches.length) {
+      console.warn('[pumpkin-quest] Не найден класс контейнера в INVENTORY');
+      return 'usr_pumps';
+    }
+    // берём первый класс (без пробелов) из последнего <div class>
+    return matches[matches.length - 1][1].split(/\s+/)[0];
+  }
+
+  function extractItemClass(itemTmpl) {
+    const m = itemTmpl.match(/<div[^>]*class="([^"]+)"/);
+    if (!m) {
+      console.warn('[pumpkin-quest] Не найден класс элемента в IMAGE_IN_INVENTORY');
+      return 'inv_pump';
+    }
+    return m[1].split(/\s+/)[0];
+  }
+
+  const CONTAINER_CLASS = extractContainerClass(CFG.TEMPLATES.INVENTORY);
+  const ITEM_CLASS      = extractItemClass(CFG.TEMPLATES.IMAGE_IN_INVENTORY);
+  console.log('[pumpkin-quest] container class:', CONTAINER_CLASS, '· item class:', ITEM_CLASS);
+
+  // ============================================================
   //  УТИЛИТЫ
   // ============================================================
 
@@ -70,7 +104,7 @@
   }
 
   // ============================================================
-  //  API — ТОЧНО КАК В ТРЕТЬЕМ СКРИПТЕ
+  //  API
   // ============================================================
 
   async function apiCall(method, params = {}) {
@@ -79,9 +113,7 @@
       ...params,
     });
     const url = '/api.php?' + urlParams.toString();
-    const response = await fetch(url, {
-      method: 'POST',
-    });
+    const response = await fetch(url, { method: 'POST' });
     if (!response.ok) {
       throw new Error('HTTP error! status: ' + response.status);
     }
@@ -253,7 +285,7 @@
   }
 
   // ============================================================
-  //  ИНВЕНТАРЬ ЧЕРЕЗ IFRAME
+  //  ИНВЕНТАРЬ
   // ============================================================
 
   async function findInventoryPost() {
@@ -271,18 +303,21 @@
     return mine.length ? mine[mine.length - 1] : null;
   }
 
+  // Извлекает innerHTML контейнера с классом CONTAINER_CLASS
+  // из старого HTML-блока (внутри [html]...[/html]).
   function extractExistingItems(htmlContent) {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
-      const usrInv = doc.querySelector('.usr_inv');
-      if (!usrInv) return '';
+      const container = doc.querySelector('.' + CONTAINER_CLASS);
+      if (!container) return '';
       let html = '';
-      usrInv.querySelectorAll('.inv_item').forEach(item => {
+      container.querySelectorAll('.' + ITEM_CLASS).forEach(item => {
         html += item.outerHTML;
       });
       return html;
     } catch (e) {
+      console.warn('[pumpkin-quest] extractExistingItems error:', e);
       return '';
     }
   }
