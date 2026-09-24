@@ -31,10 +31,10 @@
 		let rows = '';
 		if (data.date)   rows += `<p><strong>Дата:</strong> ${data.date}</p>`;
 		if (data.bonus)  rows += `<p><strong>Награда:</strong> ${data.bonus}</p>`;
-		if (data.result) rows += `<p><strong>Итог:</strong> ${data.result}</p>`;
 		if (data.users)  rows += `<p><strong>Участники:</strong> ${data.users}</p>`;
 		if (data.from)   rows += `<p><strong>От кого:</strong> ${names(data.from)}</p>`;
 		if (data.to)     rows += `<p><strong>Для кого:</strong> ${names(data.to)}</p>`;
+		if (data.result) rows += `<p><strong style="font-size: larger;">Итог:</strong> ${data.result}</p>`;
 		return rows;
 	};
 
