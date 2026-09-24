@@ -51,13 +51,12 @@
     tint:    1.0,
   };
 
-  // Настройки размера экспорта
   const HH_MIN = 100;
   const HH_MAX = 250;
   const RENDER_SIZE = 512;
 
   // ============================================================
-  //  СОСТОЯНИЕ (можно менять снаружи)
+  //  СОСТОЯНИЕ
   // ============================================================
 
   const SENS = { ...DEFAULTS };
@@ -96,15 +95,54 @@
   }
 
   // ============================================================
+  //  ДОСТУП К СЛОВАРЮ
+  // ============================================================
+  //
+  //  words.js объявляет RULES через const. Такая переменная
+  //  создаётся в глобальной области, но не становится свойством
+  //  window. Из другого скрипта того же документа её видно
+  //  через лексическую область — при условии, что words.js
+  //  подключён раньше того скрипта, который её читает.
+  //
+  //  getRules() пробует все источники, чтобы не зависеть
+  //  от порядка подключения.
+  //
+  let _cachedRules = null;
+
+  function getRules() {
+    if (_cachedRules) return _cachedRules;
+
+    // 1) лексическая RULES (const-объявление в words.js)
+    try {
+      if (typeof RULES !== 'undefined' && RULES) {
+        _cachedRules = RULES;
+        return _cachedRules;
+      }
+    } catch (e) { /* ignore */ }
+
+    // 2) window.RULES
+    if (global.RULES) {
+      _cachedRules = global.RULES;
+      return _cachedRules;
+    }
+
+    // 3) пустой словарь, чтобы не падать
+    _cachedRules = {};
+    return _cachedRules;
+  }
+
+  function resetRulesCache() {
+    _cachedRules = null;
+  }
+
+  // ============================================================
   //  АНАЛИЗ ТЕКСТА
   // ============================================================
 
   function analyze(words) {
     const raw = {};
     const hits = {};
-
-    // RULES — глобальный объект из words.js
-    const rules = global.RULES || {};
+    const rules = getRules();
 
     for (const word of words) {
       for (const [cat, rule] of Object.entries(rules)) {
@@ -375,7 +413,7 @@
   }
 
   // ============================================================
-  //  ЭКСПОРТ В global
+  //  ЭКСПОРТ
   // ============================================================
 
   global.PumpkinCore = {
@@ -399,6 +437,8 @@
     clamp,
     r3,
     tokenize,
+    getRules,
+    resetRulesCache,
 
     // логика
     analyze,
