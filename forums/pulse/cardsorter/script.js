@@ -32,7 +32,7 @@
 			<p>
 				<span class="quest-status status-${data.status}"></span>
 				<span><strong>${data.title}</strong></span>
-				<span style="float:right">${icons}</span>
+				<span class="icons">${icons}</span>
 			</p>
 		`;
 
