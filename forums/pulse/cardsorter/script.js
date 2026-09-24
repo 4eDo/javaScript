@@ -17,6 +17,7 @@
 	const addons = (data) => {
 		let rows = '';
 		if (data.date)  rows += `<p><strong>Дата:</strong> ${data.date}</p>`;
+		if (data.bonus) rows += `<p><strong>Награда:</strong> ${data.bonus}</p>`;
 		if (data.users) rows += `<p><strong>Участники:</strong> ${data.users}</p>`;
 		if (data.from)  rows += `<p><strong>От кого:</strong> ${names(data.from)}</p>`;
 		if (data.to)    rows += `<p><strong>Для кого:</strong> ${names(data.to)}</p>`;
@@ -27,17 +28,23 @@
 		const fromKeys = splitKeys(data.from);
 		const toKeys   = splitKeys(data.to);
 
-		const same = fromKeys.length === 1
-			&& toKeys.length === 1
-			&& fromKeys[0] === toKeys[0];
-
 		let icons = '';
-		if (same) {
-			icons = ICON(fromKeys[0]);
-		} else {
-			const fromHtml = fromKeys.map(ICON).join(' ');
-			const toHtml   = toKeys.map(ICON).join(' ');
-			icons = `${fromHtml}${fromHtml && toHtml ? ' &rarr; ' : ''}${toHtml}`;
+		if (fromKeys.length && toKeys.length) {
+			const same = fromKeys.length === 1
+				&& toKeys.length === 1
+				&& fromKeys[0] === toKeys[0];
+
+			if (same) {
+				icons = ICON(fromKeys[0]);
+			} else {
+				const fromHtml = fromKeys.map(ICON).join(' ');
+				const toHtml   = toKeys.map(ICON).join(' ');
+				icons = `${fromHtml} &rarr; ${toHtml}`;
+			}
+		} else if (fromKeys.length) {
+			icons = fromKeys.map(ICON).join(' ');
+		} else if (toKeys.length) {
+			icons = toKeys.map(ICON).join(' ');
 		}
 
 		const head = `
@@ -86,7 +93,8 @@
 		to: card.querySelector('wto')?.textContent.trim() || '',
 		title: card.querySelector('wtitle')?.textContent.trim() || '',
 		descr: card.querySelector('wdescr')?.textContent.trim() || '',
-		date: card.querySelector('wdate')?.textContent.trim() || ''
+		date: card.querySelector('wdate')?.textContent.trim() || '',
+		bonus: card.querySelector('wbonus')?.textContent.trim() || ''
 	}));
 
 	const list = document.querySelector('.quests-list');
@@ -95,7 +103,11 @@
 	function render(filter = 'all') {
 		list.innerHTML = '';
 		cards
-			.filter(c => filter === 'all' || c.to.split(/\s+/).includes(filter))
+			.filter(c => {
+				if (filter === 'all') return true;
+				const keys = splitKeys(c.to);
+				return keys.length ? keys.includes(filter) : splitKeys(c.from).includes(filter);
+			})
 			.forEach(c => {
 				list.insertAdjacentHTML('beforeend', CARD_TEMPLATE(c));
 			});
