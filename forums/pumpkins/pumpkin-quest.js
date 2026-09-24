@@ -36,7 +36,7 @@
   }
 
   const USER_ID = String(UserID);
-  const BASE_URL = window.location.origin + '/api.php?method=';
+  const BASE_URL = window.location.origin + '/api.php';
   const START_TS = new Date(CFG.START_DATE + 'T00:00:00').getTime();
 
   // ---- фоновый Pumpkin без видимого canvas ----
@@ -65,13 +65,43 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // ---- API ----
+  //
+  //  storage.set / storage.delete / storage.flush — POST
+  //  всё остальное (get-методы) — GET
+  //
+  const POST_METHODS = new Set([
+    'storage.set',
+    'storage.delete',
+    'storage.flush',
+  ]);
+
   function apiCall(method, params) {
-    const url = BASE_URL + method + '&format=json&' + $.param(params || {});
+    const query = $.param(params || {});
+    const url = BASE_URL + '?method=' + method + '&format=json&' + query;
+
+    if (POST_METHODS.has(method)) {
+      // POST-запрос с телом в x-www-form-urlencoded
+      return new Promise((resolve, reject) => {
+        $.ajax({
+          url: BASE_URL + '?method=' + method + '&format=json',
+          method: 'POST',
+          data: params || {},
+          dataType: 'json',
+          success: resolve,
+          error: (jqXHR, textStatus) => {
+            reject(new Error(textStatus || ('HTTP ' + (jqXHR && jqXHR.status))));
+          },
+        });
+      });
+    }
+
+    // GET
     return new Promise((resolve, reject) => {
       $.getJSON(url)
         .done(resolve)
         .fail((jqXHR, textStatus) => {
-          reject(new Error(textStatus || 'HTTP ' + (jqXHR && jqXHR.status)));
+          reject(new Error(textStatus || ('HTTP ' + (jqXHR && jqXHR.status))));
         });
     });
   }
@@ -92,7 +122,6 @@
   }
 
   function responseArray(data) {
-    // API отдаёт либо { response: [...] }, либо сразу [...]
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.response)) return data.response;
     return [];
@@ -104,21 +133,11 @@
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  function escapeHtml(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   // HTML → чистый текст
   function htmlToText(html) {
     if (!html) return '';
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
-    // уберём script/style на всякий случай
     tmp.querySelectorAll('script, style').forEach(n => n.remove());
     const text = tmp.textContent || tmp.innerText || '';
     return text.replace(/\s+/g, ' ').trim();
@@ -131,11 +150,10 @@
   async function getObtainedKeys() {
     try {
       const res = await apiCallWithRetry('storage.keys', {});
-      // Ожидаем { response: { storage: { keys: [...] } } } или похожее
-      const raw = res?.response?.storage?.keys
-        || res?.response?.keys
-        || res?.keys
-        || [];
+      const raw = (res && res.response && res.response.storage && res.response.storage.keys)
+               || (res && res.response && res.response.keys)
+               || (res && res.keys)
+               || [];
       const prefix = 'pumpkin_' + USER_ID + '_';
       const set = new Set();
       for (const k of raw) {
@@ -143,7 +161,6 @@
       }
       return set;
     } catch (e) {
-      // Если storage.keys не сработал — не падаем, работаем без отметок
       console.warn('[pumpkin-quest] storage.keys failed:', e);
       return new Set();
     }
@@ -151,15 +168,12 @@
 
   async function markObtained(postId) {
     const key = 'pumpkin_' + USER_ID + '_' + postId;
-    try {
-      await apiCallWithRetry('storage.set', {
-        key: key,
-        value: new Date().toISOString(),
-        timer: CFG.STORAGE_TTL_MINUTES,
-      });
-    } catch (e) {
-      addError('Не удалось сохранить отметку о получении тыквы: ' + e.message);
-    }
+    const res = await apiCallWithRetry('storage.set', {
+      key: key,
+      value: new Date().toISOString(),
+      timer: CFG.STORAGE_TTL_MINUTES,
+    });
+    return res;
   }
 
   // ============================================================
@@ -244,7 +258,6 @@
         addError('Ошибка при обработке темы ' + t.id + ': ' + e.message);
       }
     }
-    // сортировка по дате: свежие сверху
     out.sort((a, b) => b.posted - a.posted);
     return out;
   }
@@ -273,27 +286,76 @@
   }
 
   // ============================================================
-  //  ИНВЕНТАРЬ
+  //  ИНВЕНТАРЬ (по образцу третьего скрипта)
   // ============================================================
 
-  async function findInventoryPost() {
-    try {
-      const data = await apiCallWithRetry('post.get', {
-        topic_id: CFG.PUMPKINS_TOPIC,
-        fields: 'id,user_id,message',
-        limit: 100,
+  // Загружает HTML страницы и возвращает объект с полями формы
+  function getFormObjectFromPage(url, formSelector) {
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        url: url,
+        method: 'GET',
+        success: function (pageContent) {
+          try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(pageContent, 'text/html');
+            const form = doc.querySelector(formSelector);
+            if (!form) {
+              reject(new Error("Форма '" + formSelector + "' не найдена на " + url));
+              return;
+            }
+            const data = {};
+            const fd = new FormData(form);
+            for (const [key, value] of fd.entries()) {
+              data[key] = value;
+            }
+            resolve({ data, form, action: form.getAttribute('action') || '' });
+          } catch (e) {
+            reject(e);
+          }
+        },
+        error: function (jqXHR, textStatus) {
+          reject(new Error('Ошибка загрузки ' + url + ': ' + textStatus));
+        },
       });
-      const posts = responseArray(data);
-      const mine = posts.filter(p =>
-        String(p.user_id) === USER_ID &&
-        typeof p.message === 'string' &&
-        p.message.indexOf('[html]') !== -1
-      );
-      return mine.length ? mine[mine.length - 1] : null;
-    } catch (e) {
-      console.warn('[pumpkin-quest] findInventoryPost failed:', e);
-      return null;
+    });
+  }
+
+  // Сериализация: разворачивает объект полей в x-www-form-urlencoded строку
+  function serializeFields(obj) {
+    const parts = [];
+    for (const k in obj) {
+      const v = obj[k];
+      parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v == null ? '' : v));
     }
+    return parts.join('&');
+  }
+
+  // Отправка формы методом POST (application/x-www-form-urlencoded)
+  async function sendForm(url, fields) {
+    const body = serializeFields(fields);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body,
+    });
+    return res.ok;
+  }
+
+  // Ищет мой пост-инвентарь в PUMPKINS_TOPIC
+  async function findInventoryPost() {
+    const data = await apiCallWithRetry('post.get', {
+      topic_id: CFG.PUMPKINS_TOPIC,
+      fields: 'id,user_id,message',
+      limit: 100,
+    });
+    const posts = responseArray(data);
+    const mine = posts.filter(p =>
+      String(p.user_id) === USER_ID &&
+      typeof p.message === 'string' &&
+      p.message.indexOf('[html]') !== -1
+    );
+    return mine.length ? mine[mine.length - 1] : null;
   }
 
   function extractExistingItems(htmlContent) {
@@ -335,90 +397,66 @@
       .replace(/{{name}}/g, name);
   }
 
-  // Получение формы edit.php и отправка
-  async function getFormObjectFromPage(url, formId) {
-    const html = await new Promise((resolve, reject) => {
-      $.ajax({
-        url: url,
-        method: 'GET',
-        success: resolve,
-        error: (jqXHR, textStatus) => reject(new Error(textStatus)),
-      });
-    });
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const form = doc.querySelector(formId);
-    if (!form) throw new Error('Форма ' + formId + ' не найдена на ' + url);
-    const data = {};
-    const formData = new FormData(form);
-    for (const [k, v] of formData.entries()) data[k] = v;
-    return data;
+  // ---------- ДОБАВЛЕНИЕ В ИНВЕНТАРЬ ----------
+
+  async function editExistingInventoryPost(postId, imageUrl, itemName) {
+    const editUrl = '/edit.php?id=' + postId;
+    const { data, action } = await getFormObjectFromPage(editUrl, '#post');
+
+    // поле сообщения
+    const fieldKey = ('req_message' in data)
+      ? 'req_message'
+      : Object.keys(data).find(k => /message/i.test(k));
+    if (!fieldKey) throw new Error('Не найдено поле сообщения на edit.php');
+
+    const existingItems = parseInventoryItems(data[fieldKey] || '');
+    const newItemHtml = buildItemHtml(imageUrl, itemName);
+    data[fieldKey] = buildInventoryMessage(existingItems + newItemHtml);
+
+    const postUrl = action
+      ? new URL(action, window.location.origin).href
+      : window.location.origin + editUrl;
+
+    const ok = await sendForm(postUrl, data);
+    if (!ok) throw new Error('edit.php вернул не-200 при сохранении');
+    return postId;
   }
 
-  async function sendForm(url, data) {
-    const $fake = $('<form>');
-    for (const k in data) {
-      $fake.append($('<input>').attr({ type: 'hidden', name: k, value: data[k] }));
-    }
-    const body = $fake.serialize();
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body,
-    });
-    return res.ok;
+  async function createNewInventoryPost(imageUrl, itemName) {
+    const topicUrl = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
+    // Ищем форму быстрого ответа на странице топика
+    const { data, action, form } = await getFormObjectFromPage(
+      topicUrl,
+      '#post, form[action*="posting.php"]'
+    );
+
+    const fieldKey = ('req_message' in data)
+      ? 'req_message'
+      : Object.keys(data).find(k => /message/i.test(k));
+    if (!fieldKey) throw new Error('Не найдено поле сообщения на странице топика');
+
+    const newItemHtml = buildItemHtml(imageUrl, itemName);
+    data[fieldKey] = buildInventoryMessage(newItemHtml);
+
+    // Ключевое: id темы. Иногда он уже в форме, иногда нет.
+    if (!('id' in data)) data.id = CFG.PUMPKINS_TOPIC;
+    if (!('t' in data)) data.t = CFG.PUMPKINS_TOPIC;
+
+    const postUrl = action
+      ? new URL(action, window.location.origin).href
+      : window.location.origin + '/posting.php';
+
+    const ok = await sendForm(postUrl, data);
+    if (!ok) throw new Error('posting.php вернул не-200 при создании поста');
+    return null;
   }
 
-  async function appendToInventory(imageUrl, name) {
+  async function appendToInventory(imageUrl, itemName) {
     const existing = await findInventoryPost();
-
     if (existing) {
-      const editUrl = '/edit.php?id=' + existing.id;
-      const formData = await getFormObjectFromPage(editUrl, '#post');
-      const key = 'req_message';
-      const oldMsg = formData[key] || '';
-      const existingItems = parseInventoryItems(oldMsg);
-      const newItemHtml = buildItemHtml(imageUrl, name);
-      const allItems = existingItems + newItemHtml;
-      formData[key] = buildInventoryMessage(allItems);
-      const ok = await sendForm(editUrl, formData);
-      if (!ok) throw new Error('Не удалось отредактировать пост инвентаря');
-      return existing.id;
-    } else {
-      // создаём новый пост
-      // идём на viewtopic.php?id=PUMPKINS_TOPIC, берём форму ответа
-      const topicUrl = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
-      const html = await new Promise((resolve, reject) => {
-        $.ajax({
-          url: topicUrl,
-          method: 'GET',
-          success: resolve,
-          error: (jqXHR, textStatus) => reject(new Error(textStatus)),
-        });
-      });
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const form = doc.querySelector('#post, form[action*="posting.php"]');
-      if (!form) throw new Error('Форма ответа в топике инвентаря не найдена');
-
-      const data = {};
-      const fd = new FormData(form);
-      for (const [k, v] of fd.entries()) data[k] = v;
-
-      // имя поля сообщения у форума обычно req_message
-      const msgKey = ('req_message' in data) ? 'req_message' : Object.keys(data).find(k => /message/i.test(k));
-      if (!msgKey) throw new Error('Не найдено поле сообщения в форме ответа');
-
-      const newItemHtml = buildItemHtml(imageUrl, name);
-      data[msgKey] = buildInventoryMessage(newItemHtml);
-
-      const action = form.getAttribute('action') || '/posting.php';
-      const postUrl = new URL(action, window.location.origin).pathname +
-                      '?id=' + CFG.PUMPKINS_TOPIC;
-      const ok = await sendForm(postUrl, data);
-      if (!ok) throw new Error('Не удалось создать пост инвентаря');
-      return null; // id неизвестен без парсинга ответа
+      return await editExistingInventoryPost(existing.id, imageUrl, itemName);
     }
+    return await createNewInventoryPost(imageUrl, itemName);
   }
 
   // ============================================================
@@ -457,7 +495,7 @@
     setStatus('');
   }
 
-  function renderPreview(imageUrl, postId) {
+  function renderPreview(imageUrl) {
     $previewW.empty();
     $previewW.append(
       $('<img>')
@@ -473,14 +511,14 @@
   }
 
   // ============================================================
-  //  ГЛАВНОЕ ДЕЙСТВИЕ: ПОЛУЧИТЬ ТЫКВУ
+  //  ГЛАВНОЕ ДЕЙСТВИЕ
   // ============================================================
 
   async function onGetPumpkin(post, $btn, $actionCell) {
     $btn.prop('disabled', true).text('...');
 
     try {
-      // 1. Параметры тыквы из текста поста
+      // 1. Параметры тыквы
       const analysis = PumpkinCore.analyzeText(post.text);
       const params = PumpkinCore.computeParams(analysis);
 
@@ -501,18 +539,15 @@
       const fileName = USER_ID + '_' + post.postId;
       const imageUrl = await uploadToImgbb(result.dataURL, fileName);
 
-      // 4. Показываем превью
-      renderPreview(imageUrl, post.postId);
-
-      // 5. Добавляем в инвентарь
+      // 4. Добавление в инвентарь (может бросить)
       await appendToInventory(imageUrl, 'Тыква эпизода');
 
-      // 6. Отметка в Storage
+      // 5. Отметка в Storage (может бросить)
       await markObtained(post.postId);
 
-      // 7. Обновляем кнопку
+      // 6. Показываем превью и меняем кнопку
+      renderPreview(imageUrl);
       $btn.replaceWith($('<span>').text('✓ Получена').css('color', '#3a3'));
-      $actionCell.css('vertical-align', 'middle');
     } catch (e) {
       console.error('[pumpkin-quest]', e);
       addError('Не удалось получить тыкву для поста ' + post.postId + ': ' + e.message);
@@ -529,17 +564,12 @@
     clearErrors();
 
     try {
-      // 1. Получаем список уже полученных
       const obtained = await getObtainedKeys();
-
-      // 2. Собираем посты
       const posts = await collectPosts();
 
-      // 3. Фильтруем уже полученные
       const prefix = 'pumpkin_' + USER_ID + '_';
       const fresh = posts.filter(p => !obtained.has(prefix + p.postId));
 
-      // 4. Рисуем
       renderTable(fresh);
     } catch (e) {
       console.error('[pumpkin-quest] init failed:', e);
