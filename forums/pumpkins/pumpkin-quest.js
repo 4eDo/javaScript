@@ -8,21 +8,14 @@
  *    - PumpkinCore (pumpkin-core.js)
  *    - window.PUMPKIN_QUEST_CONFIG (из pumpkin-quest.html)
  *    - глобалы форума: UserID
- *
- *  Работа с инвентарём — через iframe с реальной формой форума
- *  (имитация пользователя: GET страницы, клик submit).
  * ============================================================ */
 
 (function () {
   'use strict';
 
-  // Если мы внутри iframe (нас запустил родитель для submit'а) —
-  // ничего не делаем. Родитель сам взаимодействует с contentDocument.
-  if (window.self !== window.top) {
-    return;
-  }
+  // Не работаем внутри iframe
+  if (window.self !== window.top) return;
 
-  // ---- конфиг ----
   const CFG = window.PUMPKIN_QUEST_CONFIG;
   if (!CFG) {
     console.error('[pumpkin-quest] Конфиг PUMPKIN_QUEST_CONFIG не найден');
@@ -44,10 +37,9 @@
   }
 
   const USER_ID  = String(UserID);
-  const BASE_URL = window.location.origin + '/api.php';
   const START_TS = new Date(CFG.START_DATE + 'T00:00:00').getTime();
 
-  // ---- фоновый Pumpkin без видимого canvas ----
+  // ---- фоновый Pumpkin ----
   const $hiddenCanvas = document.createElement('canvas');
   $hiddenCanvas.width = 512;
   $hiddenCanvas.height = 512;
@@ -78,40 +70,22 @@
   }
 
   // ============================================================
-  //  API
+  //  API — ТОЧНО КАК В ТРЕТЬЕМ СКРИПТЕ
   // ============================================================
 
-  const POST_METHODS = new Set([
-    'storage.set',
-    'storage.delete',
-    'storage.flush',
-  ]);
-
-  function apiCall(method, params) {
-    const query = $.param(params || {});
-
-    if (POST_METHODS.has(method)) {
-      return new Promise((resolve, reject) => {
-        $.ajax({
-          url: BASE_URL + '?method=' + method + '&format=json',
-          method: 'POST',
-          data: params || {},
-          dataType: 'json',
-          success: resolve,
-          error: (jqXHR, textStatus) => {
-            reject(new Error(textStatus || ('HTTP ' + (jqXHR && jqXHR.status))));
-          },
-        });
-      });
-    }
-
-    return new Promise((resolve, reject) => {
-      $.getJSON(BASE_URL + '?method=' + method + '&format=json&' + query)
-        .done(resolve)
-        .fail((jqXHR, textStatus) => {
-          reject(new Error(textStatus || ('HTTP ' + (jqXHR && jqXHR.status))));
-        });
+  async function apiCall(method, params = {}) {
+    const urlParams = new URLSearchParams({
+      method: method,
+      ...params,
     });
+    const url = '/api.php?' + urlParams.toString();
+    const response = await fetch(url, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('HTTP error! status: ' + response.status);
+    }
+    return await response.json();
   }
 
   async function apiCallWithRetry(method, params) {
@@ -160,11 +134,13 @@
 
   async function markObtained(postId) {
     const key = 'pumpkin_' + USER_ID + '_' + postId;
-    return await apiCallWithRetry('storage.set', {
+    const res = await apiCallWithRetry('storage.set', {
       key: key,
       value: new Date().toISOString(),
       timer: CFG.STORAGE_TTL_MINUTES,
     });
+    console.log('[pumpkin-quest] storage.set response:', res);
+    return res;
   }
 
   // ============================================================
@@ -280,7 +256,6 @@
   //  ИНВЕНТАРЬ ЧЕРЕЗ IFRAME
   // ============================================================
 
-  // Ищет мой пост-инвентарь в PUMPKINS_TOPIC
   async function findInventoryPost() {
     const data = await apiCallWithRetry('post.get', {
       topic_id: CFG.PUMPKINS_TOPIC,
@@ -335,20 +310,9 @@
       .replace(/{{name}}/g, name);
   }
 
-  // ---------- iframe-based submit ----------
+  // ---------- iframe submit ----------
 
-  /**
-   * Открывает url в скрытом iframe, ждёт загрузку, находит форму,
-   * подставляет значения полей, кликает submit, ждёт второй load,
-   * удаляет iframe, резолвится true.
-   *
-   * @param {string} url
-   * @param {string} formSelector
-   * @param {object} fields — { name: value, ... }
-   * @param {number} timeoutMs
-   * @returns {Promise<boolean>}
-   */
-  function submitViaIframe(url, formSelector, fields, timeoutMs = 15000) {
+  function submitViaIframe(url, formSelector, fields, timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
@@ -360,7 +324,7 @@
       iframe.setAttribute('aria-hidden', 'true');
       document.body.appendChild(iframe);
 
-      let stage = 0; // 0 = ждём первую загрузку, 1 = ждём загрузку после submit
+      let stage = 0;
       let finished = false;
 
       const cleanup = () => {
@@ -379,59 +343,38 @@
         if (finished) return;
 
         if (stage === 0) {
-          // Первая загрузка — ищем форму, подставляем значения
           let doc = null;
           try {
             doc = iframe.contentDocument || iframe.contentWindow.document;
           } catch (e) {
-            fail('Нет доступа к содержимому iframe (X-Frame-Options?): ' + e.message);
+            fail('Нет доступа к содержимому iframe: ' + e.message);
             return;
           }
-          if (!doc) {
-            fail('iframe загрузился без документа');
-            return;
-          }
+          if (!doc) { fail('iframe загрузился без документа'); return; }
 
           const form = doc.querySelector(formSelector);
-          if (!form) {
-            fail('Форма "' + formSelector + '" не найдена на ' + url);
-            return;
-          }
+          if (!form) { fail('Форма "' + formSelector + '" не найдена на ' + url); return; }
 
-          // Заполняем поля
           for (const name in fields) {
             const el = form.querySelector('[name="' + name + '"]');
-            if (el) {
-              el.value = fields[name];
-            }
+            if (el) el.value = fields[name];
           }
 
-          // Ищем кнопку submit
           const submitBtn =
             form.querySelector('input[type="submit"][name="submit"]') ||
             form.querySelector('input[type="submit"]') ||
             form.querySelector('button[type="submit"]') ||
             form.querySelector('input[name="submit"]');
 
-          if (!submitBtn) {
-            fail('Кнопка submit не найдена в форме "' + formSelector + '"');
-            return;
-          }
+          if (!submitBtn) { fail('Кнопка submit не найдена в форме'); return; }
 
           stage = 1;
-          // Небольшая пауза, чтобы браузер точно применил значения
           setTimeout(() => {
-            try {
-              submitBtn.click();
-            } catch (e) {
-              fail('Не удалось кликнуть submit: ' + e.message);
-            }
+            try { submitBtn.click(); }
+            catch (e) { fail('Не удалось кликнуть submit: ' + e.message); }
           }, 50);
 
         } else if (stage === 1) {
-          // Второй load — форма ушла, ответ пришёл.
-          // Формально: считаем успехом. Если сервер вернул ошибку валидации,
-          // его можно распарсить и показать в #pqErrors, но пока просто ОК.
           ok();
         }
       });
@@ -440,72 +383,6 @@
     });
   }
 
-  /**
-   * Редактирует существующий пост-инвентарь: открывает edit.php,
-   * заменяет req_message, кликает submit.
-   */
-  async function editExistingInventoryPost(postId, imageUrl, itemName) {
-    // Сначала GET-ом подтянем содержимое поста, чтобы не зависеть от iframe'а
-    // в части парсинга старого инвентаря. Так надёжнее.
-    const data = await apiCallWithRetry('post.get', {
-      post_id: postId,
-      fields: 'id,message',
-      limit: 1,
-    });
-    const arr = responseArray(data);
-    const post = arr[0];
-    if (!post || !post.message) {
-      throw new Error('Не удалось прочитать старый пост инвентаря');
-    }
-
-    const existingItems = parseInventoryItems(post.message);
-    const newItemHtml = buildItemHtml(imageUrl, itemName);
-    const newMessage = buildInventoryMessage(existingItems + newItemHtml);
-
-    // А теперь через iframe откроем edit.php и подставим в форму.
-    // Поле сообщения у phpBB-подобных движков обычно req_message.
-    // Если поле называется иначе — подберём по содержимому.
-    const fieldName = await detectMessageFieldName('/edit.php?id=' + postId, '#post');
-    const fields = {};
-    fields[fieldName] = newMessage;
-
-    const url = '/edit.php?id=' + postId;
-    const okDone = await submitViaIframe(url, '#post', fields, 20000);
-    if (!okDone) throw new Error('iframe-редактирование не завершилось');
-    return postId;
-  }
-
-  /**
-   * Создаёт новый пост-инвентарь: открывает viewtopic.php?id=PUMPKINS_TOPIC,
-   * находит форму ответа, подставляет message, кликает submit.
-   */
-  async function createNewInventoryPost(imageUrl, itemName) {
-    const newItemHtml = buildItemHtml(imageUrl, itemName);
-    const newMessage = buildInventoryMessage(newItemHtml);
-
-    const url = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
-    const formSelector = '#post, form[action*="posting.php"]';
-
-    // Определяем имя поля сообщения в форме ответа
-    const fieldName = await detectMessageFieldName(url, formSelector);
-
-    const fields = {};
-    fields[fieldName] = newMessage;
-
-    // Иногда форме нужен topic id в скрытых полях. Обычно он уже есть
-    // в форме как name="t" или name="id", но на всякий случай подставим,
-    // если поля нет — submit всё равно уйдёт с тем, что есть.
-    // Мы не знаем точно, есть ли они, поэтому не форсируем.
-
-    const okDone = await submitViaIframe(url, formSelector, fields, 20000);
-    if (!okDone) throw new Error('iframe-создание поста не завершилось');
-    return null;
-  }
-
-  /**
-   * Загружает страницу через fetch, находит форму и определяет имя
-   * поля сообщения. Возвращает имя поля.
-   */
   async function detectMessageFieldName(url, formSelector) {
     const html = await new Promise((resolve, reject) => {
       $.ajax({
@@ -518,13 +395,51 @@
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const form = doc.querySelector(formSelector);
     if (!form) throw new Error('Форма "' + formSelector + '" не найдена на ' + url);
-
     const names = [...form.querySelectorAll('[name]')].map(el => el.name);
-    // Приоритет: req_message, потом что-то с message
     if (names.includes('req_message')) return 'req_message';
     const msgName = names.find(n => /message/i.test(n));
     if (msgName) return msgName;
     throw new Error('В форме нет поля для сообщения');
+  }
+
+  async function editExistingInventoryPost(postId, imageUrl, itemName) {
+    const data = await apiCallWithRetry('post.get', {
+      post_id: postId,
+      fields: 'id,message',
+      limit: 1,
+    });
+    const arr = responseArray(data);
+    const post = arr[0];
+    if (!post || !post.message) throw new Error('Не удалось прочитать старый пост инвентаря');
+
+    const existingItems = parseInventoryItems(post.message);
+    const newItemHtml = buildItemHtml(imageUrl, itemName);
+    const newMessage = buildInventoryMessage(existingItems + newItemHtml);
+
+    const url = '/edit.php?id=' + postId;
+    const fieldName = await detectMessageFieldName(url, '#post');
+    const fields = {};
+    fields[fieldName] = newMessage;
+
+    const okDone = await submitViaIframe(url, '#post', fields, 20000);
+    if (!okDone) throw new Error('iframe-редактирование не завершилось');
+    return postId;
+  }
+
+  async function createNewInventoryPost(imageUrl, itemName) {
+    const newItemHtml = buildItemHtml(imageUrl, itemName);
+    const newMessage = buildInventoryMessage(newItemHtml);
+
+    const url = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
+    const formSelector = '#post, form[action*="posting.php"]';
+    const fieldName = await detectMessageFieldName(url, formSelector);
+
+    const fields = {};
+    fields[fieldName] = newMessage;
+
+    const okDone = await submitViaIframe(url, formSelector, fields, 20000);
+    if (!okDone) throw new Error('iframe-создание поста не завершилось');
+    return null;
   }
 
   async function appendToInventory(imageUrl, itemName) {
@@ -593,7 +508,6 @@
     $btn.prop('disabled', true).text('...');
 
     try {
-      // 1. Параметры тыквы из текста поста
       const analysis = PumpkinCore.analyzeText(post.text);
       const params = PumpkinCore.computeParams(analysis);
 
@@ -603,24 +517,18 @@
 
       pumpkin.setParams(forPumpkin);
 
-      // 2. Рендер в data URL
       const result = pumpkin.exportWithHeight(params.exportHeight, {
         format: 'webp',
         quality: 1.0,
         renderSize: PumpkinCore.RENDER_SIZE,
       });
 
-      // 3. Загрузка на imgbb
       const fileName = USER_ID + '_' + post.postId;
       const imageUrl = await uploadToImgbb(result.dataURL, fileName);
 
-      // 4. Инвентарь — через iframe с реальной формой форума
       await appendToInventory(imageUrl, 'Тыква эпизода');
-
-      // 5. Отметка в Storage
       await markObtained(post.postId);
 
-      // 6. Превью + кнопка
       renderPreview(imageUrl);
       $btn.replaceWith($('<span>').text('✓ Получена').css('color', '#3a3'));
     } catch (e) {
@@ -641,10 +549,8 @@
     try {
       const obtained = await getObtainedKeys();
       const posts = await collectPosts();
-
       const prefix = 'pumpkin_' + USER_ID + '_';
       const fresh = posts.filter(p => !obtained.has(prefix + p.postId));
-
       renderTable(fresh);
     } catch (e) {
       console.error('[pumpkin-quest] init failed:', e);
