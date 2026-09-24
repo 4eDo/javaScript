@@ -78,7 +78,7 @@
 
 			// Заголовок архива: две колонки — слева инфо, справа иконки
 			const archiveHead = `
-				<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1em;">
+				<div style="display:flex; justify-content:space-between; align-items: center; gap:1em;">
 					<div style="flex:1 1 auto; min-width:0;">
 						<p>
 							<span class="quest-status status-${data.status}"></span>
