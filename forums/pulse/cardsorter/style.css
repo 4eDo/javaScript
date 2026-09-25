@@ -1,0 +1,15 @@
+#pun {all: unset;}
+.quest-status { display: inline-block;width: 32px;height: 32px;vertical-align: middle;background-size: contain;background-repeat: no-repeat;background-position: center;}
+
+.quest-status.status-open  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/77/229546.png'); }
+.quest-status.status-wip   { background-image: url('https://upforme.ru/uploads/001c/0f/f1/77/391482.png'); }
+.quest-status.status-fail  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/77/501942.png'); }
+.quest-status.status-done  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/77/172960.png'); }
+
+.icons {float: right; position: relative; z-index: 2;}
+.fr { display: inline-block;width: 90px;height: 90px;vertical-align: middle;background-size: contain;background-repeat: no-repeat;background-position: center;}
+
+.al  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/830519.png'); }
+.sv   { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/759873.png'); }
+.mt  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/794038.png'); }
+.free  { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/881728.png'); }
