@@ -17,7 +17,7 @@ class Pumpkin {
   static FACE_COLOR   = '#000000';
   static BASE_LWD     = 5;
   static HALO_SCALE   = 1.8;
-  static EXPORT_MAX   = 200;
+  static EXPORT_MAX   = 500;
 
   // ---------- ПАРАМЕТРЫ ПО УМОЛЧАНИЮ ----------
   static DEFAULTS = {
