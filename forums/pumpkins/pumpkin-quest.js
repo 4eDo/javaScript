@@ -23,13 +23,13 @@
   const MSG = CFG.MESSAGES;
 
   // ---- DOM ----
+  const $quest         = $('#pumpkinQuest');
   const $status        = $('#pqStatus');
   const $errors        = $('#pqErrors');
   const $preview       = $('#pqPreviewBlock');
   const $previewW      = $('#pqPreviewWrap');
   const $collLink      = $('#pqCollectionLink');
 
-  const $searchBlock   = $('#pqSearchBlock');
   const $btnBringLink  = $('#pqBtnBringLink');
   const $btnDiscover   = $('#pqBtnDiscover');
   const $linkBlock     = $('#pqLinkBlock');
@@ -47,8 +47,8 @@
     return;
   }
 
-  const USER_ID  = String(UserID);
-  const START_TS = new Date(CFG.START_DATE + 'T00:00:00').getTime();
+  const USER_ID   = String(UserID);
+  const START_TS  = new Date(CFG.START_DATE + 'T00:00:00').getTime();
   const CACHE_KEY = 'pq_cache_' + USER_ID;
 
   // ---- фоновый Pumpkin ----
@@ -67,13 +67,11 @@
     if (!matches.length) return 'usr_pumps';
     return matches[matches.length - 1][1].split(/\s+/)[0];
   }
-
   function extractItemClass(itemTmpl) {
     const m = itemTmpl.match(/<div[^>]*class="([^"]+)"/);
     if (!m) return 'inv_pump';
     return m[1].split(/\s+/)[0];
   }
-
   const CONTAINER_CLASS = extractContainerClass(CFG.TEMPLATES.INVENTORY);
   const ITEM_CLASS      = extractItemClass(CFG.TEMPLATES.IMAGE_IN_INVENTORY);
   console.log('[pumpkin-quest] container:', CONTAINER_CLASS, '· item:', ITEM_CLASS);
@@ -89,9 +87,7 @@
 
   function fmt(template, params) {
     let out = template;
-    for (const k in params) {
-      out = out.replaceAll('{' + k + '}', String(params[k]));
-    }
+    for (const k in params) out = out.replaceAll('{' + k + '}', String(params[k]));
     return out;
   }
 
@@ -141,6 +137,27 @@
   }
 
   // ============================================================
+  //  БЛОКИРОВКА UI
+  // ============================================================
+
+  let busy = false;
+
+  function lockUI() {
+    busy = true;
+    $quest.find('button').prop('disabled', true);
+  }
+
+  function unlockUI() {
+    busy = false;
+    $quest.find('button').prop('disabled', false);
+    // Кнопки, которые должны остаться отключёнными, — их нет,
+    // потому что полученные строки используют <span>, а не <button>.
+    // Но «Получить» в процессе не должно быть отключено здесь,
+    // потому что кнопка в процессе сама себя восстанавливает
+    // или заменяется на span.
+  }
+
+  // ============================================================
   //  API
   // ============================================================
 
@@ -174,7 +191,7 @@
   }
 
   // ============================================================
-  //  КЭШ В SESSIONSTORAGE
+  //  КЭШ (ТОЛЬКО СПИСОК ПОСТОВ, БЕЗ СТАТУСА ПОЛУЧЕНИЯ)
   // ============================================================
 
   function readCache() {
@@ -182,19 +199,18 @@
       const raw = sessionStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      if (!obj || typeof obj.ts !== 'number') return null;
+      if (!obj || typeof obj.ts !== 'number' || !Array.isArray(obj.posts)) return null;
       return obj;
     } catch (e) {
       return null;
     }
   }
 
-  function writeCache(posts, obtained) {
+  function writeCache(posts) {
     try {
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         ts: Date.now(),
         posts: posts,
-        obtained: obtained,
       }));
     } catch (e) {
       console.warn('[pumpkin-quest] cache write failed:', e);
@@ -231,10 +247,6 @@
     return message.substring(start + 6, end);
   }
 
-  /**
-   * Извлекает Set полученных pid из HTML-блока инвентаря.
-   * Ходит по ссылкам <a href="...#pNNN"> внутри контейнера.
-   */
   function extractObtainedPids(htmlBlock) {
     const pids = new Set();
     if (!htmlBlock) return pids;
@@ -254,10 +266,6 @@
     return pids;
   }
 
-  /**
-   * Возвращает Set полученных pid, читая последний пост пользователя
-   * в PUMPKINS_TOPIC. Если поста нет — пустой Set.
-   */
   async function loadObtainedPids() {
     const post = await findInventoryPost();
     if (!post) return new Set();
@@ -265,10 +273,6 @@
     return extractObtainedPids(block);
   }
 
-  /**
-   * Извлекает HTML всех старых элементов инвентаря из блока.
-   * Возвращает строку с outerHTML каждого элемента.
-   */
   function extractExistingItemsHtml(htmlBlock) {
     if (!htmlBlock) return '';
     try {
@@ -399,10 +403,6 @@
     throw new Error(MSG.errFormNotFound);
   }
 
-  /**
-   * Добавляет новую тыкву в инвентарь пользователя.
-   * Если пост-инвентарь есть — редактирует, если нет — создаёт.
-   */
   async function appendPumpkinToInventory(imageUrl, pid, name) {
     const existingPost = await findInventoryPost();
     const newItemHtml = buildItemHtml(imageUrl, pid, name);
@@ -421,7 +421,6 @@
       return existingPost.id;
     }
 
-    // Создаём новый пост
     const newMessage = buildInventoryMessage(newItemHtml);
     const url = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
     const formSelector = '#post, form[action*="posting.php"]';
@@ -456,7 +455,7 @@
   }
 
   // ============================================================
-  //  ГЕНЕРАЦИЯ ТЫКВЫ ПО ПОСТУ
+  //  ГЕНЕРАЦИЯ ТЫКВЫ
   // ============================================================
 
   async function generateAndUploadPumpkin(post) {
@@ -480,7 +479,7 @@
   }
 
   // ============================================================
-  //  СБОР ПОСТОВ (ДЛЯ «ОБНАРУЖИТЬ ВСЕ»)
+  //  СБОР ПОСТОВ
   // ============================================================
 
   async function fetchTopics() {
@@ -566,15 +565,9 @@
   }
 
   // ============================================================
-  //  ПОЛУЧЕНИЕ ТЫКВЫ (ОБЩАЯ ЛОГИКА)
+  //  ПОЛУЧЕНИЕ ТЫКВЫ
   // ============================================================
 
-  /**
-   * Основная процедура получения тыквы за конкретный пост.
-   * @param {object} post  {postId, subject, posted, text}
-   * @param {Set<string>} obtainedPids — уже полученные pid (будет пополнен)
-   * @returns {Promise<boolean>} успех
-   */
   async function obtainPumpkinForPost(post, obtainedPids) {
     if (obtainedPids.has(post.postId)) {
       setStatus(MSG.statusAlreadyGot);
@@ -621,7 +614,7 @@
   }
 
   // ============================================================
-  //  ТАБЛИЦА ОБНАРУЖЕННЫХ ПОСТОВ
+  //  ТАБЛИЦА
   // ============================================================
 
   function renderDiscoverTable(posts, obtainedPids) {
@@ -641,7 +634,7 @@
       const url = '/viewtopic.php?pid=' + p.postId + '#p' + p.postId;
       const alreadyGot = obtainedPids.has(p.postId);
 
-      const $row = $('<tr>');
+      const $row = $('<tr>').attr('data-pid', p.postId);
       $row.append($('<td>').text(idx + 1));
       $row.append(
         $('<td>').append(
@@ -656,14 +649,18 @@
       } else {
         const $btn = $('<button>').attr('type', 'button').text(MSG.btnGetPumpkin);
         $btn.on('click', async () => {
-          $btn.prop('disabled', true).text('...');
-          const ok = await obtainPumpkinForPost(p, obtainedPids);
-          if (ok) {
-            $btn.replaceWith($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
-            // Обновляем кэш — отметим этот pid как полученный
-            updateCacheObtained(obtainedPids);
-          } else {
-            $btn.prop('disabled', false).text(MSG.btnGetPumpkin);
+          if (busy) return;
+          lockUI();
+          $btn.text('...');
+          try {
+            const ok = await obtainPumpkinForPost(p, obtainedPids);
+            if (ok) {
+              $btn.replaceWith($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
+            } else {
+              $btn.text(MSG.btnGetPumpkin);
+            }
+          } finally {
+            unlockUI();
           }
         });
         $action.append($btn);
@@ -678,32 +675,37 @@
     setStatus(fmt(MSG.statusDetected, { n: total, m: got }));
   }
 
-  function updateCacheObtained(obtainedPids) {
-    const c = readCache();
-    if (!c) return;
-    c.obtained = [...obtainedPids];
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(c));
-    } catch (e) {}
+  /**
+   * Обновляет одну строку таблицы по pid — помечает её как полученную.
+   */
+  function markRowAsObtained(pid) {
+    const $row = $tbody.find('tr[data-pid="' + pid + '"]');
+    if (!$row.length) return;
+    const $action = $row.children('td').last();
+    $action.empty().append($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
   }
 
   // ============================================================
-  //  ДЕЙСТВИЯ: «ОБНАРУЖИТЬ ВСЕ»
+  //  «ОБНАРУЖИТЬ ВСЕ»
   // ============================================================
 
   async function onDiscoverAll() {
+    if (busy) return;
     clearErrors();
+    lockUI();
+
     setStatus(fmt(MSG.statusCollecting, { date: CFG.START_DATE }));
 
     try {
+      // ВСЕГДА читаем инвентарь — источник правды
+      const obtainedPids = await loadObtainedPids();
+
       const cache = readCache();
       const now = Date.now();
 
       if (cache && (now - cache.ts) < CFG.CACHE_TTL_MS) {
-        // свежий кэш
-        const obtainedPids = new Set(cache.obtained || []);
-        renderDiscoverTable(cache.posts || [], obtainedPids);
-
+        // Свежий кэш — берём только список постов, статус — из инвентаря
+        renderDiscoverTable(cache.posts, obtainedPids);
         $cacheWarning
           .text(fmt(MSG.statusCacheFresh, { age: formatAge(now - cache.ts) }))
           .show();
@@ -711,22 +713,22 @@
       }
 
       // Кэша нет или он старый — собираем заново
-      const obtainedPids = await loadObtainedPids();
       const posts = await collectPosts();
-
-      writeCache(posts, [...obtainedPids]);
+      writeCache(posts);
       renderDiscoverTable(posts, obtainedPids);
-
       $cacheWarning.text(MSG.statusFresh).show();
+
     } catch (e) {
       console.error('[pumpkin-quest] discover failed:', e);
       setStatus('');
       addError(fmt(MSG.errLoad, { msg: e.message }));
+    } finally {
+      unlockUI();
     }
   }
 
   // ============================================================
-  //  ДЕЙСТВИЯ: «ПРИНЕСТИ ССЫЛКУ»
+  //  «ПРИНЕСТИ ССЫЛКУ»
   // ============================================================
 
   function showLinkBlock() {
@@ -740,6 +742,7 @@
   }
 
   async function onBringLink() {
+    if (busy) return;
     clearErrors();
 
     const link = $linkInput.val();
@@ -749,11 +752,11 @@
       return;
     }
 
+    lockUI();
     setStatus(MSG.statusLoadingPost);
-    $btnGetThis.prop('disabled', true);
 
     try {
-      // Проверяем: не получена ли уже
+      // ВСЕГДА читаем инвентарь — источник правды
       const obtainedPids = await loadObtainedPids();
       if (obtainedPids.has(pid)) {
         setStatus(MSG.statusAlreadyGot);
@@ -761,7 +764,6 @@
         return;
       }
 
-      // Запрашиваем пост
       const data = await apiCallWithRetry('post.get', {
         post_id: pid,
         fields: 'id,user_id,posted,forum_id,subject,message',
@@ -771,7 +773,6 @@
       const p = arr[0];
       if (!p) { addError(MSG.errPostNotFound); setStatus(''); return; }
 
-      // Проверки
       if (String(p.user_id) !== USER_ID) { addError(MSG.errAuthorNotYou); setStatus(''); return; }
       const ts = parseInt(p.posted, 10) * 1000;
       if (ts < START_TS) { addError(fmt(MSG.errTooOld, { date: CFG.START_DATE })); setStatus(''); return; }
@@ -779,9 +780,7 @@
         addError(MSG.errForumNotAllowed); setStatus(''); return;
       }
 
-      // Собираем «пост» — используется subject топика, а не поста
-      // Но post.get не даёт subject топика, поэтому subject берём из поста,
-      // если он там есть. Иначе — из кэша обнаружений.
+      // subject: пытаемся взять из кэша обнаружений, если там есть
       let subject = p.subject || '';
       if (!subject) {
         const c = readCache();
@@ -801,19 +800,14 @@
       const ok = await obtainPumpkinForPost(post, obtainedPids);
       if (ok) {
         hideLinkBlock();
-        // Если таблица открыта — обновим кэш и, если строка есть, пометим её
-        updateCacheObtained(obtainedPids);
-        const $rows = $tbody.find('tr');
-        // Простейший способ: пометить кнопку, если строка с этим pid есть.
-        // pid — единственный надёжный идентификатор строки, но у нас строки
-        // не помечены. При следующем «Обнаружить» из кэша всё встанет на место.
+        markRowAsObtained(pid);
       }
     } catch (e) {
       console.error('[pumpkin-quest] bring link failed:', e);
       addError(fmt(MSG.errGet, { msg: e.message }));
       setStatus('');
     } finally {
-      $btnGetThis.prop('disabled', false);
+      unlockUI();
     }
   }
 
