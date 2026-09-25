@@ -145,8 +145,9 @@
 
 		for (const url of links) {
 			try {
-				const res  = await fetch(url);
-				const html = await res.text();
+				const res = await fetch(url);
+				const buf = await res.arrayBuffer();
+				const html = new TextDecoder('windows-1251').decode(buf);
 
 				const doc = new DOMParser().parseFromString(html, 'text/html');
 				doc.querySelectorAll('.card').forEach(card => {
