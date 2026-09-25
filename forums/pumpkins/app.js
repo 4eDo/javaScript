@@ -67,7 +67,7 @@
 
   // ---- экспорт ----
   function openExport() {
-    const result = pumpkin.exportDataURL({ format: 'webp', quality: 1.0, max: 200 });
+    const result = pumpkin.exportDataURL({ format: 'webp', quality: 1.0, max: 512 });
     const { dataURL, width, height, format } = result;
 
     $('exportPreview').src = dataURL;
@@ -101,7 +101,7 @@
       const res = await pumpkin.uploadToImgbb(IMGBB_API_KEY, {
         format: 'webp',
         quality: 1.0,
-        max: 200,
+        max: 512,
       });
 
       $('imgbbDirect').value = res.direct;
