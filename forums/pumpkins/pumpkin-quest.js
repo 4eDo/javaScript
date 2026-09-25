@@ -483,6 +483,7 @@
   // ============================================================
 
   async function fetchTopics() {
+    setStatus(MSG.statusSearching);
     const forumIds = CFG.GAME_FORUMS.join(',');
     const all = [];
     let skip = 0;
@@ -635,12 +636,13 @@
       const alreadyGot = obtainedPids.has(p.postId);
 
       const $row = $('<tr>').attr('data-pid', p.postId);
-      $row.append($('<td>').text(idx + 1));
-      $row.append(
+        $row.append($('<td>').text(idx + 1));
+        $row.append(
         $('<td>').append(
-          $('<a>').attr('href', url).text(p.subject || ('#' + p.postId))
+            document.createTextNode((p.subject || '') + ' '),
+            $('<a>').attr('href', url).text('#p' + p.postId)
         )
-      );
+        );
       $row.append($('<td>').text(formatDate(p.posted)));
 
       const $action = $('<td>');
@@ -656,6 +658,7 @@
             const ok = await obtainPumpkinForPost(p, obtainedPids);
             if (ok) {
               $btn.replaceWith($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
+              setStatus(statusDone);
             } else {
               $btn.text(MSG.btnGetPumpkin);
             }
@@ -801,6 +804,7 @@
       if (ok) {
         hideLinkBlock();
         markRowAsObtained(pid);
+        setStatus(statusDone);
       }
     } catch (e) {
       console.error('[pumpkin-quest] bring link failed:', e);
