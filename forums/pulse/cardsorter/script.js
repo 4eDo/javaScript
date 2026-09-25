@@ -56,7 +56,7 @@
 		return '';
 	};
 
-		const CARD_TEMPLATE = (data) => {
+	const CARD_TEMPLATE = (data) => {
 		const icons = buildIcons(data);
 		const ep    = episode(data);
 		const body  = `
@@ -64,7 +64,6 @@
 			${addons(data)}
 		`;
 
-		// Обычный заголовок (open / wip) — оставляем как было
 		const head = `
 			<p>
 				<span class="quest-status status-${data.status}"></span>
@@ -76,9 +75,8 @@
 		if (isArchive(data)) {
 			const stateLabel = data.status === 'done' ? 'Выполнено' : 'Провалено';
 
-			// Заголовок архива: две колонки — слева инфо, справа иконки
 			const archiveHead = `
-				<div style="display:flex; justify-content:space-between; align-items: center; gap:1em;">
+				<div style="display:flex; justify-content:space-between; align-items:center; gap:1em;">
 					<div style="flex:1 1 auto; min-width:0;">
 						<p>
 							<span class="quest-status status-${data.status}"></span>
@@ -127,10 +125,7 @@
 		`;
 	};
 
-	const source = document.querySelector('.cards-source');
-	if (!source) return;
-
-	const cards = Array.from(source.querySelectorAll('.card')).map(card => ({
+	const parseCard = (card) => ({
 		status:   card.querySelector('wstatus')?.textContent.trim() || 'open',
 		users:    card.querySelector('wusers')?.textContent.trim() || '',
 		weplink:  card.querySelector('weplink')?.textContent.trim() || '',
@@ -142,50 +137,81 @@
 		date:     card.querySelector('wdate')?.textContent.trim() || '',
 		bonus:    card.querySelector('wbonus')?.textContent.trim() || '',
 		result:   card.querySelector('wresult')?.textContent.trim() || ''
-	}));
+	});
 
-	const list = document.querySelector('.quests-list');
-	const factionButtons = document.querySelectorAll('.quests-filters:not(.quests-filters--state) button');
-	const stateButtons   = document.querySelectorAll('.quests-filters--state button');
+	async function loadArchiveCards() {
+		const links = Array.isArray(window.ARCHIVE_LINKS) ? window.ARCHIVE_LINKS : [];
+		const loaded = [];
 
-	let currentFaction = 'all';
-	let currentState   = 'active';
+		for (const url of links) {
+			try {
+				const res  = await fetch(url);
+				const html = await res.text();
 
-	function render() {
-		list.innerHTML = '';
-		cards
-			.filter(c => {
-				// фильтр по статусу (актуальные / архив)
-				if (currentState === 'active' && !isActive(c)) return false;
-				if (currentState === 'archive' && !isArchive(c)) return false;
+				const doc = new DOMParser().parseFromString(html, 'text/html');
+				doc.querySelectorAll('.card').forEach(card => {
+					loaded.push(parseCard(card));
+				});
+			} catch (e) {
+				console.warn('Не удалось загрузить архив:', url, e);
+			}
+		}
 
-				// фильтр по фракции
-				if (currentFaction === 'all') return true;
-				const keys = splitKeys(c.to);
-				return keys.length ? keys.includes(currentFaction) : splitKeys(c.from).includes(currentFaction);
-			})
-			.forEach(c => {
-				list.insertAdjacentHTML('beforeend', CARD_TEMPLATE(c));
-			});
+		return loaded;
 	}
 
-	factionButtons.forEach(btn => {
-		btn.addEventListener('click', () => {
-			factionButtons.forEach(b => b.classList.remove('active'));
-			btn.classList.add('active');
-			currentFaction = btn.dataset.faction;
-			render();
-		});
-	});
+	async function init() {
+		const source = document.querySelector('.cards-source');
+		const list   = document.querySelector('.quests-list');
 
-	stateButtons.forEach(btn => {
-		btn.addEventListener('click', () => {
-			stateButtons.forEach(b => b.classList.remove('active'));
-			btn.classList.add('active');
-			currentState = btn.dataset.state;
-			render();
-		});
-	});
+		if (!source || !list) return;
 
-	render();
+		const localCards = Array.from(source.querySelectorAll('.card')).map(parseCard);
+		const archiveCards = await loadArchiveCards();
+		const cards = [...localCards, ...archiveCards];
+
+		const factionButtons = document.querySelectorAll('.quests-filters:not(.quests-filters--state) button');
+		const stateButtons   = document.querySelectorAll('.quests-filters--state button');
+
+		let currentFaction = 'all';
+		let currentState   = 'active';
+
+		function render() {
+			list.innerHTML = '';
+			cards
+				.filter(c => {
+					if (currentState === 'active' && !isActive(c)) return false;
+					if (currentState === 'archive' && !isArchive(c)) return false;
+
+					if (currentFaction === 'all') return true;
+					const keys = splitKeys(c.to);
+					return keys.length ? keys.includes(currentFaction) : splitKeys(c.from).includes(currentFaction);
+				})
+				.forEach(c => {
+					list.insertAdjacentHTML('beforeend', CARD_TEMPLATE(c));
+				});
+		}
+
+		factionButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				factionButtons.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+				currentFaction = btn.dataset.faction;
+				render();
+			});
+		});
+
+		stateButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				stateButtons.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+				currentState = btn.dataset.state;
+				render();
+			});
+		});
+
+		render();
+	}
+
+	init();
 })();
