@@ -13,7 +13,6 @@
 (function () {
   'use strict';
 
-  // Не работаем внутри iframe
   if (window.self !== window.top) return;
 
   const CFG = window.PUMPKIN_QUEST_CONFIG;
@@ -22,7 +21,6 @@
     return;
   }
 
-  // ---- DOM ----
   const $status    = $('#pqStatus');
   const $errors    = $('#pqErrors');
   const $table     = $('#pqTable');
@@ -39,7 +37,6 @@
   const USER_ID  = String(UserID);
   const START_TS = new Date(CFG.START_DATE + 'T00:00:00').getTime();
 
-  // ---- фоновый Pumpkin ----
   const $hiddenCanvas = document.createElement('canvas');
   $hiddenCanvas.width = 512;
   $hiddenCanvas.height = 512;
@@ -48,36 +45,23 @@
   // ============================================================
   //  КЛАССЫ ИЗ ШАБЛОНОВ
   // ============================================================
-  //
-  //  Достаём имена классов из шаблонов в конфиге, чтобы не
-  //  хардкодить их в JS. Если пользователь переименует
-  //  .usr_pumps и .inv_pump в конфиге — всё продолжит работать.
-  //
 
   function extractContainerClass(inventoryTmpl) {
-    // ищем <div class="..."> ближайший перед {{items}}
     const before = inventoryTmpl.substring(0, inventoryTmpl.indexOf('{{items}}'));
     const matches = [...before.matchAll(/<div[^>]*class="([^"]+)"/g)];
-    if (!matches.length) {
-      console.warn('[pumpkin-quest] Не найден класс контейнера в INVENTORY');
-      return 'usr_pumps';
-    }
-    // берём первый класс (без пробелов) из последнего <div class>
+    if (!matches.length) return 'usr_pumps';
     return matches[matches.length - 1][1].split(/\s+/)[0];
   }
 
   function extractItemClass(itemTmpl) {
     const m = itemTmpl.match(/<div[^>]*class="([^"]+)"/);
-    if (!m) {
-      console.warn('[pumpkin-quest] Не найден класс элемента в IMAGE_IN_INVENTORY');
-      return 'inv_pump';
-    }
+    if (!m) return 'inv_pump';
     return m[1].split(/\s+/)[0];
   }
 
   const CONTAINER_CLASS = extractContainerClass(CFG.TEMPLATES.INVENTORY);
   const ITEM_CLASS      = extractItemClass(CFG.TEMPLATES.IMAGE_IN_INVENTORY);
-  console.log('[pumpkin-quest] container class:', CONTAINER_CLASS, '· item class:', ITEM_CLASS);
+  console.log('[pumpkin-quest] container:', CONTAINER_CLASS, '· item:', ITEM_CLASS);
 
   // ============================================================
   //  УТИЛИТЫ
@@ -96,11 +80,20 @@
 
   function htmlToText(html) {
     if (!html) return '';
+    const decoded = decodeHtmlEntities(html);
     const tmp = document.createElement('div');
-    tmp.innerHTML = html;
+    tmp.innerHTML = decoded;
     tmp.querySelectorAll('script, style').forEach(n => n.remove());
     const text = tmp.textContent || tmp.innerText || '';
     return text.replace(/\s+/g, ' ').trim();
+  }
+
+  // Раскодирование HTML-сущностей
+  function decodeHtmlEntities(str) {
+    if (!str) return '';
+    const ta = document.createElement('textarea');
+    ta.innerHTML = str;
+    return ta.value;
   }
 
   // ============================================================
@@ -108,15 +101,10 @@
   // ============================================================
 
   async function apiCall(method, params = {}) {
-    const urlParams = new URLSearchParams({
-      method: method,
-      ...params,
-    });
+    const urlParams = new URLSearchParams({ method, ...params });
     const url = '/api.php?' + urlParams.toString();
     const response = await fetch(url, { method: 'POST' });
-    if (!response.ok) {
-      throw new Error('HTTP error! status: ' + response.status);
-    }
+    if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
     return await response.json();
   }
 
@@ -303,14 +291,21 @@
     return mine.length ? mine[mine.length - 1] : null;
   }
 
-  // Извлекает innerHTML контейнера с классом CONTAINER_CLASS
-  // из старого HTML-блока (внутри [html]...[/html]).
+  // Извлекает innerHTML всех элементов ITEM_CLASS внутри контейнера
+  // CONTAINER_CLASS из старого HTML-блока. Обрабатывает экранирование.
   function extractExistingItems(htmlContent) {
     try {
+      // Ключевое: post.message может приходить экранированным
+      // (&lt;div&gt;...). Раскодируем перед парсингом.
+      const decoded = decodeHtmlEntities(htmlContent);
+
       const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const doc = parser.parseFromString(decoded, 'text/html');
       const container = doc.querySelector('.' + CONTAINER_CLASS);
-      if (!container) return '';
+      if (!container) {
+        console.warn('[pumpkin-quest] Контейнер .' + CONTAINER_CLASS + ' не найден в старом посте');
+        return '';
+      }
       let html = '';
       container.querySelectorAll('.' + ITEM_CLASS).forEach(item => {
         html += item.outerHTML;
@@ -448,6 +443,8 @@
     if (!post || !post.message) throw new Error('Не удалось прочитать старый пост инвентаря');
 
     const existingItems = parseInventoryItems(post.message);
+    console.log('[pumpkin-quest] существующих элементов:', existingItems.length ? 'есть' : 'нет');
+
     const newItemHtml = buildItemHtml(imageUrl, itemName);
     const newMessage = buildInventoryMessage(existingItems + newItemHtml);
 
