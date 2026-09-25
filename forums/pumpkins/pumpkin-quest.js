@@ -17,17 +17,30 @@
 
   const CFG = window.PUMPKIN_QUEST_CONFIG;
   if (!CFG) {
-    console.error('[pumpkin-quest] Конфиг PUMPKIN_QUEST_CONFIG не найден');
+    console.error('[pumpkin-quest] PUMPKIN_QUEST_CONFIG не найден');
     return;
   }
+  const MSG = CFG.MESSAGES;
 
-  const $status    = $('#pqStatus');
-  const $errors    = $('#pqErrors');
-  const $table     = $('#pqTable');
-  const $tbody     = $('#pqTableBody');
-  const $preview   = $('#pqPreviewBlock');
-  const $previewW  = $('#pqPreviewWrap');
-  const $collLink  = $('#pqCollectionLink');
+  // ---- DOM ----
+  const $status        = $('#pqStatus');
+  const $errors        = $('#pqErrors');
+  const $preview       = $('#pqPreviewBlock');
+  const $previewW      = $('#pqPreviewWrap');
+  const $collLink      = $('#pqCollectionLink');
+
+  const $searchBlock   = $('#pqSearchBlock');
+  const $btnBringLink  = $('#pqBtnBringLink');
+  const $btnDiscover   = $('#pqBtnDiscover');
+  const $linkBlock     = $('#pqLinkBlock');
+  const $linkInput     = $('#pqLinkInput');
+  const $btnGetThis    = $('#pqBtnGetThis');
+  const $btnCancel     = $('#pqBtnCancel');
+
+  const $discoverBlock = $('#pqDiscoverBlock');
+  const $cacheWarning  = $('#pqCacheWarning');
+  const $table         = $('#pqTable');
+  const $tbody         = $('#pqTableBody');
 
   if (typeof UserID === 'undefined' || !UserID) {
     console.error('[pumpkin-quest] UserID не найден');
@@ -36,7 +49,9 @@
 
   const USER_ID  = String(UserID);
   const START_TS = new Date(CFG.START_DATE + 'T00:00:00').getTime();
+  const CACHE_KEY = 'pq_cache_' + USER_ID;
 
+  // ---- фоновый Pumpkin ----
   const $hiddenCanvas = document.createElement('canvas');
   $hiddenCanvas.width = 512;
   $hiddenCanvas.height = 512;
@@ -67,15 +82,47 @@
   //  УТИЛИТЫ
   // ============================================================
 
-  function setStatus(text) { $status.text(text); }
+  function setStatus(text) { $status.text(text || ''); }
   function addError(text)  { $errors.append('<div>' + text + '</div>'); }
   function clearErrors()   { $errors.empty(); }
   function delay(ms)       { return new Promise(r => setTimeout(r, ms)); }
+
+  function fmt(template, params) {
+    let out = template;
+    for (const k in params) {
+      out = out.replaceAll('{' + k + '}', String(params[k]));
+    }
+    return out;
+  }
 
   function formatDate(ts) {
     const d = new Date(ts);
     const pad = n => String(n).padStart(2, '0');
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function formatAge(ms) {
+    const min = Math.floor(ms / 60000);
+    if (min < 1) return 'только что';
+    if (min < 60) return min + ' мин';
+    const h = Math.floor(min / 60);
+    return h + ' ч ' + (min % 60) + ' мин';
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function decodeHtmlEntities(str) {
+    if (!str) return '';
+    const ta = document.createElement('textarea');
+    ta.innerHTML = str;
+    return ta.value;
   }
 
   function htmlToText(html) {
@@ -88,12 +135,9 @@
     return text.replace(/\s+/g, ' ').trim();
   }
 
-  // Раскодирование HTML-сущностей
-  function decodeHtmlEntities(str) {
-    if (!str) return '';
-    const ta = document.createElement('textarea');
-    ta.innerHTML = str;
-    return ta.value;
+  function parsePidFromLink(link) {
+    const m = String(link || '').match(/#p(\d+)/);
+    return m ? m[1] : null;
   }
 
   // ============================================================
@@ -130,41 +174,313 @@
   }
 
   // ============================================================
-  //  STORAGE
+  //  КЭШ В SESSIONSTORAGE
   // ============================================================
 
-  async function getObtainedKeys() {
+  function readCache() {
     try {
-      const res = await apiCallWithRetry('storage.keys', {});
-      const raw = (res && res.response && res.response.storage && res.response.storage.keys)
-               || (res && res.response && res.response.keys)
-               || (res && res.keys)
-               || [];
-      const prefix = 'pumpkin_' + USER_ID + '_';
-      const set = new Set();
-      for (const k of raw) {
-        if (typeof k === 'string' && k.startsWith(prefix)) set.add(k);
-      }
-      return set;
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj.ts !== 'number') return null;
+      return obj;
     } catch (e) {
-      console.warn('[pumpkin-quest] storage.keys failed:', e);
-      return new Set();
+      return null;
     }
   }
 
-  async function markObtained(postId) {
-    const key = 'pumpkin_' + USER_ID + '_' + postId;
-    const res = await apiCallWithRetry('storage.set', {
-      key: key,
-      value: new Date().toISOString(),
-      timer: CFG.STORAGE_TTL_MINUTES,
-    });
-    console.log('[pumpkin-quest] storage.set response:', res);
-    return res;
+  function writeCache(posts, obtained) {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        posts: posts,
+        obtained: obtained,
+      }));
+    } catch (e) {
+      console.warn('[pumpkin-quest] cache write failed:', e);
+    }
+  }
+
+  function clearCache() {
+    try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {}
   }
 
   // ============================================================
-  //  СБОР ПОСТОВ
+  //  ИНВЕНТАРЬ: ЧТЕНИЕ ПОЛУЧЕННЫХ PID
+  // ============================================================
+
+  async function findInventoryPost() {
+    const data = await apiCallWithRetry('post.get', {
+      topic_id: CFG.PUMPKINS_TOPIC,
+      fields: 'id,user_id,message',
+      limit: 100,
+    });
+    const posts = responseArray(data);
+    const mine = posts.filter(p =>
+      String(p.user_id) === USER_ID &&
+      typeof p.message === 'string' &&
+      p.message.indexOf('[html]') !== -1
+    );
+    return mine.length ? mine[mine.length - 1] : null;
+  }
+
+  function getInventoryHtmlBlock(message) {
+    const start = message.indexOf('[html]');
+    const end = message.indexOf('[/html]');
+    if (start === -1 || end === -1) return '';
+    return message.substring(start + 6, end);
+  }
+
+  /**
+   * Извлекает Set полученных pid из HTML-блока инвентаря.
+   * Ходит по ссылкам <a href="...#pNNN"> внутри контейнера.
+   */
+  function extractObtainedPids(htmlBlock) {
+    const pids = new Set();
+    if (!htmlBlock) return pids;
+    try {
+      const decoded = decodeHtmlEntities(htmlBlock);
+      const doc = new DOMParser().parseFromString(decoded, 'text/html');
+      const container = doc.querySelector('.' + CONTAINER_CLASS);
+      if (!container) return pids;
+      container.querySelectorAll('a[href]').forEach(a => {
+        const href = a.getAttribute('href') || '';
+        const m = href.match(/#p(\d+)/);
+        if (m) pids.add(m[1]);
+      });
+    } catch (e) {
+      console.warn('[pumpkin-quest] extractObtainedPids error:', e);
+    }
+    return pids;
+  }
+
+  /**
+   * Возвращает Set полученных pid, читая последний пост пользователя
+   * в PUMPKINS_TOPIC. Если поста нет — пустой Set.
+   */
+  async function loadObtainedPids() {
+    const post = await findInventoryPost();
+    if (!post) return new Set();
+    const block = getInventoryHtmlBlock(post.message);
+    return extractObtainedPids(block);
+  }
+
+  /**
+   * Извлекает HTML всех старых элементов инвентаря из блока.
+   * Возвращает строку с outerHTML каждого элемента.
+   */
+  function extractExistingItemsHtml(htmlBlock) {
+    if (!htmlBlock) return '';
+    try {
+      const decoded = decodeHtmlEntities(htmlBlock);
+      const doc = new DOMParser().parseFromString(decoded, 'text/html');
+      const container = doc.querySelector('.' + CONTAINER_CLASS);
+      if (!container) return '';
+      let html = '';
+      container.querySelectorAll('.' + ITEM_CLASS).forEach(item => {
+        html += item.outerHTML;
+      });
+      return html;
+    } catch (e) {
+      console.warn('[pumpkin-quest] extractExistingItemsHtml error:', e);
+      return '';
+    }
+  }
+
+  // ============================================================
+  //  ИНВЕНТАРЬ: ЗАПИСЬ
+  // ============================================================
+
+  function buildInventoryMessage(allItemsHtml) {
+    const currentTime = new Date().toLocaleString();
+    const uniq = Date.now().toString(36) + Math.random().toString(36).substring(2);
+    return CFG.TEMPLATES.INVENTORY
+      .replaceAll('{{uniq}}', uniq)
+      .replace('{{items}}', allItemsHtml)
+      .replace('{{currentTime}}', currentTime);
+  }
+
+  function buildItemHtml(imageUrl, pid, name) {
+    return CFG.TEMPLATES.IMAGE_IN_INVENTORY
+      .replace(/{{src}}/g, imageUrl)
+      .replace(/{{pid}}/g, pid)
+      .replace(/{{name}}/g, escapeHtml(name));
+  }
+
+  // ---------- iframe submit ----------
+
+  function submitViaIframe(url, formSelector, fields, timeoutMs = 20000) {
+    return new Promise((resolve, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '-9999px';
+      iframe.style.width = '1024px';
+      iframe.style.height = '768px';
+      iframe.style.border = '0';
+      iframe.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(iframe);
+
+      let stage = 0;
+      let finished = false;
+
+      const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        try { iframe.remove(); } catch (e) {}
+      };
+
+      const fail = (msg) => { cleanup(); reject(new Error(msg)); };
+      const ok   = () => { cleanup(); resolve(true); };
+
+      const timer = setTimeout(() => fail(MSG.errTimeout), timeoutMs);
+
+      iframe.addEventListener('load', () => {
+        if (finished) return;
+
+        if (stage === 0) {
+          let doc = null;
+          try {
+            doc = iframe.contentDocument || iframe.contentWindow.document;
+          } catch (e) {
+            fail(MSG.errIframeAccess + ' ' + e.message);
+            return;
+          }
+          if (!doc) { fail(MSG.errIframeAccess); return; }
+
+          const form = doc.querySelector(formSelector);
+          if (!form) { fail(MSG.errFormNotFound + ' (' + formSelector + ')'); return; }
+
+          for (const name in fields) {
+            const el = form.querySelector('[name="' + name + '"]');
+            if (el) el.value = fields[name];
+          }
+
+          const submitBtn =
+            form.querySelector('input[type="submit"][name="submit"]') ||
+            form.querySelector('input[type="submit"]') ||
+            form.querySelector('button[type="submit"]') ||
+            form.querySelector('input[name="submit"]');
+
+          if (!submitBtn) { fail(MSG.errFormNotFound); return; }
+
+          stage = 1;
+          setTimeout(() => {
+            try { submitBtn.click(); }
+            catch (e) { fail('submit: ' + e.message); }
+          }, 50);
+
+        } else if (stage === 1) {
+          ok();
+        }
+      });
+
+      iframe.src = url;
+    });
+  }
+
+  async function detectMessageFieldName(url, formSelector) {
+    const html = await new Promise((resolve, reject) => {
+      $.ajax({
+        url: url,
+        method: 'GET',
+        success: resolve,
+        error: (jqXHR, textStatus) => reject(new Error(textStatus)),
+      });
+    });
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const form = doc.querySelector(formSelector);
+    if (!form) throw new Error(MSG.errFormNotFound + ' (' + formSelector + ')');
+    const names = [...form.querySelectorAll('[name]')].map(el => el.name);
+    if (names.includes('req_message')) return 'req_message';
+    const msgName = names.find(n => /message/i.test(n));
+    if (msgName) return msgName;
+    throw new Error(MSG.errFormNotFound);
+  }
+
+  /**
+   * Добавляет новую тыкву в инвентарь пользователя.
+   * Если пост-инвентарь есть — редактирует, если нет — создаёт.
+   */
+  async function appendPumpkinToInventory(imageUrl, pid, name) {
+    const existingPost = await findInventoryPost();
+    const newItemHtml = buildItemHtml(imageUrl, pid, name);
+
+    if (existingPost) {
+      const block = getInventoryHtmlBlock(existingPost.message);
+      const existingItems = extractExistingItemsHtml(block);
+      const newMessage = buildInventoryMessage(existingItems + newItemHtml);
+
+      const url = '/edit.php?id=' + existingPost.id;
+      const fieldName = await detectMessageFieldName(url, '#post');
+      const fields = {};
+      fields[fieldName] = newMessage;
+
+      await submitViaIframe(url, '#post', fields, 20000);
+      return existingPost.id;
+    }
+
+    // Создаём новый пост
+    const newMessage = buildInventoryMessage(newItemHtml);
+    const url = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
+    const formSelector = '#post, form[action*="posting.php"]';
+    const fieldName = await detectMessageFieldName(url, formSelector);
+    const fields = {};
+    fields[fieldName] = newMessage;
+    await submitViaIframe(url, formSelector, fields, 20000);
+    return null;
+  }
+
+  // ============================================================
+  //  IMGBB
+  // ============================================================
+
+  async function uploadToImgbb(dataURL, name) {
+    const base64 = dataURL.split(',')[1];
+    const form = new FormData();
+    form.append('key', CFG.IMGBB_API_KEY);
+    form.append('image', base64);
+    form.append('name', name);
+
+    const res = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: form,
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      const msg = (json && json.error && json.error.message) || ('HTTP ' + res.status);
+      throw new Error(msg);
+    }
+    return json.data.image && json.data.image.url || json.data.url;
+  }
+
+  // ============================================================
+  //  ГЕНЕРАЦИЯ ТЫКВЫ ПО ПОСТУ
+  // ============================================================
+
+  async function generateAndUploadPumpkin(post) {
+    const analysis = PumpkinCore.analyzeText(post.text);
+    const params = PumpkinCore.computeParams(analysis);
+
+    const forPumpkin = { ...params };
+    delete forPumpkin.exportHeight;
+    delete forPumpkin._emotion;
+
+    pumpkin.setParams(forPumpkin);
+
+    const result = pumpkin.exportWithHeight(params.exportHeight, {
+      format: 'webp',
+      quality: 1.0,
+      renderSize: PumpkinCore.RENDER_SIZE,
+    });
+
+    const fileName = USER_ID + '_' + post.postId;
+    return await uploadToImgbb(result.dataURL, fileName);
+  }
+
+  // ============================================================
+  //  СБОР ПОСТОВ (ДЛЯ «ОБНАРУЖИТЬ ВСЕ»)
   // ============================================================
 
   async function fetchTopics() {
@@ -221,7 +537,7 @@
         if (String(p.user_id) !== USER_ID) continue;
         if (String(p.id) === String(topic.init_post)) continue;
         out.push({
-          postId: p.id,
+          postId: String(p.id),
           topicId: topic.id,
           subject: topic.subject,
           posted: ts,
@@ -242,7 +558,7 @@
         const posts = await fetchPostsForTopic(t);
         out.push(...posts);
       } catch (e) {
-        addError('Ошибка при обработке темы ' + t.id + ': ' + e.message);
+        addError(fmt(MSG.errTopic, { id: t.id, msg: e.message }));
       }
     }
     out.sort((a, b) => b.posted - a.posted);
@@ -250,273 +566,44 @@
   }
 
   // ============================================================
-  //  IMGBB
+  //  ПОЛУЧЕНИЕ ТЫКВЫ (ОБЩАЯ ЛОГИКА)
   // ============================================================
 
-  async function uploadToImgbb(dataURL, name) {
-    const base64 = dataURL.split(',')[1];
-    const form = new FormData();
-    form.append('key', CFG.IMGBB_API_KEY);
-    form.append('image', base64);
-    form.append('name', name);
-
-    const res = await fetch('https://api.imgbb.com/1/upload', {
-      method: 'POST',
-      body: form,
-    });
-    const json = await res.json();
-    if (!res.ok || !json.success) {
-      const msg = (json && json.error && json.error.message) || ('HTTP ' + res.status);
-      throw new Error(msg);
+  /**
+   * Основная процедура получения тыквы за конкретный пост.
+   * @param {object} post  {postId, subject, posted, text}
+   * @param {Set<string>} obtainedPids — уже полученные pid (будет пополнен)
+   * @returns {Promise<boolean>} успех
+   */
+  async function obtainPumpkinForPost(post, obtainedPids) {
+    if (obtainedPids.has(post.postId)) {
+      setStatus(MSG.statusAlreadyGot);
+      return false;
     }
-    return json.data.image && json.data.image.url || json.data.url;
-  }
 
-  // ============================================================
-  //  ИНВЕНТАРЬ
-  // ============================================================
-
-  async function findInventoryPost() {
-    const data = await apiCallWithRetry('post.get', {
-      topic_id: CFG.PUMPKINS_TOPIC,
-      fields: 'id,user_id,message',
-      limit: 100,
-    });
-    const posts = responseArray(data);
-    const mine = posts.filter(p =>
-      String(p.user_id) === USER_ID &&
-      typeof p.message === 'string' &&
-      p.message.indexOf('[html]') !== -1
-    );
-    return mine.length ? mine[mine.length - 1] : null;
-  }
-
-  // Извлекает innerHTML всех элементов ITEM_CLASS внутри контейнера
-  // CONTAINER_CLASS из старого HTML-блока. Обрабатывает экранирование.
-  function extractExistingItems(htmlContent) {
     try {
-      // Ключевое: post.message может приходить экранированным
-      // (&lt;div&gt;...). Раскодируем перед парсингом.
-      const decoded = decodeHtmlEntities(htmlContent);
+      setStatus(MSG.statusGetting);
+      const imageUrl = await generateAndUploadPumpkin(post);
 
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(decoded, 'text/html');
-      const container = doc.querySelector('.' + CONTAINER_CLASS);
-      if (!container) {
-        console.warn('[pumpkin-quest] Контейнер .' + CONTAINER_CLASS + ' не найден в старом посте');
-        return '';
-      }
-      let html = '';
-      container.querySelectorAll('.' + ITEM_CLASS).forEach(item => {
-        html += item.outerHTML;
-      });
-      return html;
+      const pumpkinName = fmt(MSG.errPumpkinName, { subject: post.subject || ('#' + post.postId) });
+      await appendPumpkinToInventory(imageUrl, post.postId, pumpkinName);
+
+      obtainedPids.add(post.postId);
+
+      renderPreview(imageUrl);
+      setStatus(MSG.statusGot);
+      return true;
     } catch (e) {
-      console.warn('[pumpkin-quest] extractExistingItems error:', e);
-      return '';
+      console.error('[pumpkin-quest] obtain failed:', e);
+      addError(fmt(MSG.errGet, { msg: e.message }));
+      setStatus('');
+      return false;
     }
-  }
-
-  function parseInventoryItems(message) {
-    const start = message.indexOf('[html]');
-    const end = message.indexOf('[/html]');
-    if (start === -1 || end === -1) return '';
-    const inner = message.substring(start + 6, end);
-    return extractExistingItems(inner);
-  }
-
-  function buildInventoryMessage(allItemsHtml) {
-    const currentTime = new Date().toLocaleString();
-    const uniq = Date.now().toString(36) + Math.random().toString(36).substring(2);
-    return CFG.TEMPLATES.INVENTORY
-      .replaceAll('{{uniq}}', uniq)
-      .replace('{{items}}', allItemsHtml)
-      .replace('{{currentTime}}', currentTime);
-  }
-
-  function buildItemHtml(imageUrl, name) {
-    return CFG.TEMPLATES.IMAGE_IN_INVENTORY
-      .replace(/{{src}}/g, imageUrl)
-      .replace(/{{name}}/g, name);
-  }
-
-  // ---------- iframe submit ----------
-
-  function submitViaIframe(url, formSelector, fields, timeoutMs = 20000) {
-    return new Promise((resolve, reject) => {
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.left = '-9999px';
-      iframe.style.top = '-9999px';
-      iframe.style.width = '1024px';
-      iframe.style.height = '768px';
-      iframe.style.border = '0';
-      iframe.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(iframe);
-
-      let stage = 0;
-      let finished = false;
-
-      const cleanup = () => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timer);
-        try { iframe.remove(); } catch (e) {}
-      };
-
-      const fail = (msg) => { cleanup(); reject(new Error(msg)); };
-      const ok   = () => { cleanup(); resolve(true); };
-
-      const timer = setTimeout(() => fail('Таймаут ожидания ответа от ' + url), timeoutMs);
-
-      iframe.addEventListener('load', () => {
-        if (finished) return;
-
-        if (stage === 0) {
-          let doc = null;
-          try {
-            doc = iframe.contentDocument || iframe.contentWindow.document;
-          } catch (e) {
-            fail('Нет доступа к содержимому iframe: ' + e.message);
-            return;
-          }
-          if (!doc) { fail('iframe загрузился без документа'); return; }
-
-          const form = doc.querySelector(formSelector);
-          if (!form) { fail('Форма "' + formSelector + '" не найдена на ' + url); return; }
-
-          for (const name in fields) {
-            const el = form.querySelector('[name="' + name + '"]');
-            if (el) el.value = fields[name];
-          }
-
-          const submitBtn =
-            form.querySelector('input[type="submit"][name="submit"]') ||
-            form.querySelector('input[type="submit"]') ||
-            form.querySelector('button[type="submit"]') ||
-            form.querySelector('input[name="submit"]');
-
-          if (!submitBtn) { fail('Кнопка submit не найдена в форме'); return; }
-
-          stage = 1;
-          setTimeout(() => {
-            try { submitBtn.click(); }
-            catch (e) { fail('Не удалось кликнуть submit: ' + e.message); }
-          }, 50);
-
-        } else if (stage === 1) {
-          ok();
-        }
-      });
-
-      iframe.src = url;
-    });
-  }
-
-  async function detectMessageFieldName(url, formSelector) {
-    const html = await new Promise((resolve, reject) => {
-      $.ajax({
-        url: url,
-        method: 'GET',
-        success: resolve,
-        error: (jqXHR, textStatus) => reject(new Error('Ошибка загрузки ' + url + ': ' + textStatus)),
-      });
-    });
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const form = doc.querySelector(formSelector);
-    if (!form) throw new Error('Форма "' + formSelector + '" не найдена на ' + url);
-    const names = [...form.querySelectorAll('[name]')].map(el => el.name);
-    if (names.includes('req_message')) return 'req_message';
-    const msgName = names.find(n => /message/i.test(n));
-    if (msgName) return msgName;
-    throw new Error('В форме нет поля для сообщения');
-  }
-
-  async function editExistingInventoryPost(postId, imageUrl, itemName) {
-    const data = await apiCallWithRetry('post.get', {
-      post_id: postId,
-      fields: 'id,message',
-      limit: 1,
-    });
-    const arr = responseArray(data);
-    const post = arr[0];
-    if (!post || !post.message) throw new Error('Не удалось прочитать старый пост инвентаря');
-
-    const existingItems = parseInventoryItems(post.message);
-    console.log('[pumpkin-quest] существующих элементов:', existingItems.length ? 'есть' : 'нет');
-
-    const newItemHtml = buildItemHtml(imageUrl, itemName);
-    const newMessage = buildInventoryMessage(existingItems + newItemHtml);
-
-    const url = '/edit.php?id=' + postId;
-    const fieldName = await detectMessageFieldName(url, '#post');
-    const fields = {};
-    fields[fieldName] = newMessage;
-
-    const okDone = await submitViaIframe(url, '#post', fields, 20000);
-    if (!okDone) throw new Error('iframe-редактирование не завершилось');
-    return postId;
-  }
-
-  async function createNewInventoryPost(imageUrl, itemName) {
-    const newItemHtml = buildItemHtml(imageUrl, itemName);
-    const newMessage = buildInventoryMessage(newItemHtml);
-
-    const url = '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC;
-    const formSelector = '#post, form[action*="posting.php"]';
-    const fieldName = await detectMessageFieldName(url, formSelector);
-
-    const fields = {};
-    fields[fieldName] = newMessage;
-
-    const okDone = await submitViaIframe(url, formSelector, fields, 20000);
-    if (!okDone) throw new Error('iframe-создание поста не завершилось');
-    return null;
-  }
-
-  async function appendToInventory(imageUrl, itemName) {
-    const existing = await findInventoryPost();
-    if (existing) {
-      return await editExistingInventoryPost(existing.id, imageUrl, itemName);
-    }
-    return await createNewInventoryPost(imageUrl, itemName);
   }
 
   // ============================================================
-  //  UI
+  //  ПРЕВЬЮ
   // ============================================================
-
-  function renderTable(posts) {
-    $tbody.empty();
-    if (!posts.length) {
-      $table.hide();
-      setStatus('Новых постов нет.');
-      return;
-    }
-
-    posts.forEach((p, idx) => {
-      const url = '/viewtopic.php?pid=' + p.postId + '#p' + p.postId;
-      const $row = $('<tr>');
-      $row.append($('<td>').text(idx + 1));
-      $row.append(
-        $('<td>').append(
-          $('<a>').attr('href', url).text(p.subject || ('Пост #' + p.postId))
-        )
-      );
-      $row.append($('<td>').text(formatDate(p.posted)));
-
-      const $action = $('<td>');
-      const $btn = $('<button>').text('Получить тыкву').attr('type', 'button');
-      $btn.on('click', () => onGetPumpkin(p, $btn));
-      $action.append($btn);
-      $row.append($action);
-
-      $tbody.append($row);
-    });
-
-    $table.show();
-    setStatus('');
-  }
 
   function renderPreview(imageUrl) {
     $previewW.empty();
@@ -529,68 +616,237 @@
         .css({ display: 'block', margin: '0 auto' })
     );
     $collLink.attr('href', '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC);
+    $collLink.text(MSG.collectionLink);
     $preview.show();
   }
 
   // ============================================================
-  //  ГЛАВНОЕ ДЕЙСТВИЕ
+  //  ТАБЛИЦА ОБНАРУЖЕННЫХ ПОСТОВ
   // ============================================================
 
-  async function onGetPumpkin(post, $btn) {
-    $btn.prop('disabled', true).text('...');
+  function renderDiscoverTable(posts, obtainedPids) {
+    $tbody.empty();
+    $table.find('thead th').each(function (i) {
+      const t = [MSG.colNum, MSG.colEpisode, MSG.colDate, MSG.colAction][i];
+      $(this).text(t || '');
+    });
+
+    if (!posts.length) {
+      $discoverBlock.show();
+      setStatus(MSG.statusNothingNew);
+      return;
+    }
+
+    posts.forEach((p, idx) => {
+      const url = '/viewtopic.php?pid=' + p.postId + '#p' + p.postId;
+      const alreadyGot = obtainedPids.has(p.postId);
+
+      const $row = $('<tr>');
+      $row.append($('<td>').text(idx + 1));
+      $row.append(
+        $('<td>').append(
+          $('<a>').attr('href', url).text(p.subject || ('#' + p.postId))
+        )
+      );
+      $row.append($('<td>').text(formatDate(p.posted)));
+
+      const $action = $('<td>');
+      if (alreadyGot) {
+        $action.append($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
+      } else {
+        const $btn = $('<button>').attr('type', 'button').text(MSG.btnGetPumpkin);
+        $btn.on('click', async () => {
+          $btn.prop('disabled', true).text('...');
+          const ok = await obtainPumpkinForPost(p, obtainedPids);
+          if (ok) {
+            $btn.replaceWith($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
+            // Обновляем кэш — отметим этот pid как полученный
+            updateCacheObtained(obtainedPids);
+          } else {
+            $btn.prop('disabled', false).text(MSG.btnGetPumpkin);
+          }
+        });
+        $action.append($btn);
+      }
+      $row.append($action);
+      $tbody.append($row);
+    });
+
+    $discoverBlock.show();
+    const total = posts.length;
+    const got = posts.filter(p => obtainedPids.has(p.postId)).length;
+    setStatus(fmt(MSG.statusDetected, { n: total, m: got }));
+  }
+
+  function updateCacheObtained(obtainedPids) {
+    const c = readCache();
+    if (!c) return;
+    c.obtained = [...obtainedPids];
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(c));
+    } catch (e) {}
+  }
+
+  // ============================================================
+  //  ДЕЙСТВИЯ: «ОБНАРУЖИТЬ ВСЕ»
+  // ============================================================
+
+  async function onDiscoverAll() {
+    clearErrors();
+    setStatus(fmt(MSG.statusCollecting, { date: CFG.START_DATE }));
 
     try {
-      const analysis = PumpkinCore.analyzeText(post.text);
-      const params = PumpkinCore.computeParams(analysis);
+      const cache = readCache();
+      const now = Date.now();
 
-      const forPumpkin = { ...params };
-      delete forPumpkin.exportHeight;
-      delete forPumpkin._emotion;
+      if (cache && (now - cache.ts) < CFG.CACHE_TTL_MS) {
+        // свежий кэш
+        const obtainedPids = new Set(cache.obtained || []);
+        renderDiscoverTable(cache.posts || [], obtainedPids);
 
-      pumpkin.setParams(forPumpkin);
+        $cacheWarning
+          .text(fmt(MSG.statusCacheFresh, { age: formatAge(now - cache.ts) }))
+          .show();
+        return;
+      }
 
-      const result = pumpkin.exportWithHeight(params.exportHeight, {
-        format: 'webp',
-        quality: 1.0,
-        renderSize: PumpkinCore.RENDER_SIZE,
-      });
+      // Кэша нет или он старый — собираем заново
+      const obtainedPids = await loadObtainedPids();
+      const posts = await collectPosts();
 
-      const fileName = USER_ID + '_' + post.postId;
-      const imageUrl = await uploadToImgbb(result.dataURL, fileName);
+      writeCache(posts, [...obtainedPids]);
+      renderDiscoverTable(posts, obtainedPids);
 
-      await appendToInventory(imageUrl, 'Тыква эпизода');
-      await markObtained(post.postId);
-
-      renderPreview(imageUrl);
-      $btn.replaceWith($('<span>').text('✓ Получена').css('color', '#3a3'));
+      $cacheWarning.text(MSG.statusFresh).show();
     } catch (e) {
-      console.error('[pumpkin-quest]', e);
-      addError('Не удалось получить тыкву для поста ' + post.postId + ': ' + e.message);
-      $btn.prop('disabled', false).text('Получить тыкву');
+      console.error('[pumpkin-quest] discover failed:', e);
+      setStatus('');
+      addError(fmt(MSG.errLoad, { msg: e.message }));
     }
   }
 
   // ============================================================
-  //  СТАРТ
+  //  ДЕЙСТВИЯ: «ПРИНЕСТИ ССЫЛКУ»
   // ============================================================
 
-  async function init() {
-    setStatus('Ищем новые посты...');
+  function showLinkBlock() {
+    $linkBlock.show();
+    $linkInput.val('').attr('placeholder', MSG.linkPlaceholder).focus();
+  }
+
+  function hideLinkBlock() {
+    $linkBlock.hide();
+    $linkInput.val('');
+  }
+
+  async function onBringLink() {
     clearErrors();
 
+    const link = $linkInput.val();
+    const pid = parsePidFromLink(link);
+    if (!pid) {
+      addError(MSG.errLinkNoPid);
+      return;
+    }
+
+    setStatus(MSG.statusLoadingPost);
+    $btnGetThis.prop('disabled', true);
+
     try {
-      const obtained = await getObtainedKeys();
-      const posts = await collectPosts();
-      const prefix = 'pumpkin_' + USER_ID + '_';
-      const fresh = posts.filter(p => !obtained.has(prefix + p.postId));
-      renderTable(fresh);
+      // Проверяем: не получена ли уже
+      const obtainedPids = await loadObtainedPids();
+      if (obtainedPids.has(pid)) {
+        setStatus(MSG.statusAlreadyGot);
+        hideLinkBlock();
+        return;
+      }
+
+      // Запрашиваем пост
+      const data = await apiCallWithRetry('post.get', {
+        post_id: pid,
+        fields: 'id,user_id,posted,forum_id,subject,message',
+        limit: 1,
+      });
+      const arr = responseArray(data);
+      const p = arr[0];
+      if (!p) { addError(MSG.errPostNotFound); setStatus(''); return; }
+
+      // Проверки
+      if (String(p.user_id) !== USER_ID) { addError(MSG.errAuthorNotYou); setStatus(''); return; }
+      const ts = parseInt(p.posted, 10) * 1000;
+      if (ts < START_TS) { addError(fmt(MSG.errTooOld, { date: CFG.START_DATE })); setStatus(''); return; }
+      if (!CFG.GAME_FORUMS.includes(parseInt(p.forum_id, 10))) {
+        addError(MSG.errForumNotAllowed); setStatus(''); return;
+      }
+
+      // Собираем «пост» — используется subject топика, а не поста
+      // Но post.get не даёт subject топика, поэтому subject берём из поста,
+      // если он там есть. Иначе — из кэша обнаружений.
+      let subject = p.subject || '';
+      if (!subject) {
+        const c = readCache();
+        if (c && Array.isArray(c.posts)) {
+          const found = c.posts.find(x => String(x.postId) === String(pid));
+          if (found) subject = found.subject;
+        }
+      }
+
+      const post = {
+        postId: String(pid),
+        subject: subject,
+        posted: ts,
+        text: htmlToText(p.message),
+      };
+
+      const ok = await obtainPumpkinForPost(post, obtainedPids);
+      if (ok) {
+        hideLinkBlock();
+        // Если таблица открыта — обновим кэш и, если строка есть, пометим её
+        updateCacheObtained(obtainedPids);
+        const $rows = $tbody.find('tr');
+        // Простейший способ: пометить кнопку, если строка с этим pid есть.
+        // pid — единственный надёжный идентификатор строки, но у нас строки
+        // не помечены. При следующем «Обнаружить» из кэша всё встанет на место.
+      }
     } catch (e) {
-      console.error('[pumpkin-quest] init failed:', e);
-      setStatus('Ошибка загрузки');
-      addError('Не удалось загрузить список: ' + e.message);
+      console.error('[pumpkin-quest] bring link failed:', e);
+      addError(fmt(MSG.errGet, { msg: e.message }));
+      setStatus('');
+    } finally {
+      $btnGetThis.prop('disabled', false);
     }
   }
 
-  $(function () { init(); });
+  // ============================================================
+  //  ИНИЦИАЛИЗАЦИЯ UI
+  // ============================================================
+
+  function initUI() {
+    $btnBringLink.text(MSG.btnBringLink);
+    $btnDiscover.text(fmt(MSG.btnDiscover, { date: CFG.START_DATE }));
+    $btnGetThis.text(MSG.btnGetThis);
+    $btnCancel.text(MSG.btnCancel);
+    $linkInput.attr('placeholder', MSG.linkPlaceholder);
+    $collLink.text(MSG.collectionLink);
+
+    $btnBringLink.on('click', () => {
+      if ($linkBlock.is(':visible')) hideLinkBlock();
+      else showLinkBlock();
+    });
+
+    $btnDiscover.on('click', onDiscoverAll);
+    $btnGetThis.on('click', onBringLink);
+    $btnCancel.on('click', hideLinkBlock);
+
+    $linkInput.on('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); onBringLink(); }
+    });
+
+    setStatus('');
+  }
+
+  $(function () {
+    initUI();
+  });
 
 })();

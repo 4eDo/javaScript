@@ -19,31 +19,51 @@
     </div>
   </div>
 
-  <!-- Таблица эпизодов -->
-  <table id="pqTable" style="display:none;">
-    <thead>
-      <tr>
-        <th>№</th>
-        <th>Эпизод</th>
-        <th>Дата</th>
-        <th>Действие</th>
-      </tr>
-    </thead>
-    <tbody id="pqTableBody"></tbody>
-  </table>
+  <!-- ===== Раздел: Поиск тыкв ===== -->
+  <div id="pqSearchBlock">
+    <h3>Поиск тыкв</h3>
+
+    <div id="pqSearchButtons">
+      <button type="button" id="pqBtnBringLink"></button>
+      <button type="button" id="pqBtnDiscover"></button>
+    </div>
+
+    <div id="pqLinkBlock" style="display:none;">
+      <input type="text" id="pqLinkInput" />
+      <button type="button" id="pqBtnGetThis"></button>
+      <button type="button" id="pqBtnCancel"></button>
+    </div>
+  </div>
+
+  <!-- ===== Результаты обнаружения ===== -->
+  <div id="pqDiscoverBlock" style="display:none;">
+
+    <div id="pqCacheWarning" style="display:none;"></div>
+
+    <table id="pqTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pqTableBody"></tbody>
+    </table>
+
+  </div>
 
 </div>
 
 <script>
 /* ============================================================
  *  КОНФИГУРАЦИЯ
- *  Меняется здесь, файлов больше нет.
  * ============================================================ */
 
 window.PUMPKIN_QUEST_CONFIG = {
 
   // С какой даты ищем посты (включительно). Формат YYYY-MM-DD.
-  // Время сравнивается с 00:00 локального времени пользователя.
   START_DATE: '2026-09-01',
 
   // Форум(-ы), в которых ищем посты.
@@ -55,19 +75,66 @@ window.PUMPKIN_QUEST_CONFIG = {
   // API imgbb.
   IMGBB_API_KEY: '1e12d568c88876be45ce5c87b6753b67',
 
-  // Сколько дней хранить отметку о получении в Storage.
-  STORAGE_TTL_MINUTES: 40 * 24 * 60,
-
-  // Пауза между запросами к API (мс), чтобы не долбить сервер.
+  // Пауза между запросами к API (мс).
   API_DELAY: 120,
 
-  // Сколько попыток на один запрос при сетевой ошибке.
+  // Сколько попыток на один запрос.
   MAX_RETRIES: 3,
 
-  // Размер превью тыквы в пикселях (квадрат).
+  // Размер превью тыквы на странице, px.
   PREVIEW_SIZE: 100,
 
-  // Шаблоны инвентаря — те же, что в третьем скрипте.
+  // Время жизни кэша обнаруженных постов (мс).
+  CACHE_TTL_MS: 60 * 60 * 1000,
+
+  // ================= ТЕКСТЫ =================
+  MESSAGES: {
+    // Заголовок и кнопки раздела
+    searchTitle:          'Поиск тыкв',
+    btnDiscover:          'Обнаружить все посты с {date}',
+    btnBringLink:         'Принести ссылку на пост',
+    btnGetPumpkin:        'Получить тыкву',
+    btnGetThis:           'Получить тыкву за этот пост',
+    btnCancel:            'Отмена',
+    linkPlaceholder:      'Вставьте ссылку на пост (должна содержать #pNNN)',
+
+    // Колонки таблицы
+    colNum:               '№',
+    colEpisode:           'Эпизод',
+    colDate:              'Дата',
+    colAction:            'Действие',
+    alreadyGot:           '✓ Получена',
+    collectionLink:       'Перейти к моей коллекции тыкв',
+
+    // Статусы
+    statusSearching:      'Ищем новые посты…',
+    statusCollecting:     'Обнаруживаю все посты с {date}…',
+    statusDetected:       'Обнаружено {n} постов, {m} уже получены.',
+    statusNothingNew:     'Новых постов нет.',
+    statusCacheFresh:     'Показаны данные из кэша ({age} назад). Новые посты можно принести прямой ссылкой или обновить обнаружение позже.',
+    statusFresh:          'Свежие данные.',
+    statusGetting:        'Получаю тыкву…',
+    statusLoadingPost:    'Проверяю пост…',
+    statusGot:            'Тыква получена и добавлена в коллекцию.',
+    statusAlreadyGot:     'Тыква за этот пост уже забрана.',
+
+    // Ошибки
+    errLinkNoPid:         'В ссылке нет якоря #pNNN.',
+    errPostNotFound:      'Пост не найден.',
+    errAuthorNotYou:      'Автор поста — не вы.',
+    errTooOld:            'Пост старше {date}.',
+    errForumNotAllowed:   'Пост не в игровом форуме.',
+    errLoad:              'Не удалось загрузить список: {msg}',
+    errGet:               'Не удалось получить тыкву: {msg}',
+    errTopic:             'Ошибка при обработке темы {id}: {msg}',
+    errNoPostInInventory: 'Не удалось прочитать ваш инвентарь.',
+    errFormNotFound:      'Форма для сохранения не найдена.',
+    errIframeAccess:      'Нет доступа к содержимому iframe.',
+    errTimeout:           'Таймаут ожидания ответа.',
+    errPumpkinName:       'Тыква за пост в {subject}',
+  },
+
+  // Шаблоны инвентаря
   TEMPLATES: {
     INVENTORY: `
 [b]Инвентарь пользователя[/b]
@@ -79,7 +146,7 @@ window.PUMPKIN_QUEST_CONFIG = {
 [/html]
 [b]Последнее обновление:[/b] {{currentTime}}
     `,
-    IMAGE_IN_INVENTORY: `<div class="inv_pump"><img src="{{src}}" title="{{name}}" class="pump-image"></div>`,
+    IMAGE_IN_INVENTORY: `<div class="inv_pump"><a href="https://pulseofny.rusff.me/viewtopic.php?pid={{pid}}#p{{pid}}"><img src="{{src}}" title="{{name}}" class="pump-image"></a></div>`,
   },
 };
 </script>
