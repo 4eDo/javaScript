@@ -198,7 +198,10 @@
       box.appendChild(wrap);
     }
 
-    const rules = window.RULES || {};
+    const rules = (Core && Core.getRules)
+      ? Core.getRules()
+      : (typeof RULES !== 'undefined' ? RULES : (window.RULES || {}));
+
     const byParam = {};
     for (const [cat, rule] of Object.entries(rules)) {
       if (cat.startsWith('emo_')) continue;
