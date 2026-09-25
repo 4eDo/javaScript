@@ -2,7 +2,15 @@
      Страница квестов за тыквы.
      Встраивается в форумную страницу. Без <html>, <head>, <body>.
      ============================================================ -->
-
+<style>
+    button { padding: 5px 10px;}
+    tr:nth-child(odd) {
+        background-color: #80808015;
+    }
+    tr:hover {
+        background-color: #80808030;
+    }
+</style>
 <div id="pumpkinQuest">
 
   <!-- Статус -->
@@ -140,14 +148,14 @@ window.PUMPKIN_QUEST_CONFIG = {
   // Шаблоны инвентаря
   TEMPLATES: {
     INVENTORY: `
-[b]Гордость тыквовода:[/b]
+[b]Гордость тыквовода ${UserLogin}:[/b]
 [html]
-<style>.usr_pumps{display:grid;align-items:end;gap:0;margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:30px 50px}.inv_pump{padding:10px 10px 30px;text-align:center;position:relative;margin:0 -10px}.inv_pump::after{content:"";position:absolute;left:0;right:0;bottom:-20px;height:100px;background:url("https://i.ibb.co/0j779sSD/table.png") center bottom/100% 100% no-repeat;pointer-events:none}.inv_pump:nth-child(odd)::after{z-index:1}.inv_pump:nth-child(2n)::after{z-index:5;transform:scaleX(-1)}.pump-image{object-fit:cover;border-radius:4px;max-width:unset!important;position:relative;transition:transform .2s,opacity .2s}.inv_pump:nth-child(4n+1) .pump-image{opacity:1;transform:scale(1) translateY(0);z-index:40}.inv_pump:nth-child(4n+2) .pump-image,.inv_pump:nth-child(4n+4) .pump-image{opacity:.9;transform:scale(.9) translateY(-10px);z-index:30}.inv_pump:nth-child(4n+3) .pump-image{opacity:.8;transform:scale(.8) translateY(-20px);z-index:20}.inv_pump:hover .pump-image{opacity:1;transform:scale(1) translateY(0);z-index:1000}</style>
+<style>.usr_pumps{display:grid;align-items:end;gap:0;margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:30px 50px}.inv_pump{padding:10px 10px 30px;text-align:center;position:relative;margin:0 -10px}.inv_pump::after{content:"";position:absolute;left:0;right:0;bottom:-20px;height:100px;background:url("https://i.ibb.co/0j779sSD/table.png") center bottom/100% 100% no-repeat;pointer-events:none}.inv_pump:nth-child(odd)::after{z-index:1}.inv_pump:nth-child(2n)::after{z-index:5;transform:scaleX(-1)}.pump-image{object-fit:cover;border-radius:4px;max-width:unset!important;position:relative;transition:transform .2s,opacity .2s}.inv_pump:nth-child(4n+1) .pump-image{opacity:1;transform:scale(.9) translateY(0);z-index:40}.inv_pump:nth-child(4n+2) .pump-image,.inv_pump:nth-child(4n+4) .pump-image{opacity:.95;transform:scale(.8) translateY(-10px);z-index:30}.inv_pump:nth-child(4n+3) .pump-image{opacity:.9;transform:scale(.7) translateY(-20px);z-index:20}.inv_pump:hover .pump-image{opacity:1;transform:scale(.9) translateY(0);z-index:1000}</style>
 <div class="usr_pumps">
     {{items}}
 </div>
 [/html]
-[b]Последнее обновление:[/b] {{currentTime}}
+[b]Последнее обновление:[/b] {{currentTime}} [hideprofile]
     `,
     IMAGE_IN_INVENTORY: `<div class="inv_pump"><a href="https://pulseofny.rusff.me/viewtopic.php?pid={{pid}}#p{{pid}}"><img src="{{src}}" title="{{name}}" class="pump-image"></a></div>`,
   },
