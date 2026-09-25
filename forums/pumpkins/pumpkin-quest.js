@@ -80,7 +80,7 @@
   //  УТИЛИТЫ
   // ============================================================
 
-  function setStatus(text) { $status.text(text || ''); }
+  function setStatus(text) { $status.html(text || ''); }
   function addError(text)  { $errors.append('<div>' + text + '</div>'); }
   function clearErrors()   { $errors.empty(); }
   function delay(ms)       { return new Promise(r => setTimeout(r, ms)); }
@@ -578,7 +578,7 @@
       setStatus(MSG.statusGetting);
       const imageUrl = await generateAndUploadPumpkin(post);
 
-      const pumpkinName = fmt(MSG.errPumpkinName, { subject: post.subject || ('#' + post.postId) });
+      const pumpkinName = fmt(MSG.pumpkinTitle, { subject: post.subject || ('#' + post.postId) });
       await appendPumpkinToInventory(imageUrl, post.postId, pumpkinName);
 
       obtainedPids.add(post.postId);

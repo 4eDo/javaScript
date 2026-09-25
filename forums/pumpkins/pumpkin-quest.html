@@ -91,55 +91,57 @@ window.PUMPKIN_QUEST_CONFIG = {
   MESSAGES: {
     // Заголовок и кнопки раздела
     searchTitle:          'Поиск тыкв',
-    btnDiscover:          'Обнаружить все посты с {date}',
+    btnDiscover:          'Искать посты (после {date})',
     btnBringLink:         'Принести ссылку на пост',
-    btnGetPumpkin:        'Получить тыкву',
-    btnGetThis:           'Получить тыкву за этот пост',
+    btnGetPumpkin:        'Получить тыковку!',
+    btnGetThis:           'Получить тыковку!',
     btnCancel:            'Отмена',
-    linkPlaceholder:      'Вставьте ссылку на пост (должна содержать #pNNN)',
+    linkPlaceholder:      'Ссылка на пост',
 
     // Колонки таблицы
     colNum:               '№',
     colEpisode:           'Эпизод',
     colDate:              'Дата',
     colAction:            'Действие',
-    alreadyGot:           '✓ Получена',
+    alreadyGot:           'Тыковка уже получена',
     collectionLink:       'Перейти к моей коллекции тыкв',
 
     // Статусы
-    statusSearching:      'Ищем новые посты…',
-    statusCollecting:     'Обнаруживаю все посты с {date}…',
-    statusDetected:       'Обнаружено {n} постов, {m} уже получены.',
-    statusNothingNew:     'Новых постов нет.',
-    statusCacheFresh:     'Показаны данные из кэша ({age} назад). Новые посты можно принести прямой ссылкой или обновить обнаружение позже.',
+    statusSearching:      'Ищу эпизоды...',
+    statusCollecting:     'Ищу твои посты...',
+    statusDetected:       'Нашёл {n} постов, {m} тыкв собрано!',
+    statusNothingNew:     'Новых постов нет :(',
+    statusCacheFresh:     'Показаны данные из кэша ({age} назад). Приноси новые ссылкой или жди обновления.',
     statusFresh:          'Свежие данные.',
-    statusGetting:        'Получаю тыкву…',
-    statusLoadingPost:    'Проверяю пост…',
-    statusGot:            'Тыква получена и добавлена в коллекцию.',
-    statusAlreadyGot:     'Тыква за этот пост уже забрана.',
+    statusGetting:        'Выращиваю тыкву по запросу...',
+    statusLoadingPost:    'Проверяю хранилище тыкв...',
+    statusGot:            'Тыква выращена! Перемещаю в хранилище...',
+    statusAlreadyGot:     'Ты уже получил эту тыкву!',
 
     // Ошибки
-    errLinkNoPid:         'В ссылке нет якоря #pNNN.',
-    errPostNotFound:      'Пост не найден.',
-    errAuthorNotYou:      'Автор поста — не вы.',
-    errTooOld:            'Пост старше {date}.',
-    errForumNotAllowed:   'Пост не в игровом форуме.',
-    errLoad:              'Не удалось загрузить список: {msg}',
-    errGet:               'Не удалось получить тыкву: {msg}',
-    errTopic:             'Ошибка при обработке темы {id}: {msg}',
-    errNoPostInInventory: 'Не удалось прочитать ваш инвентарь.',
-    errFormNotFound:      'Форма для сохранения не найдена.',
-    errIframeAccess:      'Нет доступа к содержимому iframe.',
-    errTimeout:           'Таймаут ожидания ответа.',
-    errPumpkinName:       'Тыква за пост в {subject}',
+    errLinkNoPid:         'Ссылка на пост должна содержать #p******',
+    errPostNotFound:      'Пост не найден :(',
+    errAuthorNotYou:      'Не воруй соседские тыквы!!!',
+    errTooOld:            'Пост старше {date}, он не участвует в выращивании.',
+    errForumNotAllowed:   'Это должен быть игровой пост!',
+    errLoad:              'Не удалось загрузить список: {msg}. Сообщите АМС!',
+    errGet:               'Не удалось получить тыкву: {msg}. Сообщите АМС!',
+    errTopic:             'Ошибка при обработке темы {id}: {msg}. Сообщите АМС!',
+    errNoPostInInventory: 'Не удалось прочитать ваш инвентарь. Сообщите АМС!',
+    errFormNotFound:      'Форма для сохранения не найдена. Сообщите АМС!',
+    errIframeAccess:      'Нет доступа к содержимому iframe. Сообщите АМС!',
+    errTimeout:           'Таймаут ожидания ответа. Попробуйте позже.',
+
+    // Дополнительно    
+    pumpkinTitle:         'Тыква за пост в {subject}',
   },
 
   // Шаблоны инвентаря
   TEMPLATES: {
     INVENTORY: `
-[b]Инвентарь пользователя[/b]
+[b]Гордость тыквовода:[/b]
 [html]
-<style>.usr_pumps {display: grid;gap: 10px;margin-top: 10px;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));}.inv_pump {background: ;border: 1px solid #ddd;border-radius: 4px;padding: 10px;text-align: center;}.pump-image {object-fit: cover;border-radius: 4px;}</style>
+<style>.usr_pumps {display: grid;align-items: end;gap: 10px;margin-top: 10px;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));}.inv_pump {background: ;border: 1px solid #ddd;border-radius: 4px;padding: 10px;text-align: center;}.pump-image {object-fit: cover;border-radius: 4px;}</style>
 <div class="usr_pumps">
     {{items}}
 </div>
