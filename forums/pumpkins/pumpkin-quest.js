@@ -26,8 +26,7 @@
   const $quest         = $('#pumpkinQuest');
   const $status        = $('#pqStatus');
   const $errors        = $('#pqErrors');
-  const $preview       = $('#pqPreviewBlock');
-  const $previewW      = $('#pqPreviewWrap');
+  const $previewImg    = $('#pqPreviewImg');
   const $collLink      = $('#pqCollectionLink');
 
   const $btnBringLink  = $('#pqBtnBringLink');
@@ -80,7 +79,7 @@
   //  УТИЛИТЫ
   // ============================================================
 
-  function setStatus(text) { $status.html(text || ''); }
+  function setStatus(text) { $status.text(text || ''); }
   function addError(text)  { $errors.append('<div>' + text + '</div>'); }
   function clearErrors()   { $errors.empty(); }
   function delay(ms)       { return new Promise(r => setTimeout(r, ms)); }
@@ -150,11 +149,6 @@
   function unlockUI() {
     busy = false;
     $quest.find('button').prop('disabled', false);
-    // Кнопки, которые должны остаться отключёнными, — их нет,
-    // потому что полученные строки используют <span>, а не <button>.
-    // Но «Получить» в процессе не должно быть отключено здесь,
-    // потому что кнопка в процессе сама себя восстанавливает
-    // или заменяется на span.
   }
 
   // ============================================================
@@ -483,7 +477,7 @@
   // ============================================================
 
   async function fetchTopics() {
-    setStatus(MSG.statusSearching);
+
     const forumIds = CFG.GAME_FORUMS.join(',');
     const all = [];
     let skip = 0;
@@ -599,19 +593,17 @@
   //  ПРЕВЬЮ
   // ============================================================
 
-  function renderPreview(imageUrl) {
-    $previewW.empty();
-    $previewW.append(
+    function renderPreview(imageUrl) {
+    const $imgBox = $('#pqPreviewImg');
+    $imgBox.removeClass('pq-has-placeholder');
+    $imgBox.empty();
+    $imgBox.append(
       $('<img>')
         .attr('src', imageUrl)
         .attr('alt', 'Тыква')
-        .attr('width', CFG.PREVIEW_SIZE)
-        .attr('height', CFG.PREVIEW_SIZE)
-        .css({ display: 'block', margin: '0 auto' })
     );
     $collLink.attr('href', '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC);
     $collLink.text(MSG.collectionLink);
-    $preview.show();
   }
 
   // ============================================================
@@ -636,13 +628,13 @@
       const alreadyGot = obtainedPids.has(p.postId);
 
       const $row = $('<tr>').attr('data-pid', p.postId);
-        $row.append($('<td>').text(idx + 1));
-        $row.append(
+      $row.append($('<td>').text(idx + 1));
+      $row.append(
         $('<td>').append(
-            document.createTextNode((p.subject || '') + ' '),
-            $('<a>').attr('href', url).text('#p' + p.postId)
+          document.createTextNode((p.subject || '') + ' '),
+          $('<a>').attr('href', url).text('#p' + p.postId)
         )
-        );
+      );
       $row.append($('<td>').text(formatDate(p.posted)));
 
       const $action = $('<td>');
@@ -678,9 +670,6 @@
     setStatus(fmt(MSG.statusDetected, { n: total, m: got }));
   }
 
-  /**
-   * Обновляет одну строку таблицы по pid — помечает её как полученную.
-   */
   function markRowAsObtained(pid) {
     const $row = $tbody.find('tr[data-pid="' + pid + '"]');
     if (!$row.length) return;
@@ -700,14 +689,12 @@
     setStatus(fmt(MSG.statusCollecting, { date: CFG.START_DATE }));
 
     try {
-      // ВСЕГДА читаем инвентарь — источник правды
       const obtainedPids = await loadObtainedPids();
 
       const cache = readCache();
       const now = Date.now();
 
       if (cache && (now - cache.ts) < CFG.CACHE_TTL_MS) {
-        // Свежий кэш — берём только список постов, статус — из инвентаря
         renderDiscoverTable(cache.posts, obtainedPids);
         $cacheWarning
           .text(fmt(MSG.statusCacheFresh, { age: formatAge(now - cache.ts) }))
@@ -715,7 +702,6 @@
         return;
       }
 
-      // Кэша нет или он старый — собираем заново
       const posts = await collectPosts();
       writeCache(posts);
       renderDiscoverTable(posts, obtainedPids);
@@ -759,7 +745,6 @@
     setStatus(MSG.statusLoadingPost);
 
     try {
-      // ВСЕГДА читаем инвентарь — источник правды
       const obtainedPids = await loadObtainedPids();
       if (obtainedPids.has(pid)) {
         setStatus(MSG.statusAlreadyGot);
@@ -783,7 +768,6 @@
         addError(MSG.errForumNotAllowed); setStatus(''); return;
       }
 
-      // subject: пытаемся взять из кэша обнаружений, если там есть
       let subject = p.subject || '';
       if (!subject) {
         const c = readCache();
@@ -825,6 +809,8 @@
     $btnGetThis.text(MSG.btnGetThis);
     $btnCancel.text(MSG.btnCancel);
     $linkInput.attr('placeholder', MSG.linkPlaceholder);
+
+    $collLink.attr('href', '/viewtopic.php?id=' + CFG.PUMPKINS_TOPIC);
     $collLink.text(MSG.collectionLink);
 
     $btnBringLink.on('click', () => {
