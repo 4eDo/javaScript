@@ -664,7 +664,7 @@
             const ok = await obtainPumpkinForPost(p, obtainedPids);
             if (ok) {
               $btn.replaceWith($('<span>').text(MSG.alreadyGot).css('color', '#3a3'));
-              setStatus(statusDone);
+              setStatus(MSG.statusDone);
             } else {
               $btn.text(MSG.btnGetPumpkin);
             }
@@ -802,7 +802,7 @@
       if (ok) {
         hideLinkBlock();
         markRowAsObtained(pid);
-        setStatus(statusDone);
+        setStatus(MSG.statusDone);
       }
     } catch (e) {
       console.error('[pumpkin-quest] bring link failed:', e);
