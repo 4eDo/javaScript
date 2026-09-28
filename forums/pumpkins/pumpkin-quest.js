@@ -582,9 +582,11 @@
             const result = await generateAndUploadPumpkin(post);
       const imageUrl = result.url;
 
-      const pumpkinName = result.name
-        ? result.name
-        : fmt(MSG.pumpkinTitle, { subject: post.subject || ('#' + post.postId) });
+      const pumpkinType = result.name || 'Тыква';
+      const pumpkinName = fmt(MSG.pumpkinTitle, {
+        name: pumpkinType,
+        subject: post.subject || ('#' + post.postId),
+      });
 
       await appendPumpkinToInventory(imageUrl, post.postId, pumpkinName);
 
