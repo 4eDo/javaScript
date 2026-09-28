@@ -167,6 +167,63 @@
     return { wordCount: words.length, raw, scores, hits };
   }
 
+  // ============================================================
+  //  ПАСХАЛКИ
+  // ============================================================
+  //
+  //  Проходит по всем EGG_RULES и выбирает правило, у которого
+  //  сработало МАКСИМУМ слов. Если максимум одинаков у нескольких
+  //  правил — среди них выбирается случайное.
+  //
+  function getEggRules() {
+    if (typeof EGG_RULES !== 'undefined' && EGG_RULES) return EGG_RULES;
+    if (global.EGG_RULES) return global.EGG_RULES;
+    return [];
+  }
+
+  function checkEgg(text) {
+    const words = tokenize(text);
+    if (!words.length) return null;
+    const rules = getEggRules();
+    if (!rules.length) return null;
+
+    let bestHits = 0;
+    const candidates = [];
+
+    for (const rule of rules) {
+      if (!rule.words || !rule.words.length) continue;
+
+      let hits = 0;
+      for (const word of words) {
+        for (const trigger of rule.words) {
+          if (trigger && word.includes(trigger)) {
+            hits++;
+            break;
+          }
+        }
+      }
+
+      const need = rule.minHits || rule.words.length;
+      if (hits < need) continue;
+
+      if (hits > bestHits) {
+        bestHits = hits;
+        candidates.length = 0;
+        candidates.push(rule);
+      } else if (hits === bestHits) {
+        candidates.push(rule);
+      }
+    }
+
+    if (!candidates.length) return null;
+
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    return {
+      src: chosen.src,
+      name: chosen.name || 'Особая тыква',
+    };
+  }
+
   function analyzeText(text) {
     return analyze(tokenize(text));
   }
@@ -451,6 +508,9 @@
     // внутренние, но может понадобиться
     hexToHsl,
     hslToHex,
+
+    checkEgg,
+    getEggRules,
   };
 
 })(window);

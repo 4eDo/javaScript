@@ -453,6 +453,13 @@
   // ============================================================
 
   async function generateAndUploadPumpkin(post) {
+    // 1. Пасхалка: если текст содержит особые слова — берём готовую картинку
+    const egg = PumpkinCore.checkEgg(post.text);
+    if (egg && egg.src) {
+      return { url: egg.src, name: egg.name };
+    }
+
+    // 2. Иначе — обычная генерация
     const analysis = PumpkinCore.analyzeText(post.text);
     const params = PumpkinCore.computeParams(analysis);
 
@@ -469,7 +476,8 @@
     });
 
     const fileName = USER_ID + '_' + post.postId;
-    return await uploadToImgbb(result.dataURL, fileName);
+    const imageUrl = await uploadToImgbb(result.dataURL, fileName);
+    return { url: imageUrl, name: null };
   }
 
   // ============================================================
@@ -571,9 +579,13 @@
 
     try {
       setStatus(MSG.statusGetting);
-      const imageUrl = await generateAndUploadPumpkin(post);
+            const result = await generateAndUploadPumpkin(post);
+      const imageUrl = result.url;
 
-      const pumpkinName = fmt(MSG.pumpkinTitle, { subject: post.subject || ('#' + post.postId) });
+      const pumpkinName = result.name
+        ? result.name
+        : fmt(MSG.pumpkinTitle, { subject: post.subject || ('#' + post.postId) });
+
       await appendPumpkinToInventory(imageUrl, post.postId, pumpkinName);
 
       obtainedPids.add(post.postId);
@@ -593,7 +605,7 @@
   //  ПРЕВЬЮ
   // ============================================================
 
-    function renderPreview(imageUrl) {
+  function renderPreview(imageUrl) {
     const $imgBox = $('#pqPreviewImg');
     $imgBox.removeClass('pq-has-placeholder');
     $imgBox.empty();
