@@ -381,5 +381,23 @@ const EGG_RULES = [
     src: 'https://upforme.ru/uploads/001c/0f/f1/3/447704.png',
     name: 'Тыква дьяболо',
   },
+  {
+    words: ['пульс', 'форум'],
+    minHits: 3,
+    src: 'https://upforme.ru/uploads/001c/0f/f1/3/804344.png',
+    name: 'Пульс',
+  },
+  {
+    words: ['ритм', 'единств', 'волна'],
+    minHits: 3,
+    src: 'https://upforme.ru/uploads/001c/0f/f1/3/867337.png',
+    name: 'В ритме пульса',
+  },
+  {
+    words: ['тыкв', 'хэллоу'],
+    minHits: 5,
+    src: 'https://upforme.ru/uploads/001c/0f/f1/3/573058.png',
+    name: 'Тыквотыква',
+  },
 ];
 window.EGG_RULES = EGG_RULES;
