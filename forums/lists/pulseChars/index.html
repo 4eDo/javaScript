@@ -1,0 +1,1987 @@
+<style>
+	#charLists {
+		--outdatedOpacity: 0.55;
+		font-family: var(--font);
+		color: rgb(var(--text900));
+	}
+
+	#tooltip { color: rgb(var(--text900)) !important; }
+	.subSide { display: inline; font-style: oblique; }
+	.listContainer { flex-grow: 1; display: none; }
+
+	.red_title,
+	.custom_tag_title {
+		font-family: var(--font-title);
+		display: inline-block;
+	}
+	.red_title::first-letter,
+	.custom_tag_title::first-letter {
+		color: var(--color-accent) !important;
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	.ruName { font-style: oblique; color: rgb(var(--text900) / .75); }
+	.char_fc { text-align: right; text-transform: capitalize; }
+	.material-symbols-outlined { font-size: 20px !important; }
+	.firstletter { font-size: 17px; font-weight: bold; }
+	.chars-nav { text-align: center; margin-bottom: 6px; }
+	.chars-nav a {
+		display: inline-block;
+		white-space: nowrap;
+		border: 1px solid rgb(var(--primary400) / .5);
+		padding: 2px 6px;
+		margin: 2px;
+		line-height: 26px;
+		cursor: pointer;
+		color: rgb(var(--text900) / .7) !important;
+		background: rgb(var(--light100));
+		border-radius: var(--4);
+		transition: 0.3s;
+		text-decoration: none;
+		font-size: 0.9rem;
+	}
+	.chars-nav a:hover,
+	.chars-nav .current {
+		background: rgb(var(--primary400));
+		color: rgb(var(--light100)) !important;
+		border-color: rgb(var(--primary400));
+	}
+
+	.show-reserved-wrap {
+		text-align: center;
+		margin: 8px 0;
+		font-size: 0.9rem;
+		color: rgb(var(--text900) / .8);
+	}
+
+	.all-chars {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		padding: 0;
+	}
+
+	/* ---------- Плитки ---------- */
+	.all-chars .char {
+		list-style: none;
+		display: inline-block;
+		width: 225px;
+		height: 95px;
+		margin: 6px 6px 6px 25px;
+		z-index: 1;
+		padding: 4px;
+	}
+	.char {
+		padding: 2px;
+		margin: 2px;
+		border: 1px solid rgb(var(--primary400)) !important;
+		background: rgb(var(--light100));
+		border-radius: var(--4);
+		position: relative;
+	}
+	.char .char_profile {
+		position: relative;
+		z-index: 1;
+	}
+	.notexist {
+		background-color: rgb(var(--primary400) / .12) !important;
+		border-color: rgb(var(--primary400) / .45) !important;
+	}
+	.reserved {
+		background-color: rgb(var(--warning) / .15) !important;
+		border-color: rgb(var(--warning) / .65) !important;
+	}
+
+	.ams-badge,
+	.player-badge,
+	.wanted-badge,
+	.expired-badge,
+	.expired-type-badge {
+		display: inline-block;
+		font-size: 10px;
+		line-height: 1;
+		padding: 2px 4px;
+		border-radius: var(--4);
+		color: rgb(var(--light100));
+		margin-left: 4px;
+		vertical-align: middle;
+		letter-spacing: .02em;
+	}
+	.ams-badge { background: rgb(var(--danger)); }
+	.player-badge { background: rgb(var(--primary400)); }
+	.wanted-badge { background: rgb(var(--warning)); color: rgb(var(--dark900)); }
+	.expired-badge { background: rgb(var(--danger)); }
+	.expired-type-badge { background: rgb(var(--secondary400)); }
+
+	/* ---------- Флажки (левая колонка) ---------- */
+	.char .flags {
+		flex-direction: column;
+		position: absolute;
+		margin-left: -26px;
+		margin-top: -3px;
+		display: flex;
+		z-index: 3;
+	}
+	.flag {
+		display: none;
+		cursor: pointer;
+		border-top: 1px solid rgb(var(--primary400)) !important;
+		border-left: 1px solid rgb(var(--primary400)) !important;
+		border-bottom: 1px solid rgb(var(--primary400)) !important;
+		background: rgb(var(--light100));
+		border-radius: var(--4) 0 0 var(--4);
+		color: rgb(var(--text900));
+	}
+	.exist .f_exist { display: block; }
+	.notexist .f_notexist { display: block; }
+	.reserved .f_reserved { display: block; }
+	.canChangeName .f_canChangeName { display: block; }
+	.canChangeFc .f_canChangeFc { display: block; }
+
+	.notexist .flag {
+		background-color: rgb(var(--primary400) / .12) !important;
+		border-color: rgb(var(--primary400) / .45) !important;
+	}
+	.reserved .flag {
+		background-color: rgb(var(--warning) / .15) !important;
+		border-color: rgb(var(--warning) / .65) !important;
+	}
+
+	.outdated { opacity: var(--outdatedOpacity); }
+
+	/* ---------- Фракции: цвета ---------- */
+	.faction-header.al, .faction-row.al { --faction-color: #323f69; }
+	.faction-header.sv, .faction-row.sv { --faction-color: #645534; }
+	.faction-header.mt, .faction-row.mt { --faction-color: #547364; }
+	.faction-header.free, .faction-row.free { --faction-color: #555555; }
+
+	/* ---------- Фракции: иконки-печати ---------- */
+	.faction-seal {
+		display: inline-block;
+		background-size: contain;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+	.faction-seal.al { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/830519.png'); }
+	.faction-seal.sv { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/759873.png'); }
+	.faction-seal.mt { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/794038.png'); }
+	.faction-seal.free { background-image: url('https://upforme.ru/uploads/001c/0f/f1/3/881728.png'); }
+
+	.char > .faction-seal {
+		position: absolute;
+		right: -20px;
+		top: -20px;
+		width: 120px;
+		height: 120px;
+		opacity: 0.3;
+		z-index: 0;
+	}
+	.group-title.faction-header .faction-seal {
+		position: absolute;
+		right: 8px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 100px;
+		height: 100px;
+	}
+	.modal-box h3 .faction-seal {
+		flex: 0 0 auto;
+		width: 40px;
+		height: 40px;
+	}
+
+	/* ---------- Инлайн-иконки смены ---------- */
+	.change-marks {
+		display: inline-flex;
+		gap: 2px;
+		align-items: center;
+		margin-left: 4px;
+		vertical-align: middle;
+	}
+	.change-marks .change-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		background: rgb(var(--secondary400));
+		color: rgb(var(--light100));
+		border-radius: var(--4);
+		padding: 1px 3px;
+		font-size: 11px;
+		line-height: 1;
+	}
+	.change-marks .change-icon .material-symbols-outlined {
+		font-size: 14px !important;
+	}
+
+	/* ---------- Фракционные строки ---------- */
+	.faction-row {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 8px 12px;
+		margin: 4px 0;
+		border: 1px solid rgb(var(--primary400)) !important;
+		border-left: 3px solid var(--faction-color, transparent) !important;
+		background: rgb(var(--light100));
+		border-radius: var(--6);
+		gap: 12px;
+	}
+	.faction-row.notexist {
+		background-color: rgb(var(--primary400) / .12) !important;
+		border-color: rgb(var(--primary400) / .45) !important;
+		border-left-color: var(--faction-color, transparent) !important;
+	}
+	.faction-row.reserved {
+		background-color: rgb(var(--warning) / .15) !important;
+		border-color: rgb(var(--warning) / .65) !important;
+		border-left-color: var(--faction-color, transparent) !important;
+	}
+	.faction-row.outdated { opacity: var(--outdatedOpacity); }
+	.faction-row .fr-name { flex: 0 0 30%; font-weight: bold; }
+	.faction-row .fr-role { flex: 1 1 auto; text-align: left; color: rgb(var(--text900) / .85); }
+	.faction-row .fr-date { flex: 0 0 auto; text-align: right; white-space: nowrap; color: rgb(var(--text900) / .8); }
+	.faction-row .fr-sub  { font-size: 12px; font-style: italic; margin-left: 6px; }
+	.faction-row .fr-actions { flex: 0 0 auto; }
+	.faction-row .details-btn {
+		padding: 4px 10px;
+		font-size: 13px;
+		cursor: pointer;
+		background: rgb(var(--primary400));
+		color: rgb(var(--light100));
+		border: none;
+		border-radius: var(--4);
+		transition: 0.2s;
+		font-family: var(--font);
+	}
+	.faction-row .details-btn:hover {
+		background: var(--color-accent);
+	}
+
+	/* ---------- Заголовок фракции ---------- */
+	.group-title {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		margin-top: 14px;
+	}
+	.group-title.faction-header {
+		position: relative;
+		padding: 10px 120px 10px 14px;
+		border-radius: var(--6);
+		box-sizing: border-box;
+		min-height: 100px;
+		border-left: 4px solid var(--faction-color, transparent);
+		background: linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--faction-color, transparent) 45%, transparent) 0%,
+			transparent 100%
+		);
+	}
+	.group-title .left-title { flex: 0 0 auto; font-size: 1.2rem; }
+	.group-title .line {
+		flex-grow: 1;
+		border: none;
+		border-bottom: 1px dotted rgb(var(--text900) / .5);
+		height: 10px;
+		margin: 0 5px;
+	}
+	.group-title .right-title { flex: 0 0 auto; text-align: right; color: rgb(var(--text900) / .7); }
+
+	/* ---------- Истёкшие заявки ---------- */
+	.expired-row {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 8px 12px;
+		margin: 4px 0;
+		border: 1px solid rgb(var(--danger)) !important;
+		background: rgb(var(--danger) / .08);
+		border-radius: var(--6);
+		gap: 12px;
+	}
+	.expired-row .ex-name { flex: 0 0 30%; font-weight: bold; }
+	.expired-row .ex-types { flex: 0 0 auto; }
+	.expired-row .ex-date { flex: 1 1 auto; text-align: left; color: rgb(var(--text900) / .8); white-space: nowrap; }
+	.expired-row .ex-actions { flex: 0 0 auto; }
+	.expired-row .details-btn {
+		padding: 4px 10px;
+		font-size: 13px;
+		cursor: pointer;
+		background: rgb(var(--primary400));
+		color: rgb(var(--light100));
+		border: none;
+		border-radius: var(--4);
+		transition: 0.2s;
+		font-family: var(--font);
+		text-decoration: none;
+	}
+	.expired-row .details-btn:hover {
+		background: var(--color-accent);
+	}
+
+	/* ---------- Списки ---------- */
+	#addonAll,
+	#addonM,
+	#addonF { box-sizing: border-box; }
+	#addonAll { max-width: 720px; margin: 0 0 0 10%; }
+	#addonM,
+	#addonF { max-width: 340px; margin: 0 0 0 5%; }
+	.listRow { padding: 2px 0; }
+	.listRow a { color: rgb(var(--text900)); text-decoration: none; }
+	.listRow a:hover { color: var(--color-accent); text-decoration: underline; }
+	.listRow.reserved { color: rgb(var(--warning)); }
+	.owner-note { font-size: 12px; opacity: 0.8; }
+
+	/* ---------- Модалка ---------- */
+	.modal-overlay {
+		position: fixed; inset: 0;
+		background: rgb(var(--dark900) / .55);
+		display: flex; align-items: center; justify-content: center;
+		z-index: 9999;
+	}
+	.modal-overlay[hidden] { display: none !important; }
+	.modal-box {
+		background: rgb(var(--light100));
+		color: rgb(var(--text900));
+		max-width: 720px; width: 90%; max-height: 85vh;
+		overflow: auto;
+		border-radius: var(--8);
+		padding: 16px 20px;
+		box-shadow: 0 8px 30px rgb(var(--dark900) / .5);
+		position: relative;
+		border: 1px solid rgb(var(--primary400) / .5);
+	}
+	.modal-close {
+		position: absolute; top: 8px; right: 10px;
+		border: none; background: transparent;
+		color: rgb(var(--text900));
+		font-size: 22px; cursor: pointer; line-height: 1;
+	}
+	.modal-close:hover { color: var(--color-accent); }
+	.modal-box h3 {
+		margin-top: 0;
+		font-family: var(--font-title);
+		color: var(--color-accent);
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding-right: 30px;
+	}
+
+	.modal-field { margin: 4px 0; }
+	.modal-field .mf-key {
+		font-weight: bold;
+		display: inline-block;
+		min-width: 180px;
+		vertical-align: top;
+		color: rgb(var(--text900) / .75);
+	}
+	.modal-field .mf-val {
+		display: inline-block;
+		max-width: calc(100% - 190px);
+	}
+	.modal-field .mf-val a { color: var(--color-accent2); text-decoration: none; }
+	.modal-field .mf-val a:hover { text-decoration: underline; }
+	.modal-section-title {
+		margin-top: 14px; margin-bottom: 6px;
+		font-weight: bold;
+		border-bottom: 1px dotted rgb(var(--text900) / .4);
+		color: var(--color-accent);
+	}
+	.side-history-item {
+		padding: 4px 8px;
+		border-left: 3px solid rgb(var(--secondary400));
+		margin: 4px 0;
+		background: rgb(var(--secondary400) / .08);
+		border-radius: 0 var(--4) var(--4) 0;
+	}
+	.side-history-item.actual {
+		border-left-color: rgb(var(--success));
+		background: rgb(var(--success) / .12);
+	}
+	.side-history-item.outdated {
+		border-left-color: rgb(var(--secondary400));
+		color: rgb(var(--text900) / .6);
+	}
+	.side-history-item .shi-note { font-style: italic; font-size: 13px; }
+	.side-history-item .shi-sub { font-size: 12px; }
+
+	.modal-links {
+		margin-top: 12px;
+		display: flex;
+		gap: 14px;
+		flex-wrap: wrap;
+	}
+	.modal-links a {
+		color: var(--color-accent2);
+		text-decoration: none;
+		font-weight: bold;
+	}
+	.modal-links a:hover { text-decoration: underline; }
+
+	/* ---------- Зум ---------- */
+	.zoom-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+	.zoom-controls .button {
+		padding: 6px 12px;
+		border: 1px solid rgb(var(--primary400));
+		background: rgb(var(--light100));
+		color: rgb(var(--text900));
+		border-radius: var(--4);
+		cursor: pointer;
+		transition: 0.2s;
+		font-family: var(--font);
+	}
+	.zoom-controls .button:hover {
+		background: rgb(var(--primary400));
+		color: rgb(var(--light100));
+	}
+
+	/* ---------- Кнопка «Подробно» в плитке ---------- */
+	.char .details-btn {
+		margin-top: 4px;
+		padding: 2px 8px;
+		font-size: 12px;
+		cursor: pointer;
+		background: rgb(var(--primary400));
+		color: rgb(var(--light100));
+		border: none;
+		border-radius: var(--4);
+		transition: 0.2s;
+		font-family: var(--font);
+	}
+	.char .details-btn:hover {
+		background: var(--color-accent);
+	}
+
+	[hidden] { display: none !important; }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<div class="zoom-controls">
+	<button id="zoom-in" class="button"> Увеличить масштаб </button>
+	<button id="zoom-out" class="button"> Уменьшить масштаб </button>
+	<button id="zoom-reset" class="button"> Масштаб 100% </button>
+</div>
+
+<div id="charLists">
+	<details>
+		<summary><b class="red_title">Статистика</b></summary>
+		<p><b>Всего персонажей:</b> <span id="stat_all"></span></p>
+		<p><b>Принятых:</b> <span id="stat_accepted"></span></p>
+		<p><b>Заявок:</b> <span id="stat_wanted"></span></p>
+		<p><b>Зарезервировано (только имя/фамилия/внешность):</b> <span id="stat_reserved"></span></p>
+		<p><b>Женщин:</b> <span id="stat_f"></span></p>
+		<p><b>Мужчин:</b> <span id="stat_m"></span></p>
+		<p><b>По фракциям (принятые):</b></p>
+		<ul id="stat_factions" style="margin: 0 0 8px 20px; padding: 0;"></ul>
+	</details>
+	<br><br>
+
+	<div class="chars-nav">
+		<a class="lists current button" data-view="chars">Список персонажей</a>
+		<a class="lists button" data-view="names">Список имён</a>
+		<a class="lists button" data-view="surnames">Список фамилий</a>
+		<a class="lists button" data-view="faces">Список внешностей</a>
+		<a class="lists button" data-view="expired" id="expiredTab" hidden>Истёкшие заявки</a>
+	</div>
+
+	<div class="chars-nav" id="factionNav">
+		<a rel="all" class="filters current button">Все персонажи</a>
+		<a rel="Альянс" class="filters button">Альянс</a>
+		<a rel="Свора" class="filters button">Свора</a>
+		<a rel="Миротворцы" class="filters button">Миротворцы</a>
+		<a rel="Одиночки" class="filters button">Одиночки</a>
+	</div>
+
+	<div class="show-reserved-wrap">
+		<label><input type="checkbox" id="showReservedChk"> Показать заявки (АМС / игроки)</label>
+	</div>
+
+	<div id="allChars-wrapper"><ul class="all-chars"></ul></div>
+
+	<div style="display: flex; flex-direction: row; align-items: flex-start;">
+		<div class="listContainer" id="addonAll"></div>
+		<div class="listContainer" id="addonM"></div>
+		<div class="listContainer" id="addonF"></div>
+	</div>
+
+	<div class="listContainer" id="factionContainer"></div>
+	<div class="listContainer" id="expiredContainer"></div>
+</div>
+
+<div class="modal-overlay" id="detailsModal" hidden>
+	<div class="modal-box" role="dialog" aria-modal="true">
+		<button class="modal-close" id="modalClose" aria-label="Закрыть" type="button">×</button>
+		<div id="modalBody"></div>
+	</div>
+</div>
+
+<div hidden>
+	<div id="CHAR_TEMPLATE">
+		<li class="char {{isExist}} {{isReserved}} {{sexClass}} {{canChangeName}} {{canChangeFc}}">
+			<div class="flags">
+				<span class="flag f_exist" title="Уже с нами"><span class="material-symbols-outlined">person</span></span>
+				<span class="flag f_notexist" title="Ожидаемый персонаж"><span class="material-symbols-outlined">person_search</span></span>
+				<span class="flag f_reserved" title="Зарезервировано (только имя/фамилия/внешность)"><span class="material-symbols-outlined">bookmark</span></span>
+				<span class="flag f_canChangeName" title="Можно сменить имя"><span class="material-symbols-outlined">edit</span></span>
+				<span class="flag f_canChangeFc" title="Можно сменить внешность"><span class="material-symbols-outlined">theater_comedy</span></span>
+			</div>
+			{{sealHtml}}
+			<div class="char_profile">
+				<div class="char_profname">
+					<a href="{{nameLink}}" target="_blank"> <b class="red_title">{{displayName}}</b> </a>
+					{{badge}}
+				</div>
+				<div class="ruName">{{displayRu}}</div>
+				<div class="char_fc"> FC: {{fc}} </div>
+				<div class="char_age"> Возраст: {{age}} </div>
+				<div class="char_role"> {{role}} </div>
+				<button class="button details-btn" type="button" data-idx="{{idx}}">Подробно</button>
+			</div>
+		</li>
+	</div>
+
+	<div id="FACTION_ROW_TEMPLATE">
+		<div class="faction-row {{factionClass}} {{isExist}} {{isReserved}} {{outdated}}">
+			<div class="fr-name">
+				<a href="{{nameLink}}" target="_blank">{{displayName}}</a>
+				{{changeMarks}}
+				{{badge}}
+			</div>
+			<div class="fr-role">{{role}}</div>
+			<div class="fr-date">
+				{{dateText}}
+				<span class="fr-sub">{{sub}}</span>
+			</div>
+			<div class="fr-actions">
+				<button class="button details-btn" type="button" data-idx="{{idx}}">Подробно</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="GROUP_TEMPLATE">
+		<div class="group-title faction-header {{factionClass}}">
+			<div class="left-title"><b class="red_title">{{title}}</b></div>
+			<hr class="line">
+			<div class="right-title">{{count}}</div>
+			{{sealHtml}}
+		</div>
+	</div>
+
+	<div id="EXPIRED_ROW_TEMPLATE">
+		<div class="expired-row">
+			<div class="ex-name">
+				<a href="{{postLink}}" target="_blank">{{displayName}}</a>
+				<span class="expired-badge">Истекла</span>
+			</div>
+			<div class="ex-types">{{typesHtml}}</div>
+			<div class="ex-date">{{expireText}}</div>
+			<div class="ex-actions">
+				<a class="details-btn" href="{{postLink}}" target="_blank">К сообщению</a>
+			</div>
+		</div>
+	</div>
+
+	<div id="NAMELIST_TEMPLATE">
+		<div class="listRow {{isExist}} {{isReserved}}">
+			<a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}{{nameRuPart}}{{ownerPart}}</a>
+		</div>
+	</div>
+
+	<div id="SURNAMELIST_TEMPLATE">
+		<div class="listRow {{isExist}} {{isReserved}}">
+			<a href="{{nameLink}}" target="_blank"><span style="text-transform: uppercase;">{{surname_en}}</span><span style="text-transform: capitalize;">, {{name_en}}</span>{{fullRuPart}}{{owner_part}}</a>
+		</div>
+	</div>
+
+	<div id="FACELIST_TEMPLATE">
+		<div class="listRow {{isExist}} {{isReserved}}">
+			<a href="{{nameLink}}" target="_blank">{{fc}} — {{nameEnFormatted}}{{ownerPart}}</a>
+		</div>
+	</div>
+
+	<div id="FIRSTLETTER_TEMPLATE">
+		<div class="firstletter">-- <span class="red_title">{{letter}}</span> --</div>
+	</div>
+
+	<div id="SEX_M_TEMPLATE">
+		<div><b class="custom_tag_title">Males</b></div>
+	</div>
+	<div id="SEX_F_TEMPLATE">
+		<div><b class="custom_tag_title">Females</b></div>
+	</div>
+
+	<div id="MODAL_TEMPLATE">
+		<h3>{{title}}{{sealHtml}}</h3>
+		<div class="modal-section-title">Основные поля</div>
+		{{fields}}
+		<div class="modal-section-title">История фракций</div>
+		{{sides}}
+		<div class="modal-links">
+			{{profileLink}}
+			{{anketaLink}}
+			{{postLink}}
+		</div>
+	</div>
+
+	<div id="MODAL_FIELD_TEMPLATE">
+		<div class="modal-field">
+			<span class="mf-key">{{key}}:</span>
+			<span class="mf-val">{{val}}</span>
+		</div>
+	</div>
+
+	<div id="MODAL_SIDE_TEMPLATE">
+		<div class="side-history-item {{actualClass}}">
+			<b>{{dateText}}</b> — <b>{{faction}}</b>
+			{{subBlock}}
+			{{noteBlock}}
+			{{actualMark}}
+		</div>
+	</div>
+</div>
+
+<script>
+/* =========================================================
+   КОНСТАНТЫ ТОПИКОВ
+   ========================================================= */
+const TOPIC_ACCEPTED = 16;
+const TOPIC_AMS      = 17;
+const TOPIC_BOUGHT   = 18;
+const TOPIC_FOREVER  = 19;
+
+const CONFIG = {
+	topics: {
+		accepted: TOPIC_ACCEPTED,
+		ams: TOPIC_AMS,
+		bought: TOPIC_BOUGHT,
+		forever: TOPIC_FOREVER,
+	},
+	currentDate: '2025-03',
+	postsPerRequest: 100,
+	factions: ['Альянс', 'Свора', 'Миротворцы', 'Одиночки'],
+	soloFaction: 'Одиночки',
+	debug: false,
+};
+
+/* =========================================================
+   ФРАКЦИИ: только key + title
+   ========================================================= */
+const FACTIONS = {
+	'альянс':     { key: 'al',   title: 'Альянс' },
+	'свора':      { key: 'sv',   title: 'Свора' },
+	'миротворцы': { key: 'mt',   title: 'Миротворцы' },
+	'одиночки':   { key: 'free', title: 'Одиночки' },
+};
+
+function getFactionInfo(name) {
+	if (!name) return null;
+	const n = normalizeKey(name);
+	for (const [k, v] of Object.entries(FACTIONS)) {
+		if (normalizeKey(k) === n) return v;
+	}
+	return null;
+}
+
+function factionClass(name) {
+	const info = getFactionInfo(name);
+	return info ? info.key : '';
+}
+
+function sealHtml(factionName) {
+	const info = getFactionInfo(factionName);
+	if (!info) return '';
+	return '<span class="faction-seal ' + info.key + '" title="' + escapeHtml(info.title) + '"></span>';
+}
+
+/* =========================================================
+   ОПРЕДЕЛЕНИЯ ПОЛЕЙ
+   ========================================================= */
+const FIELD_DEFS = [
+	{ key: 'type',       label: 'Тип',                   aliases: ['тип'] },
+	{ key: 'name_ru',    label: 'Имя (на русском)',      aliases: ['имя', 'имя (рус)', 'имя (рус.)'] },
+	{ key: 'surname_ru', label: 'Фамилия (на русском)',  aliases: ['фамилия', 'фамилия (рус)', 'фамилия (рус.)'] },
+	{ key: 'nickname_ru',label: 'Прозвище (на русском)', aliases: ['прозвище', 'прозвище (рус)', 'прозвище (рус.)'] },
+	{ key: 'name_en',    label: 'Имя (на английском)',   aliases: ['name', 'имя (англ)', 'имя (англ.)'] },
+	{ key: 'surname_en', label: 'Фамилия (на английском)', aliases: ['surname', 'фамилия (англ)', 'фамилия (англ.)'] },
+	{ key: 'nickname_en',label: 'Прозвище (на английском)', aliases: ['nickname', 'прозвище (англ)', 'прозвище (англ.)'] },
+	{ key: 'fc',         label: 'Внешность',             aliases: ['внешность (fc)', 'fc', 'faceclaim'] },
+	{ key: 'sex',        label: 'Пол',                   aliases: ['пол (m/f)', 'пол (м/ж)'] },
+	{ key: 'birth',      label: 'Дата рождения',         aliases: ['дата рождения (гггг-мм-дд)', 'др', 'birth', 'дата рожд.'] },
+	{ key: 'expire',     label: 'Истекает',              aliases: ['истекает', 'expire', 'срок'] },
+	{ key: 'role',       label: 'Должность',             aliases: ['должность (роль)', 'роль'] },
+	{ key: 'canChange',  label: 'Смена',                 aliases: ['смена', 'можно сменить', 'canchange', 'changes'] },
+	{ key: 'canChangeName', label: 'Смена имени',        aliases: ['смена имени', 'canchangename', 'changename'] },
+	{ key: 'canChangeFc',   label: 'Смена внешности',    aliases: ['смена внешности', 'canchangefc', 'changefc', 'смена лица'] },
+	{ key: 'priority',   label: 'Приоритет',             aliases: ['приоритет', 'priority', 'приор'] },
+	{ key: 'profile',    label: 'Профиль',               aliases: ['профиль (ссылка)', 'ссылка на профиль'] },
+	{ key: 'anketa',     label: 'Анкета',                aliases: ['анкета (ссылка)', 'ссылка на анкету'] },
+	{ key: 'owner',      label: 'Owner',                 aliases: ['владелец'] },
+	{ key: 'side',       label: 'Фракция',               aliases: ['фракция (история)', 'сторона'] },
+];
+
+const FIELD_INFO = {};
+const FIELD_ALIAS_MAP = {};
+for (const def of FIELD_DEFS) {
+	FIELD_INFO[def.key] = def;
+	FIELD_ALIAS_MAP[normalizeKey(def.label)] = def.key;
+	for (const a of (def.aliases || [])) FIELD_ALIAS_MAP[normalizeKey(a)] = def.key;
+}
+
+const FIELD_ORDER = ['type','name_ru','surname_ru','nickname_ru','name_en','surname_en','nickname_en','fc','sex','birth','expire','role','canChange','priority','profile','anketa','owner','side'];
+
+const FIELD_LABELS = {};
+for (const def of FIELD_DEFS) FIELD_LABELS[def.key] = def.label;
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+function normalizeKey(s) {
+	return String(s || '')
+		.replace(/[\u200b\u200c\u200d\ufeff]/g, '')
+		.replace(/\u00a0/g, ' ')
+		.replace(/ё/g, 'е')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toLowerCase()
+		.replace(/[:：]+$/g, '')
+		.trim();
+}
+
+function capitalize(s) {
+	if (!s) return '';
+	s = String(s);
+	return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function normalizeSex(v) {
+	if (!v) return '';
+	const c = String(v).trim().charAt(0).toLowerCase();
+	if (c === 'f' || c === 'ж') return 'f';
+	if (c === 'm' || c === 'м') return 'm';
+	return '';
+}
+
+function normalizeType(v) {
+	if (!v) return '';
+	const t = normalizeKey(v);
+	if (['карточка','card','c'].includes(t)) return 'card';
+	if (['заявка','wanted','w','заявка от амс'].includes(t)) return 'wanted';
+	if (['выкуплено','reserved','r','выкупленный','бессрочно выкуплено'].includes(t)) return 'reserved';
+	return '';
+}
+
+function parseCanChange(raw) {
+	const t = normalizeKey(raw);
+	const res = { name: false, fc: false };
+	if (!t) return res;
+	if (['да','yes','true','1','both','всё','все','обе'].includes(t)) {
+		res.name = true;
+		res.fc = true;
+		return res;
+	}
+	if (/(^|[^а-яa-z])имя([^а-яa-z]|$)/.test(t) || /\bname\b/.test(t)) res.name = true;
+	if (/(^|[^а-яa-z])внешност/.test(t) || /\bfc\b/.test(t) || /\bface/.test(t)) res.fc = true;
+	if (!res.name && !res.fc) { res.name = true; res.fc = true; }
+	return res;
+}
+
+function parseBoolFlag(raw) {
+	const t = normalizeKey(raw);
+	return ['да','yes','true','1','+','y'].includes(t);
+}
+
+function parsePriority(raw) {
+	if (raw === undefined || raw === null) return 0;
+	const s = String(raw).trim();
+	const n = parseInt(s, 10);
+	return Number.isFinite(n) ? n : 0;
+}
+
+function pad2(n) {
+	const v = parseInt(n, 10);
+	if (!Number.isFinite(v)) return '00';
+	return v < 10 ? '0' + v : '' + v;
+}
+
+function parseDate(str) {
+	if (!str) return null;
+	const raw = String(str)
+		.replace(/[\u200b\u200c\u200d\ufeff]/g, '')
+		.replace(/\u00a0/g, ' ')
+		.trim();
+
+	let m = raw.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+	if (m) {
+		return { iso: `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`, raw };
+	}
+
+	m = raw.match(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})/);
+	if (m) {
+		return { iso: `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`, raw };
+	}
+
+	m = raw.match(/(\d{4})[.\-\/](\d{1,2})/);
+	if (m) {
+		return { iso: `${m[1]}-${pad2(m[2])}-01`, raw };
+	}
+
+	m = raw.match(/(\d{4})/);
+	if (m) {
+		return { iso: `${m[1]}-01-01`, raw };
+	}
+
+	return null;
+}
+
+function parseExpireDate(str) {
+	if (!str) return null;
+	const raw = String(str)
+		.replace(/[\u200b\u200c\u200d\ufeff]/g, '')
+		.replace(/\u00a0/g, ' ')
+		.trim();
+
+	let m = raw.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/);
+	if (m) {
+		return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
+	}
+	m = raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/);
+	if (m) {
+		return `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`;
+	}
+	return null;
+}
+
+function todayISO() {
+	const d = new Date();
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const dd = String(d.getDate()).padStart(2, '0');
+	return `${y}-${m}-${dd}`;
+}
+
+function formatDateShort(iso) {
+	if (!iso) return '????';
+	return iso.slice(0, 7);
+}
+
+function calcAge(birthIso, currentDate) {
+	if (!birthIso) return null;
+	const bm = birthIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (!bm) return null;
+	const cm = String(currentDate || '').match(/^(\d{4})-(\d{2})/);
+	if (!cm) return null;
+	const by = +bm[1], bmo = +bm[2];
+	const cy = +cm[1], cmo = +cm[2];
+	let age = cy - by;
+	if (cmo < bmo) age -= 1;
+	if (age < 0) return null;
+	return age;
+}
+
+/* =========================================================
+   ПАРСИНГ ПОСТА
+   ========================================================= */
+function getDoc(message) {
+	return new DOMParser().parseFromString(message, 'text/html');
+}
+
+function extractKey(td) {
+	if (!td) return '';
+	let el = td.querySelector('strong') || td.querySelector('b');
+	let text = '';
+	if (el) {
+		const clone = el.cloneNode(true);
+		clone.querySelectorAll('em, i, span[style*="italic"]').forEach(x => x.remove());
+		text = clone.textContent || '';
+	} else {
+		const clone = td.cloneNode(true);
+		clone.querySelectorAll('em, i, span[style*="italic"]').forEach(x => x.remove());
+		text = clone.textContent || '';
+	}
+	return normalizeKey(text);
+}
+
+function extractNote(td) {
+	if (!td) return '';
+	const el = td.querySelector('em, i, span[style*="italic"]');
+	return el ? el.textContent.trim() : '';
+}
+
+function parseSideValue(td) {
+	if (!td) return null;
+
+	const textNode = td.textContent || '';
+	const dateMatch = textNode.match(/(\d{4}(?:[.\-\/]\d{1,2})?(?:[.\-\/]\d{1,2})?)/);
+	let date = '', dateRaw = '';
+	if (dateMatch) {
+		const d = parseDate(dateMatch[1]);
+		if (d) { date = d.iso; dateRaw = d.raw; }
+	}
+
+	let faction = '', sub = '';
+	const strong = td.querySelector('strong');
+	if (strong) {
+		const parts = strong.textContent.split(';');
+		faction = (parts[0] || '').trim();
+		sub = (parts[1] || '').trim();
+	}
+
+	if (!faction) {
+		const clone = td.cloneNode(true);
+		clone.querySelectorAll('em, i, span[style*="italic"]').forEach(el => el.remove());
+		let txt = (clone.textContent || '').trim();
+		if (dateMatch) txt = txt.replace(dateMatch[1], '').trim();
+		txt = txt.replace(/^[;,\.\-\s]+|[;,\.\-\s]+$/g, '').trim();
+		if (txt) {
+			const parts = txt.split(';');
+			faction = (parts[0] || '').trim();
+			sub = (parts[1] || '').trim();
+		}
+	}
+
+	if (!faction && !date) return null;
+
+	const note = extractNote(td);
+	return { date, dateRaw, faction, sub, note, dateMissing: !date };
+}
+
+function parseCardMessage(message, postId, topicId) {
+	const doc = getDoc(message);
+	const table = doc.querySelector('table');
+	if (!table) return null;
+
+	const card = {
+		post_id: postId,
+		topic_id: topicId,
+		type: '',
+		name_ru: '', surname_ru: '', nickname_ru: '',
+		name_en: '', surname_en: '', nickname_en: '',
+		fc: '', sex: '', birth_raw: '', birth: '', age: null,
+		expire: '', expire_raw: '', isExpired: false,
+		role: '',
+		canChangeName: false,
+		canChangeFc: false,
+		priority: 0,
+		profile: '', anketa: '',
+		sides: [],
+		extra: [],
+		owner: '',
+		ownerUrl: '',
+		isAms: false,
+		isPlayer: false,
+		isWanted: false,
+		isExist: false,
+		isReserved: false,
+		reservedKinds: [],
+	};
+
+	const rows = table.querySelectorAll('tr');
+	rows.forEach(row => {
+		const cells = row.querySelectorAll('td, th');
+		if (cells.length < 2) return;
+		const key = extractKey(cells[0]);
+		const valCell = cells[1];
+		let mapped = FIELD_ALIAS_MAP[key];
+
+		if (!mapped && key.startsWith('фракц')) mapped = 'side';
+
+		if (!mapped) {
+			const t = (valCell.textContent || '').trim();
+			if (t) card.extra.push({ key, val: t });
+			return;
+		}
+
+		if (mapped === 'owner') {
+			const a = valCell.querySelector('a');
+			card.owner = (valCell.textContent || '').trim();
+			card.ownerUrl = a ? (a.getAttribute('href') || '') : '';
+			return;
+		}
+
+		if (mapped === 'type') {
+			card.type = normalizeType(valCell.textContent);
+			return;
+		}
+
+		if (mapped === 'canChange') {
+			const flags = parseCanChange(valCell.textContent);
+			if (flags.name) card.canChangeName = true;
+			if (flags.fc) card.canChangeFc = true;
+			return;
+		}
+
+		if (mapped === 'canChangeName') {
+			if (parseBoolFlag(valCell.textContent)) card.canChangeName = true;
+			return;
+		}
+
+		if (mapped === 'canChangeFc') {
+			if (parseBoolFlag(valCell.textContent)) card.canChangeFc = true;
+			return;
+		}
+
+		if (mapped === 'priority') {
+			card.priority = parsePriority(valCell.textContent);
+			return;
+		}
+
+		if (mapped === 'side') {
+			const side = parseSideValue(valCell);
+			if (side) card.sides.push(side);
+			return;
+		}
+
+		if (mapped === 'birth') {
+			const t = (valCell.textContent || '').trim();
+			card.birth_raw = t;
+			const d = parseDate(t);
+			if (d) card.birth = d.iso;
+			return;
+		}
+
+		if (mapped === 'expire') {
+			const t = (valCell.textContent || '').trim();
+			card.expire_raw = t;
+			const e = parseExpireDate(t);
+			if (e) card.expire = e;
+			return;
+		}
+
+		if (mapped === 'sex') {
+			card.sex = normalizeSex(valCell.textContent);
+			return;
+		}
+
+		if (mapped === 'profile' || mapped === 'anketa') {
+			const a = valCell.querySelector('a');
+			const href = a ? (a.getAttribute('href') || '') : '';
+			card[mapped] = (href || (valCell.textContent || '')).trim();
+			return;
+		}
+
+		const t = (valCell.textContent || '').trim();
+		if (card[mapped] !== undefined) {
+			card[mapped] = card[mapped] ? card[mapped] : t;
+		} else {
+			card[mapped] = t;
+		}
+	});
+
+	card.sides = card.sides
+		.map((s, i) => ({ s, i }))
+		.sort((a, b) => {
+			const ad = a.s.date || '9999-99-99';
+			const bd = b.s.date || '9999-99-99';
+			if (ad !== bd) return ad < bd ? -1 : 1;
+			return a.i - b.i;
+		})
+		.map(x => x.s);
+	card.sides.forEach((s, i) => { s.actual = (i === card.sides.length - 1); });
+
+	if (card.birth) card.age = calcAge(card.birth, CONFIG.currentDate);
+
+	// --- expire: только для топика 18 ---
+	if (topicId === CONFIG.topics.bought) {
+		if (!card.expire) {
+			card.isExpired = true;
+		} else {
+			card.isExpired = card.expire < todayISO();
+		}
+	} else {
+		card.expire = '';
+		card.expire_raw = '';
+		card.isExpired = false;
+	}
+
+	const hasNamePart = !!(card.name_en || card.name_ru || card.surname_en || card.surname_ru
+		|| card.nickname_en || card.nickname_ru || card.fc);
+	const looksLikeFullCard = card.sides.length > 0 || card.role || card.birth_raw || card.sex;
+
+	if (card.type === 'reserved') {
+		card.isReserved = true;
+	} else if ((topicId === CONFIG.topics.bought || topicId === CONFIG.topics.forever)
+		&& card.owner && !looksLikeFullCard) {
+		card.isReserved = true;
+	}
+
+	if (topicId === CONFIG.topics.ams) {
+		card.isAms = true;
+	} else if (topicId === CONFIG.topics.bought || topicId === CONFIG.topics.forever) {
+		card.isPlayer = true;
+	} else if (card.type === 'wanted') {
+		card.isWanted = true;
+	}
+
+	if (card.isReserved || card.isAms || card.isPlayer || card.isWanted) {
+		card.isExist = false;
+	} else if (topicId === CONFIG.topics.accepted || topicId === CONFIG.topics.forever) {
+		card.isExist = true;
+	} else {
+		card.isExist = false;
+	}
+
+	if (card.isReserved) {
+		if (card.name_en || card.name_ru) card.reservedKinds.push('name');
+		if (card.surname_en || card.surname_ru) card.reservedKinds.push('surname');
+		if (card.fc) card.reservedKinds.push('fc');
+	}
+
+	if (!hasNamePart && !card.owner && !card.sides.length) return null;
+	return card;
+}
+
+/* =========================================================
+   ЗАГРУЗКА
+   ========================================================= */
+async function fetchData(url) {
+	try {
+		const r = await fetch(url);
+		if (!r.ok) throw new Error(`HTTP ${r.status}`);
+		return await r.json();
+	} catch (e) {
+		console.error('fetch error', url, e);
+		return null;
+	}
+}
+
+async function getPosts(topicId) {
+	if (!topicId) return [];
+	let skip = 0;
+	const all = [];
+	while (true) {
+		const url = `/api.php?method=post.get&topic_id=${topicId}&fields=message,id&limit=${CONFIG.postsPerRequest}&skip=${skip}`;
+		const data = await fetchData(url);
+		if (!data || !data.response) break;
+		all.push(...data.response);
+		if (data.response.length < CONFIG.postsPerRequest) break;
+		skip += CONFIG.postsPerRequest;
+	}
+	return all;
+}
+
+async function processTopic(topicId) {
+	const posts = await getPosts(topicId);
+	const out = [];
+	for (const p of posts) {
+		const card = parseCardMessage(p.message, p.id, topicId);
+		if (card) out.push(card);
+	}
+	return out;
+}
+
+/* =========================================================
+   ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+   ========================================================= */
+let roles = [];
+let currentFaction = 'all';
+let currentView = 'chars';
+let showReserved = false;
+
+function isAdmin() {
+	return typeof GroupID !== 'undefined' && Number(GroupID) < 3;
+}
+
+/* =========================================================
+   ХЕЛПЕРЫ ОТОБРАЖЕНИЯ
+   ========================================================= */
+function postLink(postId) {
+	return `/viewtopic.php?pid=${postId}#p${postId}`;
+}
+
+function nameLink(card) {
+	if (card.isReserved) return postLink(card.post_id);
+	return card.profile || postLink(card.post_id);
+}
+
+function badgeHtml(card) {
+	if (card.isReserved) return '';
+	if (card.isAms) return '<span class="ams-badge">Заявка от АМС</span>';
+	if (card.isPlayer) return '<span class="player-badge">Заявка от игрока</span>';
+	if (card.isWanted) return '<span class="wanted-badge">Заявка</span>';
+	return '';
+}
+
+function changeMarksHtml(card) {
+	if (card.isReserved) return '';
+	const marks = [];
+	if (card.canChangeName) {
+		marks.push('<span class="change-icon" title="Можно сменить имя"><span class="material-symbols-outlined">edit</span></span>');
+	}
+	if (card.canChangeFc) {
+		marks.push('<span class="change-icon" title="Можно сменить внешность"><span class="material-symbols-outlined">theater_comedy</span></span>');
+	}
+	if (!marks.length) return '';
+	return '<span class="change-marks">' + marks.join('') + '</span>';
+}
+
+function formattedNameEn(card) {
+	const name = capitalize(card.name_en || '');
+	const surn = capitalize(card.surname_en || '');
+	const nick = card.nickname_en || '';
+	const parts = [];
+	if (name) parts.push(name);
+	if (nick) parts.push('"' + nick + '"');
+	if (surn) parts.push(surn);
+	return parts.join(' ');
+}
+
+function formattedNameRu(card) {
+	const name = capitalize(card.name_ru || '');
+	const surn = capitalize(card.surname_ru || '');
+	const nick = card.nickname_ru || '';
+	const parts = [];
+	if (name) parts.push(name);
+	if (nick) parts.push('"' + nick + '"');
+	if (surn) parts.push(surn);
+	return parts.join(' ');
+}
+
+function displayName(card) {
+	let s = formattedNameEn(card);
+	if (!s) s = formattedNameRu(card);
+	if (!s && card.fc) s = card.fc;
+	if (!s) s = card.owner || '(без имени)';
+	return s;
+}
+
+function displayRu(card) {
+	const ru = formattedNameRu(card);
+	if (!ru) return '';
+	return '(' + ru + ')';
+}
+
+function actualSide(card) {
+	if (!card.sides.length) return null;
+	return card.sides[card.sides.length - 1];
+}
+
+function sideText(card) {
+	const a = actualSide(card);
+	if (!a) return '';
+	return a.faction + (a.sub ? ' (' + a.sub + ')' : '');
+}
+
+function subTitle(card) {
+	const a = actualSide(card);
+	return a && a.sub ? a.sub : '';
+}
+
+function sexClass(card) {
+	if (card.sex === 'f') return 'female';
+	if (card.sex === 'm') return 'male';
+	return '';
+}
+
+/**
+ * Истёкшая — только если карточка из топика 18 и isExpired = true.
+ * Для остальных топиков isExpired всегда false, так что проверка безопасна.
+ */
+function isExpiredCard(card) {
+	return card.isExpired && card.topic_id === CONFIG.topics.bought;
+}
+
+function isVisibleInCards(card) {
+	if (card.isReserved) return false;
+	if (isExpiredCard(card)) return false;
+	if (card.isExist) return true;
+	if (showReserved && (card.isAms || card.isPlayer || card.isWanted)) return true;
+	return false;
+}
+
+function isVisibleInList(card, kind) {
+	if (isExpiredCard(card)) return false;
+	if (card.isReserved) {
+		return card.reservedKinds.includes(kind);
+	}
+	if (card.isExist) return true;
+	return showReserved && (card.isAms || card.isPlayer || card.isWanted);
+}
+
+function matchesFaction(card, faction) {
+	if (faction === 'all') return true;
+	if (card.isReserved) return false;
+	const f = normalizeKey(faction);
+	if (f === normalizeKey(CONFIG.soloFaction)) {
+		const a = actualSide(card);
+		return a && normalizeKey(a.faction) === f;
+	}
+	return card.sides.some(s => normalizeKey(s.faction) === f);
+}
+
+function isOutdatedInFaction(card, faction) {
+	if (faction === 'all' || card.isReserved) return false;
+	if (normalizeKey(faction) === normalizeKey(CONFIG.soloFaction)) return false;
+	const a = actualSide(card);
+	if (!a) return true;
+	return normalizeKey(a.faction) !== normalizeKey(faction);
+}
+
+/* =========================================================
+   СОРТИРОВКА ВНУТРИ ФРАКЦИИ
+   ========================================================= */
+function compareFactionEntries(a, b, faction) {
+	const pa = a.priority || 0;
+	const pb = b.priority || 0;
+	if (pa !== pb) return pb - pa;
+
+	const da = entryDateForFaction(a, faction);
+	const db = entryDateForFaction(b, faction);
+	if (!da && !db) {
+		// оба без даты — по имени
+	} else if (!da) {
+		return 1;
+	} else if (!db) {
+		return -1;
+	} else if (da !== db) {
+		return da < db ? -1 : 1;
+	}
+
+	const na = (a.name_en || a.name_ru || '').toLowerCase();
+	const nb = (b.name_en || b.name_ru || '').toLowerCase();
+	return na < nb ? -1 : na > nb ? 1 : 0;
+}
+
+/* =========================================================
+   РЕНДЕР: ПЛИТКИ
+   ========================================================= */
+function renderChars() {
+	const list = document.querySelector('.all-chars');
+	list.innerHTML = '';
+
+	let cards;
+	if (currentFaction === 'all') {
+		cards = roles.filter(isVisibleInCards);
+	} else {
+		cards = roles.filter(c => isVisibleInCards(c) && matchesFaction(c, currentFaction));
+	}
+
+	cards.sort((a, b) => {
+		const an = (a.name_en || a.name_ru || '').toLowerCase();
+		const bn = (b.name_en || b.name_ru || '').toLowerCase();
+		return an < bn ? -1 : an > bn ? 1 : 0;
+	});
+
+	const tpl = document.getElementById('CHAR_TEMPLATE').innerHTML;
+	for (const c of cards) {
+		const idx = roles.indexOf(c);
+		const a = actualSide(c);
+		const factionName = a ? a.faction : '';
+		list.insertAdjacentHTML('beforeend', tpl
+			.replaceAll('{{idx}}', String(idx))
+			.replaceAll('{{nameLink}}', escapeHtml(nameLink(c)))
+			.replaceAll('{{displayName}}', escapeHtml(displayName(c)))
+			.replaceAll('{{displayRu}}', escapeHtml(displayRu(c)))
+			.replaceAll('{{fc}}', escapeHtml(c.fc || '—'))
+			.replaceAll('{{age}}', c.age != null ? c.age : '—')
+			.replaceAll('{{role}}', escapeHtml(c.role || '—'))
+			.replaceAll('{{isExist}}', c.isExist ? 'exist' : 'notexist')
+			.replaceAll('{{isReserved}}', '')
+			.replaceAll('{{sexClass}}', sexClass(c))
+			.replaceAll('{{canChangeName}}', c.canChangeName ? 'canChangeName' : '')
+			.replaceAll('{{canChangeFc}}', c.canChangeFc ? 'canChangeFc' : '')
+			.replaceAll('{{sealHtml}}', sealHtml(factionName))
+			.replaceAll('{{badge}}', badgeHtml(c)));
+	}
+}
+
+/* =========================================================
+   РЕНДЕР: ФРАКЦИИ
+   ========================================================= */
+function renderFactionMode() {
+	const container = document.getElementById('factionContainer');
+	container.innerHTML = '';
+	container.style.display = 'block';
+	const faction = currentFaction;
+	const list = roles.filter(c => isVisibleInCards(c) && matchesFaction(c, faction));
+
+	if (normalizeKey(faction) === normalizeKey(CONFIG.soloFaction)) {
+		list.sort((a, b) => (a.name_en || '').toLowerCase() < (b.name_en || '').toLowerCase() ? -1 : 1);
+	} else {
+		list.sort((a, b) => compareFactionEntries(a, b, faction));
+	}
+
+	const groupTpl = document.getElementById('GROUP_TEMPLATE').innerHTML;
+	const title = faction === 'all' ? 'Все персонажи' : faction;
+	container.insertAdjacentHTML('beforeend',
+		groupTpl
+			.replaceAll('{{title}}', escapeHtml(title))
+			.replaceAll('{{count}}', String(list.length))
+			.replaceAll('{{factionClass}}', factionClass(faction))
+			.replaceAll('{{sealHtml}}', sealHtml(faction))
+	);
+
+	const rowTpl = document.getElementById('FACTION_ROW_TEMPLATE').innerHTML;
+	for (const c of list) {
+		const idx = roles.indexOf(c);
+		const entry = entrySideForFaction(c, faction);
+		const outdated = isOutdatedInFaction(c, faction);
+		let dateText = '';
+		if (faction !== 'all' && entry) {
+			const nextSide = nextSideAfter(c, entry);
+			if (nextSide && outdated) {
+				dateText = formatDateShort(entry.date) + ' — ' + formatDateShort(nextSide.date);
+			} else {
+				dateText = 'с ' + formatDateShort(entry.date);
+			}
+		}
+		const sub = entry && entry.sub ? entry.sub : '';
+		container.insertAdjacentHTML('beforeend', rowTpl
+			.replaceAll('{{idx}}', String(idx))
+			.replaceAll('{{nameLink}}', escapeHtml(nameLink(c)))
+			.replaceAll('{{displayName}}', escapeHtml(displayName(c)))
+			.replaceAll('{{role}}', escapeHtml(c.role || '—'))
+			.replaceAll('{{dateText}}', escapeHtml(dateText))
+			.replaceAll('{{sub}}', escapeHtml(sub))
+			.replaceAll('{{isExist}}', c.isExist ? 'exist' : 'notexist')
+			.replaceAll('{{isReserved}}', '')
+			.replaceAll('{{outdated}}', outdated ? 'outdated' : '')
+			.replaceAll('{{changeMarks}}', changeMarksHtml(c))
+			.replaceAll('{{factionClass}}', factionClass(faction))
+			.replaceAll('{{badge}}', badgeHtml(c)));
+	}
+}
+
+function entrySideForFaction(card, faction) {
+	if (faction === 'all') return actualSide(card);
+	const f = normalizeKey(faction);
+	return card.sides.find(s => normalizeKey(s.faction) === f) || null;
+}
+
+function entryDateForFaction(card, faction) {
+	const s = entrySideForFaction(card, faction);
+	return s ? s.date : '';
+}
+
+function nextSideAfter(card, side) {
+	const idx = card.sides.indexOf(side);
+	if (idx < 0 || idx === card.sides.length - 1) return null;
+	return card.sides[idx + 1];
+}
+
+/* =========================================================
+   РЕНДЕР: ИСТЁКШИЕ ЗАЯВКИ
+   ========================================================= */
+function renderExpired() {
+	hideAllLists();
+	const container = document.getElementById('expiredContainer');
+	container.style.display = 'block';
+	container.innerHTML = '';
+
+	if (!isAdmin()) {
+		container.innerHTML = '<p>Раздел доступен только администрации.</p>';
+		return;
+	}
+
+	const list = roles.filter(isExpiredCard);
+
+	if (!list.length) {
+		container.innerHTML = '<p>Истёкших заявок нет.</p>';
+		return;
+	}
+
+	const groupTpl = document.getElementById('GROUP_TEMPLATE').innerHTML;
+	container.insertAdjacentHTML('beforeend',
+		groupTpl
+			.replaceAll('{{title}}', 'Истёкшие заявки')
+			.replaceAll('{{count}}', String(list.length))
+			.replaceAll('{{factionClass}}', '')
+			.replaceAll('{{sealHtml}}', '')
+	);
+
+	const tpl = document.getElementById('EXPIRED_ROW_TEMPLATE').innerHTML;
+	for (const c of list) {
+		const types = [];
+		if (c.isReserved) {
+			if (c.reservedKinds.includes('name')) types.push('имя');
+			if (c.reservedKinds.includes('surname')) types.push('фамилия');
+			if (c.reservedKinds.includes('fc')) types.push('внешность');
+		} else {
+			types.push('карточка');
+		}
+		const typesHtml = types.map(t => '<span class="expired-type-badge">' + escapeHtml(t) + '</span>').join(' ');
+
+		const expireText = c.expire
+			? 'истекает ' + escapeHtml(c.expire)
+			: 'срок не указан';
+
+		container.insertAdjacentHTML('beforeend', tpl
+			.replaceAll('{{postLink}}', escapeHtml(postLink(c.post_id)))
+			.replaceAll('{{displayName}}', escapeHtml(displayName(c)))
+			.replaceAll('{{typesHtml}}', typesHtml)
+			.replaceAll('{{expireText}}', expireText));
+	}
+}
+
+/* =========================================================
+   РЕНДЕР: СПИСКИ
+   ========================================================= */
+function ownerPartHtml(card) {
+	if (!card.owner) return '';
+	const text = escapeHtml(card.owner);
+	const link = card.ownerUrl
+		? `<a href="${escapeHtml(card.ownerUrl)}" target="_blank">${text}</a>`
+		: text;
+	return ` <span class="owner-note">(${link})</span>`;
+}
+
+function renderNames() {
+	hideAllLists();
+	document.getElementById('addonM').style.display = 'block';
+	document.getElementById('addonF').style.display = 'block';
+	document.getElementById('addonM').innerHTML = document.getElementById('SEX_M_TEMPLATE').innerHTML;
+	document.getElementById('addonF').innerHTML = document.getElementById('SEX_F_TEMPLATE').innerHTML;
+
+	const tpl = document.getElementById('NAMELIST_TEMPLATE').innerHTML;
+	const letterTpl = document.getElementById('FIRSTLETTER_TEMPLATE').innerHTML;
+	const items = [];
+	for (const c of roles) {
+		if (!isVisibleInList(c, 'name')) continue;
+		items.push({ card: c, sortKey: (c.name_en || c.name_ru || '').toLowerCase() });
+	}
+	items.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0);
+
+	let lastF = '', lastM = '';
+	for (const it of items) {
+		const c = it.card;
+		const nameEnFmt = formattedNameEn(c) || formattedNameRu(c) || c.fc || '';
+		const ru = (c.name_en || c.surname_en || c.nickname_en) && (c.name_ru || c.surname_ru || c.nickname_ru)
+			? ` (${formattedNameRu(c)})` : '';
+		const owner = ownerPartHtml(c);
+		const firstLetter = (nameEnFmt.charAt(0) || '?').toUpperCase();
+		let html = tpl
+			.replaceAll('{{nameLink}}', escapeHtml(nameLink(c)))
+			.replaceAll('{{nameEnFormatted}}', escapeHtml(nameEnFmt))
+			.replaceAll('{{nameRuPart}}', escapeHtml(ru))
+			.replaceAll('{{ownerPart}}', owner)
+			.replaceAll('{{isExist}}', c.isExist ? 'exist' : 'notexist')
+			.replaceAll('{{isReserved}}', c.isReserved ? 'reserved' : '');
+
+		const targets = [];
+		if (c.sex === 'f') targets.push('addonF');
+		else if (c.sex === 'm') targets.push('addonM');
+		else { targets.push('addonF'); targets.push('addonM'); }
+
+		for (const tid of targets) {
+			const target = document.getElementById(tid);
+			const last = (tid === 'addonF') ? lastF : lastM;
+			let h = html;
+			if (firstLetter !== last) {
+				h = letterTpl.replace('{{letter}}', firstLetter) + h;
+				if (tid === 'addonF') lastF = firstLetter; else lastM = firstLetter;
+			}
+			target.insertAdjacentHTML('beforeend', h);
+		}
+	}
+}
+
+function renderSurnames() {
+	hideAllLists();
+	const el = document.getElementById('addonAll');
+	el.style.display = 'block';
+	el.innerHTML = '';
+	const tpl = document.getElementById('SURNAMELIST_TEMPLATE').innerHTML;
+	const letterTpl = document.getElementById('FIRSTLETTER_TEMPLATE').innerHTML;
+	const items = [];
+	for (const c of roles) {
+		if (!isVisibleInList(c, 'surname')) continue;
+		const key = (c.surname_en || c.surname_ru || '').toLowerCase();
+		items.push({ card: c, sortKey: key || '\uffff' });
+	}
+	items.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0);
+
+	let last = '';
+	let unknown = '';
+	for (const it of items) {
+		const c = it.card;
+		const en = c.surname_en || c.surname_ru || '?';
+		const nameEn = capitalize(c.name_en || c.name_ru || '');
+		const nickEn = c.nickname_en ? ` "${c.nickname_en}"` : (c.nickname_ru ? ` "${c.nickname_ru}"` : '');
+		const fullRu = formattedNameRu(c);
+		const ruPart = fullRu ? ` (${fullRu})` : '';
+		const owner = ownerPartHtml(c);
+		const firstLetter = (en.charAt(0) || '?').toUpperCase();
+		let html = tpl
+			.replaceAll('{{nameLink}}', escapeHtml(nameLink(c)))
+			.replaceAll('{{surname_en}}', escapeHtml(en))
+			.replaceAll('{{name_en}}', escapeHtml(nameEn + nickEn))
+			.replaceAll('{{fullRuPart}}', escapeHtml(ruPart))
+			.replaceAll('{{owner_part}}', owner)
+			.replaceAll('{{isExist}}', c.isExist ? 'exist' : 'notexist')
+			.replaceAll('{{isReserved}}', c.isReserved ? 'reserved' : '');
+		if (firstLetter !== last) {
+			html = letterTpl.replace('{{letter}}', firstLetter) + html;
+			last = firstLetter;
+		}
+		if (!c.surname_en && !c.surname_ru) unknown += html;
+		else el.insertAdjacentHTML('beforeend', html);
+	}
+	if (unknown) el.insertAdjacentHTML('beforeend', letterTpl.replace('{{letter}}', '?') + unknown);
+}
+
+function renderFaces() {
+	hideAllLists();
+	document.getElementById('addonM').style.display = 'block';
+	document.getElementById('addonF').style.display = 'block';
+	document.getElementById('addonM').innerHTML = document.getElementById('SEX_M_TEMPLATE').innerHTML;
+	document.getElementById('addonF').innerHTML = document.getElementById('SEX_F_TEMPLATE').innerHTML;
+
+	const tpl = document.getElementById('FACELIST_TEMPLATE').innerHTML;
+	const letterTpl = document.getElementById('FIRSTLETTER_TEMPLATE').innerHTML;
+	const items = [];
+	for (const c of roles) {
+		if (!isVisibleInList(c, 'fc')) continue;
+		if (!c.fc) continue;
+		items.push({ card: c, sortKey: c.fc.toLowerCase() });
+	}
+	items.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0);
+
+	let lastF = '', lastM = '';
+	for (const it of items) {
+		const c = it.card;
+		const nameEnFmt = formattedNameEn(c) || formattedNameRu(c) || '';
+		const owner = ownerPartHtml(c);
+		const firstLetter = (c.fc.charAt(0) || '?').toUpperCase();
+		let html = tpl
+			.replaceAll('{{nameLink}}', escapeHtml(nameLink(c)))
+			.replaceAll('{{fc}}', escapeHtml(c.fc))
+			.replaceAll('{{nameEnFormatted}}', escapeHtml(nameEnFmt))
+			.replaceAll('{{ownerPart}}', owner)
+			.replaceAll('{{isExist}}', c.isExist ? 'exist' : 'notexist')
+			.replaceAll('{{isReserved}}', c.isReserved ? 'reserved' : '');
+
+		const targets = [];
+		if (c.sex === 'f') targets.push('addonF');
+		else if (c.sex === 'm') targets.push('addonM');
+		else { targets.push('addonF'); targets.push('addonM'); }
+
+		for (const tid of targets) {
+			const target = document.getElementById(tid);
+			const last = (tid === 'addonF') ? lastF : lastM;
+			let h = html;
+			if (firstLetter !== last) {
+				h = letterTpl.replace('{{letter}}', firstLetter) + h;
+				if (tid === 'addonF') lastF = firstLetter; else lastM = firstLetter;
+			}
+			target.insertAdjacentHTML('beforeend', h);
+		}
+	}
+}
+
+function hideAllLists() {
+	document.getElementById('allChars-wrapper').style.display = 'none';
+	document.getElementById('factionContainer').style.display = 'none';
+	const ec = document.getElementById('expiredContainer');
+	if (ec) ec.style.display = 'none';
+	['addonAll', 'addonM', 'addonF'].forEach(id => {
+		const el = document.getElementById(id);
+		el.style.display = 'none';
+		el.innerHTML = '';
+	});
+}
+
+/* =========================================================
+   МОДАЛКА
+   ========================================================= */
+function openDetails(card) {
+	try {
+		const modal = document.getElementById('detailsModal');
+		const body = document.getElementById('modalBody');
+		const tpl = document.getElementById('MODAL_TEMPLATE').innerHTML;
+		const fieldTpl = document.getElementById('MODAL_FIELD_TEMPLATE').innerHTML;
+		const sideTpl = document.getElementById('MODAL_SIDE_TEMPLATE').innerHTML;
+
+		const fieldsHtml = [];
+		const seen = new Set();
+		const pushField = (key, val) => {
+			if (val === undefined || val === null || val === '' || val === '—') return;
+			fieldsHtml.push(fieldTpl
+				.replace('{{key}}', escapeHtml(FIELD_LABELS[key] || key))
+				.replace('{{val}}', escapeHtml(String(val))));
+		};
+		for (const key of FIELD_ORDER) {
+			if (key === 'side') continue;
+			if (key === 'profile' || key === 'anketa') continue;
+			if (key === 'owner') {
+				if (card.owner) {
+					const v = card.ownerUrl
+						? `<a href="${escapeHtml(card.ownerUrl)}" target="_blank">${escapeHtml(card.owner)}</a>`
+						: escapeHtml(card.owner);
+					fieldsHtml.push(fieldTpl
+						.replace('{{key}}', escapeHtml(FIELD_LABELS.owner))
+						.replace('{{val}}', v));
+				}
+				continue;
+			}
+			if (seen.has(key)) continue;
+			seen.add(key);
+			if (key === 'birth') {
+				if (card.birth_raw) {
+					let v = card.birth_raw;
+					if (card.age != null) v += ` (возраст: ${card.age})`;
+					pushField('birth', v);
+				}
+				continue;
+			}
+			if (key === 'expire') {
+				if (card.expire_raw || card.expire) {
+					let v = card.expire || card.expire_raw || '—';
+					if (card.isExpired) v += ' (истекла)';
+					pushField('expire', v);
+				}
+				continue;
+			}
+			if (key === 'type') {
+				const t = card.type || (card.isReserved ? 'reserved' : card.isAms ? 'wanted' : card.isPlayer ? 'reserved' : 'card');
+				pushField('type', t);
+				continue;
+			}
+			if (key === 'canChange') {
+				const opts = [];
+				if (card.canChangeName) opts.push('имя');
+				if (card.canChangeFc) opts.push('внешность');
+				if (opts.length) pushField('canChange', opts.join(', '));
+				continue;
+			}
+			if (key === 'priority') {
+				if (card.priority) pushField('priority', card.priority);
+				continue;
+			}
+			pushField(key, card[key]);
+		}
+		for (const ex of card.extra) {
+			fieldsHtml.push(fieldTpl
+				.replace('{{key}}', escapeHtml(ex.key))
+				.replace('{{val}}', escapeHtml(ex.val)));
+		}
+
+		let sidesHtml = '';
+		if (!card.sides.length) {
+			sidesHtml = '<div class="modal-field"><i>нет данных</i></div>';
+		} else {
+			for (const s of card.sides) {
+				const subBlock = s.sub ? `<div class="shi-sub">Подфракция: ${escapeHtml(s.sub)}</div>` : '';
+				const noteBlock = s.note ? `<div class="shi-note">${escapeHtml(s.note)}</div>` : '';
+				const actualMark = s.actual ? ' <b>(актуально)</b>' : '';
+				sidesHtml += sideTpl
+					.replace('{{actualClass}}', s.actual ? 'actual' : 'outdated')
+					.replace('{{dateText}}', escapeHtml(formatDateShort(s.date)))
+					.replace('{{faction}}', escapeHtml(s.faction || '—'))
+					.replace('{{subBlock}}', subBlock)
+					.replace('{{noteBlock}}', noteBlock)
+					.replace('{{actualMark}}', actualMark);
+			}
+		}
+
+		const profileLink = card.profile
+			? `<a href="${escapeHtml(card.profile)}" target="_blank">Профиль →</a>` : '';
+		const anketaLink = card.anketa
+			? `<a href="${escapeHtml(card.anketa)}" target="_blank">Анкета →</a>` : '';
+		const postLinkHtml = `<a href="${escapeHtml(postLink(card.post_id))}" target="_blank">К сообщению →</a>`;
+
+		const a = actualSide(card);
+		const factionName = a ? a.faction : '';
+
+		body.innerHTML = tpl
+			.replace('{{title}}', escapeHtml(displayName(card)))
+			.replace('{{fields}}', fieldsHtml.join(''))
+			.replace('{{sides}}', sidesHtml)
+			.replace('{{profileLink}}', profileLink)
+			.replace('{{anketaLink}}', anketaLink)
+			.replace('{{postLink}}', postLinkHtml)
+			.replace('{{sealHtml}}', sealHtml(factionName));
+
+		modal.hidden = false;
+	} catch (e) {
+		console.error('openDetails error:', e);
+	}
+}
+
+function closeDetails() {
+	document.getElementById('detailsModal').hidden = true;
+}
+
+/* =========================================================
+   ОБРАБОТЧИКИ
+   ========================================================= */
+function escapeHtml(s) {
+	if (s === undefined || s === null) return '';
+	return String(s)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
+function applyFactionFilter(faction) {
+	currentFaction = faction;
+	document.querySelectorAll('#factionNav .filters').forEach(el => {
+		el.classList.toggle('current', el.getAttribute('rel') === faction);
+	});
+	const url = new URL(window.location.href);
+	if (faction === 'all') url.searchParams.delete('faction');
+	else url.searchParams.set('faction', faction);
+	url.searchParams.set('view', currentView);
+	history.replaceState(null, '', url.toString());
+	renderCurrentView();
+}
+
+function setView(view) {
+	currentView = view;
+	currentFaction = 'all';
+	document.querySelectorAll('#factionNav .filters').forEach(el => {
+		el.classList.toggle('current', el.getAttribute('rel') === 'all');
+	});
+	document.querySelectorAll('.lists').forEach(el => {
+		el.classList.toggle('current', el.getAttribute('data-view') === view);
+	});
+	document.getElementById('factionNav').style.display = (view === 'chars') ? '' : 'none';
+	const url = new URL(window.location.href);
+	url.searchParams.set('view', view);
+	url.searchParams.delete('faction');
+	history.replaceState(null, '', url.toString());
+	renderCurrentView();
+}
+
+function renderCurrentView() {
+	if (currentView === 'chars') {
+		if (currentFaction === 'all') {
+			hideAllLists();
+			document.getElementById('allChars-wrapper').style.display = 'block';
+			renderChars();
+		} else {
+			hideAllLists();
+			renderFactionMode();
+		}
+	} else if (currentView === 'names') renderNames();
+	else if (currentView === 'surnames') renderSurnames();
+	else if (currentView === 'faces') renderFaces();
+	else if (currentView === 'expired') renderExpired();
+}
+
+function renderStats() {
+	let full = 0, accepted = 0, wanted = 0, reserved = 0, f = 0, m = 0;
+	for (const c of roles) {
+		if (isExpiredCard(c)) continue;
+		if (c.isReserved) { reserved++; continue; }
+		full++;
+		if (c.isAms || c.isPlayer || c.isWanted) wanted++;
+		if (c.isExist) accepted++;
+		if (c.sex === 'f') f++;
+		else if (c.sex === 'm') m++;
+	}
+	document.getElementById('stat_all').textContent = full;
+	document.getElementById('stat_accepted').textContent = accepted;
+	document.getElementById('stat_wanted').textContent = wanted;
+	document.getElementById('stat_reserved').textContent = reserved;
+	document.getElementById('stat_f').textContent = f;
+	document.getElementById('stat_m').textContent = m;
+
+	const ul = document.getElementById('stat_factions');
+	ul.innerHTML = '';
+	for (const faction of CONFIG.factions) {
+		let n = 0;
+		for (const c of roles) {
+			if (isExpiredCard(c)) continue;
+			if (!c.isExist || c.isReserved) continue;
+			const a = actualSide(c);
+			if (a && normalizeKey(a.faction) === normalizeKey(faction)) n++;
+		}
+		const li = document.createElement('li');
+		li.textContent = faction + ': ' + n;
+		ul.appendChild(li);
+	}
+}
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
+async function init() {
+	const topicIds = Object.values(CONFIG.topics);
+	const results = await Promise.all(topicIds.map(processTopic));
+	roles = results.flat();
+	renderStats();
+
+	if (isAdmin()) {
+		document.getElementById('expiredTab').hidden = false;
+	}
+
+	const url = new URL(window.location.href);
+	const faction = url.searchParams.get('faction');
+	const view = url.searchParams.get('view');
+
+	const allowedViews = ['chars', 'names', 'surnames', 'faces'];
+	if (isAdmin()) allowedViews.push('expired');
+	currentView = allowedViews.includes(view) ? view : 'chars';
+	currentFaction = (currentView === 'chars' && faction && (faction === 'all' || CONFIG.factions.includes(faction)))
+		? faction : 'all';
+
+	document.querySelectorAll('#factionNav .filters').forEach(el => {
+		el.classList.toggle('current', el.getAttribute('rel') === currentFaction);
+	});
+	document.querySelectorAll('.lists').forEach(el => {
+		el.classList.toggle('current', el.getAttribute('data-view') === currentView);
+	});
+	document.getElementById('factionNav').style.display = (currentView === 'chars') ? '' : 'none';
+	renderCurrentView();
+}
+
+/* =========================================================
+   СОБЫТИЯ
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+	document.getElementById('factionNav').addEventListener('click', e => {
+		const a = e.target.closest('.filters');
+		if (!a) return;
+		applyFactionFilter(a.getAttribute('rel'));
+	});
+	document.querySelectorAll('.lists').forEach(el => {
+		el.addEventListener('click', () => setView(el.getAttribute('data-view')));
+	});
+
+	document.getElementById('showReservedChk').addEventListener('change', e => {
+		showReserved = e.target.checked;
+		renderCurrentView();
+	});
+
+	const handleDetailsClick = e => {
+		const btn = e.target.closest('.details-btn');
+		if (!btn) return;
+		const idx = Number(btn.getAttribute('data-idx'));
+		const card = roles[idx];
+		if (card) openDetails(card);
+		else console.warn('card not found for idx', idx);
+	};
+	document.getElementById('allChars-wrapper').addEventListener('click', handleDetailsClick);
+	document.getElementById('factionContainer').addEventListener('click', handleDetailsClick);
+
+	document.getElementById('modalClose').addEventListener('click', closeDetails);
+	document.getElementById('detailsModal').addEventListener('click', e => {
+		if (e.target.id === 'detailsModal') closeDetails();
+	});
+	document.addEventListener('keydown', e => {
+		if (e.key === 'Escape') closeDetails();
+	});
+
+	const zoomable = document.getElementById('charLists');
+	let currentZoom = 1;
+	const step = 0.1;
+	document.getElementById('zoom-in').addEventListener('click', () => {
+		currentZoom += step; zoomable.style.zoom = currentZoom;
+	});
+	document.getElementById('zoom-out').addEventListener('click', () => {
+		if (currentZoom > step) currentZoom -= step; zoomable.style.zoom = currentZoom;
+	});
+	document.getElementById('zoom-reset').addEventListener('click', () => {
+		currentZoom = 1; zoomable.style.zoom = 1;
+	});
+
+	init();
+});
+</script>
