@@ -7,23 +7,20 @@
 		font-family: var(--font);
 		color: rgb(var(--text900));
 
-		/* FIX: размеры в одном месте, чтобы не рассинхронизировать */
 		--tile-w: 225px;
 		--tile-min-h: 95px;
-		--flag-col-w: 26px;      /* ширина колонки под флажки */
+		--flag-col-w: 26px;      /* резерв слева под торчащие флажки */
 		--seal-lg: 120px;
 		--seal-md: 100px;
 		--seal-sm: 40px;
 		--seal-pad: 120px;       /* резерв справа под крупную печать */
 
-		/* FIX: цвета notexist/reserved вынесены — убираем дубли */
 		--notexist-bg: rgb(var(--primary400) / .12);
 		--notexist-border: rgb(var(--primary400) / .45);
 		--reserved-bg: rgb(var(--warning) / .15);
 		--reserved-border: rgb(var(--warning) / .65);
 	}
 
-	/* FIX: box-sizing один раз на всё поддерево */
 	#charLists,
 	#charLists *,
 	#charLists *::before,
@@ -35,7 +32,6 @@
 	.subSide { display: inline; font-style: oblique; }
 	.listContainer { flex-grow: 1; display: none; }
 
-	/* FIX: общий шрифт для кнопок вместо повторов в каждом правиле */
 	#charLists button {
 		font-family: var(--font);
 	}
@@ -45,7 +41,7 @@
 	   ========================================================= */
 	.red_title,
 	.custom_tag_title {
-		font-family: var(--font-title);
+		font-size: larger;
 		display: inline-block;
 	}
 	.red_title::first-letter,
@@ -61,7 +57,7 @@
 	.ruName { font-style: oblique; color: rgb(var(--text900) / .75); }
 	.char_fc { text-align: right; text-transform: capitalize; }
 	.material-symbols-outlined { font-size: 20px !important; }
-	.firstletter { font-size: 1rem; font-weight: bold; } /* FIX: 17px → 1rem */
+	.firstletter { font-size: 1rem; font-weight: bold; }
 
 	/* =========================================================
 	   НАВИГАЦИЯ
@@ -107,32 +103,38 @@
 		padding: 0;
 		margin: 0;
 	}
-
-	/* FIX: min-height + padding-left вместо фикс. height и отрицательного margin */
+	
 	.all-chars .char {
 		list-style: none;
-		display: inline-block;
+		display: flex;
+		flex-direction: column;
+		flex: 0 0 auto;
 		width: var(--tile-w);
 		min-height: var(--tile-min-h);
-		margin: 6px;
-		padding: 4px 4px 4px var(--flag-col-w);
+		margin: 6px 6px 6px var(--flag-col-w);
+		padding: 4px;
 		z-index: 1;
 	}
 
 	.char {
+		flex: 1 1 auto;
 		border: 1px solid rgb(var(--primary400)) !important;
 		background: rgb(var(--light100));
 		border-radius: var(--4);
 		position: relative;
-		overflow: hidden; /* FIX: страховка от вылезания печати/контента */
+		display: flex;
+		flex-direction: column;
 	}
 
 	.char .char_profile {
 		position: relative;
 		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-width: 0;
 	}
 
-	/* FIX: единые переменные вместо повторов */
 	.notexist,
 	.faction-row.notexist {
 		background-color: var(--notexist-bg) !important;
@@ -164,21 +166,21 @@
 	}
 	.ams-badge { background: rgb(var(--danger)); }
 	.player-badge { background: rgb(var(--primary400)); }
-	.wanted-badge { background: rgb(var(--warning)); color: rgb(var(--dark900)); }
+	.wanted-badge { background: rgb(var(--warning));}
 	.expired-badge { background: rgb(var(--danger)); }
 	.expired-type-badge { background: rgb(var(--secondary400)); }
 
 	/* =========================================================
-	   ФЛАЖКИ (внутри карточки)
+	   ФЛАЖКИ (торчат наружу за левый край карточки)
 	   ========================================================= */
-	/* FIX: left:0 внутри карточки; padding-left карточки уже зарезервировал место */
 	.char .flags {
 		position: absolute;
-		left: 0;
-		top: 0;
+		right: 100%;
+		top: var(--4);
 		display: flex;
 		flex-direction: column;
 		z-index: 3;
+		margin-right: 1px;
 	}
 	.flag {
 		display: none;
@@ -205,7 +207,6 @@
 		border-color: var(--reserved-border) !important;
 	}
 
-	/* FIX: opacity только на контент, кнопка остаётся активной */
 	.outdated .char_profile,
 	.outdated .fr-name,
 	.outdated .fr-role,
@@ -241,11 +242,10 @@
 		top: -20px;
 		width: var(--seal-lg);
 		height: var(--seal-lg);
-		opacity: 0.3;
+		opacity: 0.2;
 		z-index: 0;
 	}
 
-	/* FIX: padding-right под печать только при наличии печати */
 	.group-title.faction-header {
 		position: relative;
 		padding: 10px 14px;
@@ -301,9 +301,8 @@
 	}
 
 	/* =========================================================
-	   КНОПКА «ПОДРОБНО» — один базовый класс + модификатор
+	   КНОПКА «ПОДРОБНО»
 	   ========================================================= */
-	/* FIX: было три почти одинаковых блока — теперь один + --sm */
 	.details-btn {
 		padding: 4px 10px;
 		font-size: 13px;
@@ -320,9 +319,15 @@
 		background: var(--color-accent);
 	}
 	.details-btn--sm {
-		margin-top: 4px;
 		padding: 2px 8px;
 		font-size: 12px;
+	}
+
+	/* FIX: обёртка кнопки в плитке — прижата к правому нижнему углу */
+	.char_more {
+		margin-top: auto;      /* съедает свободное место, прижимает к низу */
+		align-self: flex-end;  /* прижимает к правому краю */
+		z-index: 2;
 	}
 
 	/* =========================================================
@@ -340,7 +345,6 @@
 		border-radius: var(--6);
 		gap: 12px;
 	}
-	/* FIX: рамка слева сохраняет цвет фракции даже в notexist/reserved */
 	.faction-row.notexist,
 	.faction-row.reserved {
 		border-left-color: var(--faction-color, transparent) !important;
@@ -398,7 +402,6 @@
 	.listRow { padding: 2px 0; }
 	.listRow a { color: rgb(var(--text900)); text-decoration: none; }
 	.listRow a:hover { color: var(--color-accent); text-decoration: underline; }
-	.listRow.reserved { color: rgb(var(--warning)); }
 	.owner-note { font-size: 12px; opacity: 0.8; }
 
 	/* =========================================================
@@ -416,7 +419,7 @@
 		color: rgb(var(--text900));
 		max-width: 720px; width: 90%; max-height: 85vh;
 		overflow: auto;
-		-webkit-overflow-scrolling: touch; /* FIX: плавный скролл на iOS */
+		-webkit-overflow-scrolling: touch;
 		border-radius: var(--8);
 		padding: 16px 20px;
 		box-shadow: 0 8px 30px rgb(var(--dark900) / .5);
@@ -428,7 +431,6 @@
 		border: none; background: transparent;
 		color: rgb(var(--text900));
 		font-size: 22px; cursor: pointer; line-height: 1;
-		/* FIX: увеличен тач-таргет до ~44px */
 		padding: 10px;
 		min-width: 44px;
 		min-height: 44px;
@@ -444,7 +446,6 @@
 		padding-right: 30px;
 	}
 
-	/* FIX: flex вместо рассинхронизированных min-width:180 + max-width:calc(100%-190) */
 	.modal-field { display: flex; gap: 10px; align-items: baseline; margin: 4px 0; }
 	.modal-field .mf-key {
 		flex: 0 0 180px;
@@ -513,9 +514,6 @@
 		background: rgb(var(--primary400));
 		color: rgb(var(--light100));
 	}
-
-	/* FIX: глобальный [hidden] убран — он уже есть у .modal-overlay[hidden],
-	   и дублирование !important-правила может ломать чужие display. */
 </style>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -532,6 +530,7 @@
 <div id="charLists">
 	<details>
 		<summary><b class="red_title">Статистика</b></summary>
+		<p><b>Игровая дата проекта:</b> <span id="stat_gameDate"></span></p>
 		<p><b>Всего персонажей:</b> <span id="stat_all"></span></p>
 		<p><b>Принятых:</b> <span id="stat_accepted"></span></p>
 		<p><b>Заявок:</b> <span id="stat_wanted"></span></p>
@@ -604,7 +603,7 @@
 			<div class="char_fc"> FC: {{fc}} </div>
 			<div class="char_age"> Возраст: {{age}} </div>
 			<div class="char_role"> {{role}} </div>
-			<button class="button details-btn details-btn--sm" type="button" data-idx="{{idx}}">Подробно</button>
+			<div class="char_more"><button class="button details-btn details-btn--sm" type="button" data-idx="{{idx}}">Подробно</button></div>
 		</div>
 	</li>
 </template>
@@ -652,19 +651,19 @@
 
 <template id="NAMELIST_TEMPLATE">
 	<div class="listRow {{isExist}} {{isReserved}}">
-		<a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}{{nameRuPart}}{{{ownerPart}}}</a>
+		<strong><a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a></strong>{{nameRuPart}} {{{ownerPart}}}
 	</div>
 </template>
 
 <template id="SURNAMELIST_TEMPLATE">
 	<div class="listRow {{isExist}} {{isReserved}}">
-		<a href="{{nameLink}}" target="_blank"><span style="text-transform: uppercase;">{{surname_en}}</span><span style="text-transform: capitalize;">, {{name_en}}</span>{{fullRuPart}}{{{owner_part}}}</a>
+		<a href="{{nameLink}}" target="_blank"><strong><span style="text-transform: uppercase;">{{surname_en}}</span></strong>, <span style="text-transform: capitalize;">{{name_en}}</span></a>{{fullRuPart}} {{{owner_part}}}
 	</div>
 </template>
 
 <template id="FACELIST_TEMPLATE">
 	<div class="listRow {{isExist}} {{isReserved}}">
-		<a href="{{nameLink}}" target="_blank">{{fc}} — {{nameEnFormatted}}{{{ownerPart}}}</a>
+		<strong>{{fc}}</strong> — <a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a>{{{ownerPart}}}
 	</div>
 </template>
 
@@ -708,10 +707,6 @@
 /* =========================================================
    КОНСТАНТЫ
    ========================================================= */
-const TOPIC_ACCEPTED = 16;
-const TOPIC_AMS      = 17;
-const TOPIC_BOUGHT   = 18;
-const TOPIC_FOREVER  = 19;
 
 const FACTIONS = [
 	{ key: 'al',   title: 'Альянс' },
@@ -722,12 +717,16 @@ const FACTIONS = [
 
 const CONFIG = {
 	topics: {
-		accepted: TOPIC_ACCEPTED,
-		ams: TOPIC_AMS,
-		bought: TOPIC_BOUGHT,
-		forever: TOPIC_FOREVER,
+		accepted: 2842, // Принятые
+		ams:      2843, // Акции от АМС
+		bought:   2844, // Выкупленные на период
+		forever:  2845, // Выкупленные бессрочно
 	},
-	currentDate: todayISO().slice(0, 7),
+
+	// Игровая дата проекта (YYYY-MM). Возраст считается на неё.
+	// Обновляется вручную при смене игрового месяца
+	currentDate: '2025-03',
+
 	postsPerRequest: 100,
 	soloFaction: 'Одиночки',
 	factions: FACTIONS.map(f => f.title),
@@ -773,7 +772,7 @@ function escapeHtml(s) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
+		.replace(/'/g, '\'');
 }
 
 function normalizeSex(v) {
@@ -1718,6 +1717,7 @@ function renderStats() {
 		}
 	}
 	const set = (id, v) => { document.getElementById(id).textContent = v; };
+	set('stat_gameDate', CONFIG.currentDate);
 	set('stat_all', full);
 	set('stat_accepted', accepted);
 	set('stat_wanted', wanted);
