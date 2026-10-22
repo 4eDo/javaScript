@@ -9,11 +9,11 @@
 
 		--tile-w: 225px;
 		--tile-min-h: 95px;
-		--flag-col-w: 26px;      /* резерв слева под торчащие флажки */
+		--flag-col-w: 26px;
 		--seal-lg: 120px;
 		--seal-md: 100px;
 		--seal-sm: 40px;
-		--seal-pad: 120px;       /* резерв справа под крупную печать */
+		--seal-pad: 120px;
 
 		--notexist-bg: rgb(var(--primary400) / .12);
 		--notexist-border: rgb(var(--primary400) / .45);
@@ -103,7 +103,7 @@
 		padding: 0;
 		margin: 0;
 	}
-	
+
 	.all-chars .char {
 		list-style: none;
 		display: flex;
@@ -323,10 +323,9 @@
 		font-size: 12px;
 	}
 
-	/* FIX: обёртка кнопки в плитке — прижата к правому нижнему углу */
 	.char_more {
-		margin-top: auto;      /* съедает свободное место, прижимает к низу */
-		align-self: flex-end;  /* прижимает к правому краю */
+		margin-top: auto;
+		align-self: flex-end;
 		z-index: 2;
 	}
 
@@ -772,7 +771,7 @@ function escapeHtml(s) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, '\'');
+		.replace(/'/g, ''');
 }
 
 function normalizeSex(v) {
@@ -1244,6 +1243,12 @@ function changeMarksHtml(card) {
 	return marks.length ? '<span class="change-marks">' + marks.join('') + '</span>' : '';
 }
 
+// FIX: единый ключ сортировки по имени. «Без имени» → в конец.
+function sortKeyByName(card) {
+	const raw = (card.name_en || card.name_ru || '').toLowerCase();
+	return raw || '\uffff';
+}
+
 /* =========================================================
    СОСТОЯНИЕ
    ========================================================= */
@@ -1364,9 +1369,9 @@ function renderChars() {
 		cards = cards.filter(c => matchesFaction(c, state.currentFaction));
 	}
 	cards.sort((a, b) => {
-		const an = (a.name_en || a.name_ru || '').toLowerCase();
-		const bn = (b.name_en || b.name_ru || '').toLowerCase();
-		return an < bn ? -1 : an > bn ? 1 : 0;
+		const ak = sortKeyByName(a);
+		const bk = sortKeyByName(b);
+		return ak < bk ? -1 : ak > bk ? 1 : 0;
 	});
 
 	fillList('CHAR_TEMPLATE', cards, c => {
@@ -1402,7 +1407,11 @@ function renderFactionMode() {
 	const list = state.roles.filter(c => visible(c, 'card') && matchesFaction(c, faction));
 
 	if (normalizeKey(faction) === normalizeKey(CONFIG.soloFaction)) {
-		list.sort((a, b) => (a.name_en || '').toLowerCase() < (b.name_en || '').toLowerCase() ? -1 : 1);
+		list.sort((a, b) => {
+			const ak = sortKeyByName(a);
+			const bk = sortKeyByName(b);
+			return ak < bk ? -1 : ak > bk ? 1 : 0;
+		});
 	} else {
 		list.sort((a, b) => compareFactionEntries(a, b, faction));
 	}
@@ -1454,9 +1463,9 @@ function compareFactionEntries(a, b, faction) {
 	if (da && !db) return -1;
 	if (da && db && da !== db) return da < db ? -1 : 1;
 
-	const na = (a.name_en || a.name_ru || '').toLowerCase();
-	const nb = (b.name_en || b.name_ru || '').toLowerCase();
-	return na < nb ? -1 : na > nb ? 1 : 0;
+	const ak = sortKeyByName(a);
+	const bk = sortKeyByName(b);
+	return ak < bk ? -1 : ak > bk ? 1 : 0;
 }
 
 /* =========================================================
@@ -1512,15 +1521,32 @@ function renderNames() {
 	hideAllLists();
 	const items = state.roles
 		.filter(c => visible(c, 'name'))
-		.map(card => ({ card, sortKey: (card.name_en || card.name_ru || '').toLowerCase() }))
-		.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0);
+		.map(card => {
+			const hasName = !!(card.name_en || card.name_ru);
+			return {
+				card,
+				sortKey: hasName
+					? (card.name_en || card.name_ru || '').toLowerCase()
+					: '\uffff',
+			};
+		})
+		.sort((a, b) => {
+			const ak = a.sortKey || '\uffff';
+			const bk = b.sortKey || '\uffff';
+			return ak < bk ? -1 : ak > bk ? 1 : 0;
+		});
 
 	renderSexLists(items, 'NAMELIST_TEMPLATE', c => {
 		const nameEnFmt = formattedNameEn(c) || formattedNameRu(c) || c.fc || '';
+
+		const nameRaw = c.name_en || c.name_ru || '';
+		const letter = nameRaw ? nameRaw.charAt(0).toUpperCase() : '?';
+
 		const ru = (c.name_en || c.surname_en || c.nickname_en) && (c.name_ru || c.surname_ru || c.nickname_ru)
 			? ' (' + formattedNameRu(c) + ')' : '';
+
 		return {
-			_letter: nameEnFmt.charAt(0) || '?',
+			_letter: letter,
 			nameLink: nameLink(c),
 			nameEnFormatted: nameEnFmt,
 			nameRuPart: ru,
@@ -1539,7 +1565,13 @@ function renderSurnames() {
 
 	const items = state.roles
 		.filter(c => visible(c, 'surname'))
-		.map(card => ({ card, sortKey: (card.surname_en || card.surname_ru || '').toLowerCase() }));
+		.map(card => {
+			const hasName = !!(card.name_en || card.name_ru);
+			const sortKey = hasName
+				? (card.surname_en || card.surname_ru || '').toLowerCase()
+				: '\uffff';
+			return { card, sortKey };
+		});
 
 	items.sort((a, b) => {
 		const ak = a.sortKey || '\uffff';
@@ -1553,15 +1585,23 @@ function renderSurnames() {
 
 	for (const { card: c } of items) {
 		const en = c.surname_en || c.surname_ru || '?';
-		const nameEn = capitalize(c.name_en || c.name_ru || '');
-		const nickEn = c.nickname_en ? ` "${c.nickname_en}"` : (c.nickname_ru ? ` "${c.nickname_ru}"` : '');
+
+		const nameRaw = c.name_en || c.name_ru || '';
+		const nameEn = nameRaw ? capitalize(nameRaw) : '';
+
+		const nickRaw = c.nickname_en || c.nickname_ru || '';
+		const nickEn = nickRaw ? `"${nickRaw}"` : '';
+
+		const parts = [nameEn, nickEn].filter(Boolean);
+		const namePart = parts.length ? parts.join(' ') : '?';
+
 		const fullRu = formattedNameRu(c);
 		const letter = (en.charAt(0) || '?').toUpperCase();
 
 		let html = fillTemplate(t, {
 			nameLink: nameLink(c),
 			surname_en: en,
-			name_en: nameEn + nickEn,
+			name_en: namePart,
 			fullRuPart: fullRu ? ' (' + fullRu + ')' : '',
 			owner_part: ownerPartHtml(c),
 			isExist: c.isExist ? 'exist' : 'notexist',
