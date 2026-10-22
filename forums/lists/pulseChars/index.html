@@ -727,7 +727,7 @@ const CONFIG = {
 		bought: TOPIC_BOUGHT,
 		forever: TOPIC_FOREVER,
 	},
-	currentDate: todayISO().slice(0, 7), // было хардкодом '2025-03'
+	currentDate: todayISO().slice(0, 7),
 	postsPerRequest: 100,
 	soloFaction: 'Одиночки',
 	factions: FACTIONS.map(f => f.title),
@@ -773,7 +773,7 @@ function escapeHtml(s) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, ''');
+		.replace(/'/g, '&#39;');
 }
 
 function normalizeSex(v) {
@@ -1250,7 +1250,7 @@ function changeMarksHtml(card) {
    ========================================================= */
 const state = {
 	roles: [],
-	roleIdx: new Map(), // card -> index
+	roleIdx: new Map(),
 	currentFaction: 'all',
 	currentView: 'chars',
 	showReserved: false,
@@ -1332,7 +1332,7 @@ function renderSexLists(items, templateId, buildCtx) {
 
 	const letterTpl = tpl('FIRSTLETTER_TEMPLATE');
 
-	const renderGroup = (el, list, lastRef) => {
+	const renderGroup = (el, list) => {
 		let last = '';
 		for (const it of list) {
 			const ctx = buildCtx(it.card);
@@ -1408,12 +1408,13 @@ function renderFactionMode() {
 		list.sort((a, b) => compareFactionEntries(a, b, faction));
 	}
 
+	const seal = sealHtml(faction);
 	container.insertAdjacentHTML('beforeend', fillTemplate(tpl('GROUP_TEMPLATE'), {
 		title: faction === 'all' ? 'Все персонажи' : faction,
 		count: list.length,
 		factionClass: factionClass(faction),
-		sealHtml: sealHtml(faction),
-		hasSeal: sealHtml(faction) ? 'has-seal' : '',
+		sealHtml: seal,
+		hasSeal: seal ? 'has-seal' : '',
 	}));
 
 	fillList('FACTION_ROW_TEMPLATE', list, c => {
