@@ -1,12 +1,11 @@
 <style>
 	/* =========================================================
-	   ЛОКАЛЬНЫЕ ПЕРЕМЕННЫЕ
+	   ПЕРЕМЕННЫЕ
 	   ========================================================= */
 	#charLists {
 		--outdatedOpacity: 0.55;
 		font-family: var(--font);
 		color: rgb(var(--text900));
-
 		--tile-w: 225px;
 		--tile-min-h: 95px;
 		--flag-col-w: 26px;
@@ -14,7 +13,6 @@
 		--seal-md: 100px;
 		--seal-sm: 40px;
 		--seal-pad: 120px;
-
 		--notexist-bg: rgb(var(--primary400) / .12);
 		--notexist-border: rgb(var(--primary400) / .45);
 		--reserved-bg: rgb(var(--warning) / .15);
@@ -31,10 +29,7 @@
 	#tooltip { color: rgb(var(--text900)) !important; }
 	.subSide { display: inline; font-style: oblique; }
 	.listContainer { flex-grow: 1; display: none; }
-
-	#charLists button {
-		font-family: var(--font);
-	}
+	#charLists button { font-family: var(--font); }
 
 	/* =========================================================
 	   ЗАГОЛОВКИ
@@ -58,6 +53,23 @@
 	.char_fc { text-align: right; text-transform: capitalize; }
 	.material-symbols-outlined { font-size: 20px !important; }
 	.firstletter { font-size: 1rem; font-weight: bold; }
+
+	/* =========================================================
+	   КНОПКА РЕДАКТИРОВАНИЯ
+	   ========================================================= */
+	.edit-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 3px;
+		color: rgb(var(--text900) / .55);
+		text-decoration: none;
+		vertical-align: middle;
+		line-height: 1;
+		padding: 1px;
+	}
+	.edit-btn:hover { color: var(--color-accent); }
+	.edit-btn .material-symbols-outlined { font-size: 16px !important; }
 
 	/* =========================================================
 	   НАВИГАЦИЯ
@@ -93,7 +105,7 @@
 	}
 
 	/* =========================================================
-	   ПЛИТКИ ПЕРСОНАЖЕЙ
+	   ПЛИТКИ
 	   ========================================================= */
 	.all-chars {
 		display: flex;
@@ -166,12 +178,12 @@
 	}
 	.ams-badge { background: rgb(var(--danger)); }
 	.player-badge { background: rgb(var(--primary400)); }
-	.wanted-badge { background: rgb(var(--warning));}
+	.wanted-badge { background: rgb(var(--warning)); }
 	.expired-badge { background: rgb(var(--danger)); }
 	.expired-type-badge { background: rgb(var(--secondary400)); }
 
 	/* =========================================================
-	   ФЛАЖКИ (торчат наружу за левый край карточки)
+	   ФЛАЖКИ
 	   ========================================================= */
 	.char .flags {
 		position: absolute;
@@ -215,16 +227,13 @@
 	}
 
 	/* =========================================================
-	   ФРАКЦИИ: цвета
+	   ФРАКЦИИ
 	   ========================================================= */
 	.faction-header.al, .faction-row.al { --faction-color: #323f69; }
 	.faction-header.sv, .faction-row.sv { --faction-color: #645534; }
 	.faction-header.mt, .faction-row.mt { --faction-color: #547364; }
 	.faction-header.free, .faction-row.free { --faction-color: #555555; }
 
-	/* =========================================================
-	   ФРАКЦИИ: печати
-	   ========================================================= */
 	.faction-seal {
 		display: inline-block;
 		background-size: contain;
@@ -252,15 +261,9 @@
 		border-radius: var(--6);
 		min-height: 100px;
 		border-left: 4px solid var(--faction-color, transparent);
-		background: linear-gradient(
-			90deg,
-			color-mix(in srgb, var(--faction-color, transparent) 45%, transparent) 0%,
-			transparent 100%
-		);
+		background: linear-gradient(90deg, color-mix(in srgb, var(--faction-color, transparent) 45%, transparent) 0%, transparent 100%);
 	}
-	.group-title.faction-header.has-seal {
-		padding-right: var(--seal-pad);
-	}
+	.group-title.faction-header.has-seal { padding-right: var(--seal-pad); }
 	.group-title.faction-header .faction-seal {
 		position: absolute;
 		right: 8px;
@@ -276,7 +279,7 @@
 	}
 
 	/* =========================================================
-	   ИНЛАЙН-ИКОНКИ СМЕНЫ
+	   ИКОНКИ СМЕНЫ
 	   ========================================================= */
 	.change-marks {
 		display: inline-flex;
@@ -296,9 +299,7 @@
 		font-size: 11px;
 		line-height: 1;
 	}
-	.change-marks .change-icon .material-symbols-outlined {
-		font-size: 14px !important;
-	}
+	.change-marks .change-icon .material-symbols-outlined { font-size: 14px !important; }
 
 	/* =========================================================
 	   КНОПКА «ПОДРОБНО»
@@ -315,19 +316,10 @@
 		text-decoration: none;
 		display: inline-block;
 	}
-	.details-btn:hover {
-		background: var(--color-accent);
-	}
-	.details-btn--sm {
-		padding: 2px 8px;
-		font-size: 12px;
-	}
+	.details-btn:hover { background: var(--color-accent); }
+	.details-btn--sm { padding: 2px 8px; font-size: 12px; }
 
-	.char_more {
-		margin-top: auto;
-		align-self: flex-end;
-		z-index: 2;
-	}
+	.char_more { margin-top: auto; align-self: flex-end; z-index: 2; }
 
 	/* =========================================================
 	   ФРАКЦИОННЫЕ СТРОКИ
@@ -351,11 +343,11 @@
 	.faction-row .fr-name { flex: 0 1 30%; min-width: 0; font-weight: bold; }
 	.faction-row .fr-role { flex: 1 1 auto; min-width: 0; text-align: left; color: rgb(var(--text900) / .85); overflow-wrap: anywhere; }
 	.faction-row .fr-date { flex: 0 0 auto; text-align: right; white-space: nowrap; color: rgb(var(--text900) / .8); }
-	.faction-row .fr-sub  { font-size: 12px; font-style: italic; margin-left: 6px; }
+	.faction-row .fr-sub { font-size: 12px; font-style: italic; margin-left: 6px; }
 	.faction-row .fr-actions { flex: 0 0 auto; }
 
 	/* =========================================================
-	   ЗАГОЛОВОК ФРАКЦИИ (общий)
+	   ЗАГОЛОВОК ГРУППЫ
 	   ========================================================= */
 	.group-title {
 		display: flex;
@@ -374,7 +366,7 @@
 	.group-title .right-title { flex: 0 0 auto; text-align: right; color: rgb(var(--text900) / .7); }
 
 	/* =========================================================
-	   ИСТЁКШИЕ ЗАЯВКИ
+	   ИСТЁКШИЕ
 	   ========================================================= */
 	.expired-row {
 		display: flex;
@@ -517,9 +509,7 @@
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
-<!-- =========================================================
-     КАРКАС
-     ========================================================= -->
+<!-- КАРКАС -->
 <div class="zoom-controls">
 	<button id="zoom-in" class="button"> Увеличить масштаб </button>
 	<button id="zoom-out" class="button"> Уменьшить масштаб </button>
@@ -557,7 +547,7 @@
 		<a rel="Одиночки" class="filters button">Одиночки</a>
 	</div>
 
-	<div class="show-reserved-wrap">
+	<div class="show-reserved-wrap" id="showReservedWrap">
 		<label><input type="checkbox" id="showReservedChk"> Показать заявки (АМС / игроки)</label>
 	</div>
 
@@ -580,21 +570,20 @@
 	</div>
 </div>
 
-<!-- =========================================================
-     ШАБЛОНЫ
-     ========================================================= -->
+<!-- ШАБЛОНЫ: ОСНОВНЫЕ -->
 <template id="CHAR_TEMPLATE">
-	<li class="char {{isExist}} {{isReserved}} {{sexClass}} {{canChangeName}} {{canChangeFc}}">
+	<li class="char {{isExistClass}} {{isReservedClass}} {{sexClass}} {{canChangeNameClass}} {{canChangeFcClass}}">
 		<div class="flags">
 			<span class="flag f_exist" title="Уже с нами"><span class="material-symbols-outlined">person</span></span>
 			<span class="flag f_notexist" title="Ожидаемый персонаж"><span class="material-symbols-outlined">person_search</span></span>
-			<span class="flag f_reserved" title="Зарезервировано (только имя/фамилия/внешность)"><span class="material-symbols-outlined">bookmark</span></span>
+			<span class="flag f_reserved" title="Зарезервировано"><span class="material-symbols-outlined">bookmark</span></span>
 			<span class="flag f_canChangeName" title="Можно сменить имя"><span class="material-symbols-outlined">edit</span></span>
 			<span class="flag f_canChangeFc" title="Можно сменить внешность"><span class="material-symbols-outlined">theater_comedy</span></span>
 		</div>
 		{{{sealHtml}}}
 		<div class="char_profile">
 			<div class="char_profname">
+				{{{editLinkHtml}}}
 				<a href="{{nameLink}}" target="_blank"> <b class="red_title">{{displayName}}</b> </a>
 				{{{badge}}}
 			</div>
@@ -608,8 +597,9 @@
 </template>
 
 <template id="FACTION_ROW_TEMPLATE">
-	<div class="faction-row {{factionClass}} {{isExist}} {{isReserved}} {{outdated}}">
+	<div class="faction-row {{factionClass}} {{isExistClass}} {{isReservedClass}} {{outdated}}">
 		<div class="fr-name">
+			{{{editLinkHtml}}}
 			<a href="{{nameLink}}" target="_blank">{{displayName}}</a>
 			{{{changeMarks}}}
 			{{{badge}}}
@@ -637,6 +627,7 @@
 <template id="EXPIRED_ROW_TEMPLATE">
 	<div class="expired-row">
 		<div class="ex-name">
+			{{{editLinkHtml}}}
 			<a href="{{postLink}}" target="_blank">{{displayName}}</a>
 			<span class="expired-badge">Истекла</span>
 		</div>
@@ -649,20 +640,20 @@
 </template>
 
 <template id="NAMELIST_TEMPLATE">
-	<div class="listRow {{isExist}} {{isReserved}}">
-		<strong><a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a></strong>{{nameRuPart}} {{{ownerPart}}}
+	<div class="listRow {{isExistClass}} {{isReservedClass}}">
+		{{{editLinkHtml}}}<strong><a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a></strong>{{nameRuPart}} {{{ownerPart}}}
 	</div>
 </template>
 
 <template id="SURNAMELIST_TEMPLATE">
-	<div class="listRow {{isExist}} {{isReserved}}">
-		<a href="{{nameLink}}" target="_blank"><strong><span style="text-transform: uppercase;">{{surname_en}}</span></strong>, <span style="text-transform: capitalize;">{{name_en}}</span></a>{{fullRuPart}} {{{owner_part}}}
+	<div class="listRow {{isExistClass}} {{isReservedClass}}">
+		{{{editLinkHtml}}}<a href="{{nameLink}}" target="_blank"><strong><span style="text-transform: uppercase;">{{surname_en}}</span></strong>, <span style="text-transform: capitalize;">{{name_en}}</span></a>{{fullRuPart}} {{{ownerPart}}}
 	</div>
 </template>
 
 <template id="FACELIST_TEMPLATE">
-	<div class="listRow {{isExist}} {{isReserved}}">
-		<strong>{{fc}}</strong> — <a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a>{{{ownerPart}}}
+	<div class="listRow {{isExistClass}} {{isReservedClass}}">
+		{{{editLinkHtml}}}<strong>{{fc}}</strong> — <a href="{{nameLink}}" target="_blank">{{nameEnFormatted}}</a>{{{ownerPart}}}
 	</div>
 </template>
 
@@ -670,9 +661,26 @@
 	<div class="firstletter">-- <span class="red_title">{{letter}}</span> --</div>
 </template>
 
-<template id="SEX_M_TEMPLATE"><div><b class="custom_tag_title">Males</b></div></template>
+<!-- ШАБЛОНЫ: ШАПКИ ПОЛА -->
 <template id="SEX_F_TEMPLATE"><div><b class="custom_tag_title">Females</b></div></template>
+<template id="SEX_M_TEMPLATE"><div><b class="custom_tag_title">Males</b></div></template>
 
+<!-- ШАБЛОНЫ: УНИВЕРСАЛЬНЫЕ МИНИ-БЛОКИ -->
+<template id="EMPTY_MSG_TEMPLATE"><p>{{text}}</p></template>
+<template id="BADGE_TEMPLATE"><span class="{{cls}}">{{text}}</span></template>
+<template id="TYPE_BADGE_TEMPLATE"><span class="expired-type-badge">{{text}}</span></template>
+<template id="EDIT_LINK_TEMPLATE"><a class="edit-btn" href="{{href}}" target="_blank" title="Редактировать пост"><span class="material-symbols-outlined">edit</span></a></template>
+<template id="SEAL_TEMPLATE"><span class="faction-seal {{key}}" title="{{title}}"></span></template>
+<template id="OWNER_NOTE_TEMPLATE"> <span class="owner-note">({{{inner}}})</span></template>
+<template id="OWNER_LINK_TEMPLATE"><a href="{{href}}" target="_blank">{{text}}</a></template>
+<template id="CHANGE_MARKS_WRAP_TEMPLATE"><span class="change-marks">{{{marks}}}</span></template>
+<template id="CHANGE_MARK_TEMPLATE"><span class="change-icon" title="{{title}}"><span class="material-symbols-outlined">{{icon}}</span></span></template>
+<template id="MODAL_LINK_TEMPLATE"><a href="{{href}}" target="_blank">{{label}} →</a></template>
+<template id="MODAL_SIDES_EMPTY_TEMPLATE"><div class="modal-field"><i>нет данных</i></div></template>
+<template id="SIDE_SUB_TEMPLATE"><div class="{{cls}}">{{label}}</div></template>
+<template id="SIDE_ACTUAL_TEMPLATE"> <b>(актуально)</b></template>
+
+<!-- ШАБЛОНЫ: МОДАЛКА -->
 <template id="MODAL_TEMPLATE">
 	<h3>{{title}}{{{sealHtml}}}</h3>
 	<div class="modal-section-title">Основные поля</div>
@@ -706,7 +714,6 @@
 /* =========================================================
    КОНСТАНТЫ
    ========================================================= */
-
 const FACTIONS = [
 	{ key: 'al',   title: 'Альянс' },
 	{ key: 'sv',   title: 'Свора' },
@@ -716,20 +723,15 @@ const FACTIONS = [
 
 const CONFIG = {
 	topics: {
-		accepted: 2842, // Принятые
-		ams:      2843, // Акции от АМС
-		bought:   2844, // Выкупленные на период
-		forever:  2845, // Выкупленные бессрочно
+		accepted: 2842,
+		ams:      2843,
+		bought:   2844,
+		forever:  2845,
 	},
-
-	// Игровая дата проекта (YYYY-MM). Возраст считается на неё.
-	// Обновляется вручную при смене игрового месяца
 	currentDate: '2025-03',
-
 	postsPerRequest: 100,
 	soloFaction: 'Одиночки',
 	factions: FACTIONS.map(f => f.title),
-	debug: false,
 };
 
 const TODAY = todayISO();
@@ -771,7 +773,7 @@ function escapeHtml(s) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, ''');
+		.replace(/'/g, '&#39;');
 }
 
 function normalizeSex(v) {
@@ -871,15 +873,23 @@ function calcAge(birthIso, currentDate) {
 }
 
 /* =========================================================
-   ШАБЛОНИЗАТОР (автоэкранирование)
+   ШАБЛОНИЗАТОР
    ========================================================= */
-function fillTemplate(tpl, ctx) {
-	return tpl.replace(/\{\{\{?\s*(\w+)\s*\}?\}\}/g, (match, key) => {
+function fillTemplate(tplStr, ctx) {
+	return tplStr.replace(/\{\{\{?\s*(\w+)\s*\}?\}\}/g, (match, key) => {
 		const raw = match.startsWith('{{{');
 		const val = ctx[key];
 		if (val === undefined || val === null) return '';
 		return raw ? String(val) : escapeHtml(val);
 	});
+}
+
+function tpl(id) {
+	return document.getElementById(id).innerHTML;
+}
+
+function render(id, data) {
+	return fillTemplate(tpl(id), data);
 }
 
 /* =========================================================
@@ -899,8 +909,7 @@ function factionClass(name) {
 
 function sealHtml(factionName) {
 	const info = getFactionInfo(factionName);
-	if (!info) return '';
-	return '<span class="faction-seal ' + info.key + '" title="' + escapeHtml(info.title) + '"></span>';
+	return info ? render('SEAL_TEMPLATE', { key: info.key, title: info.title }) : '';
 }
 
 /* =========================================================
@@ -910,26 +919,23 @@ const FIELD_DEFS = [
 	{ key: 'type',         label: 'Тип',                     aliases: ['тип'] },
 	{ key: 'name_ru',      label: 'Имя (на русском)',        aliases: ['имя', 'имя (рус)', 'имя (рус.)'] },
 	{ key: 'surname_ru',   label: 'Фамилия (на русском)',    aliases: ['фамилия', 'фамилия (рус)', 'фамилия (рус.)'] },
-	{ key: 'nickname_ru',  label: 'Прозвище (на русском)',   aliases: ['прозвище', 'прозвище (рус)', 'прозвище (рус.)'] },
 	{ key: 'name_en',      label: 'Имя (на английском)',     aliases: ['name', 'имя (англ)', 'имя (англ.)'] },
 	{ key: 'surname_en',   label: 'Фамилия (на английском)', aliases: ['surname', 'фамилия (англ)', 'фамилия (англ.)'] },
-	{ key: 'nickname_en',  label: 'Прозвище (на английском)', aliases: ['nickname', 'прозвище (англ)', 'прозвище (англ.)'] },
-	{ key: 'fc',           label: 'Внешность',               aliases: ['внешность (fc)', 'fc', 'faceclaim'] },
+	{ key: 'fc',           label: 'Внешность',               aliases: ['внешность (fc)', 'fc'] },
 	{ key: 'sex',          label: 'Пол',                     aliases: ['пол (m/f)', 'пол (м/ж)'] },
-	{ key: 'birth',        label: 'Дата рождения',           aliases: ['дата рождения (гггг-мм-дд)', 'др', 'birth', 'дата рожд.'] },
-	{ key: 'expire',       label: 'Истекает',                aliases: ['истекает', 'expire', 'срок'] },
+	{ key: 'birth',        label: 'Дата рождения',           aliases: ['возраст', 'др', 'birth'] },
+	{ key: 'expire',       label: 'Срок',                	 aliases: ['истекает', 'expire', 'срок'] },
 	{ key: 'role',         label: 'Должность',               aliases: ['должность (роль)', 'роль'] },
-	{ key: 'canChange',    label: 'Смена',                   aliases: ['смена', 'можно сменить', 'canchange', 'changes'] },
-	{ key: 'canChangeName',label: 'Смена имени',             aliases: ['смена имени', 'canchangename', 'changename'] },
-	{ key: 'canChangeFc',  label: 'Смена внешности',         aliases: ['смена внешности', 'canchangefc', 'changefc', 'смена лица'] },
-	{ key: 'priority',     label: 'Приоритет',               aliases: ['приоритет', 'priority', 'приор'] },
+	{ key: 'canChange',    label: 'Смена',                   aliases: ['смена', 'можно сменить'] },
+	{ key: 'canChangeName',label: 'Смена имени',             aliases: ['смена имени'] },
+	{ key: 'canChangeFc',  label: 'Смена внешности',         aliases: ['смена внешности'] },
+	{ key: 'priority',     label: 'Приоритет',               aliases: ['приоритет', 'priority'] },
 	{ key: 'profile',      label: 'Профиль',                 aliases: ['профиль (ссылка)', 'ссылка на профиль'] },
 	{ key: 'anketa',       label: 'Анкета',                  aliases: ['анкета (ссылка)', 'ссылка на анкету'] },
-	{ key: 'owner',        label: 'Owner',                   aliases: ['владелец'] },
-	{ key: 'side',         label: 'Фракция',                 aliases: ['фракция (история)', 'сторона'] },
+	{ key: 'owner',        label: 'Owner',                   aliases: ['владелец', 'автор'] },
+	{ key: 'side',         label: 'Фракция',                 aliases: ['фракция', 'сторона'] },
 ];
 
-const FIELD_INFO = Object.fromEntries(FIELD_DEFS.map(d => [d.key, d]));
 const FIELD_LABELS = Object.fromEntries(FIELD_DEFS.map(d => [d.key, d.label]));
 const FIELD_ORDER = FIELD_DEFS.map(d => d.key);
 
@@ -940,7 +946,7 @@ for (const def of FIELD_DEFS) {
 }
 
 /* =========================================================
-   ПАРСИНГ ПОСТА — таблица «поле → обработчик ячейки»
+   ПАРСИНГ ПОСТА
    ========================================================= */
 function getDoc(message) {
 	return new DOMParser().parseFromString(message, 'text/html');
@@ -996,7 +1002,6 @@ function parseSideValue(td) {
 	return { date, dateRaw, faction, sub, note: extractNote(td), dateMissing: !date };
 }
 
-// Таблица парсеров: fieldKey -> (card, valCell) => void
 const CELL_PARSERS = {
 	type(card, cell) { card.type = normalizeType(cell.textContent); },
 	owner(card, cell) {
@@ -1020,13 +1025,21 @@ const CELL_PARSERS = {
 		const t = (cell.textContent || '').trim();
 		card.birth_raw = t;
 		const d = parseDate(t);
-		if (d) card.birth = d.iso;
+		if (d) { card.birth = d.iso; return; }
+		if (/^\d{1,3}$/.test(t)) {
+			const n = parseInt(t, 10);
+			if (n >= 0 && n <= 150) card.age = n;
+		}
 	},
 	expire(card, cell) {
 		const t = (cell.textContent || '').trim();
 		card.expire_raw = t;
 		const e = parseExpireDate(t);
-		if (e) card.expire = e;
+		if (e) { card.expire = e; return; }
+		if (/^\d{1,4}$/.test(t)) {
+			const n = parseInt(t, 10);
+			if (n > 0 && n <= 3650) card.expireDays = n;
+		}
 	},
 	sex(card, cell) { card.sex = normalizeSex(cell.textContent); },
 	profile(card, cell) { card.profile = readHrefOrText(cell); },
@@ -1038,16 +1051,16 @@ function readHrefOrText(cell) {
 	return ((a && a.getAttribute('href')) || (cell.textContent || '')).trim();
 }
 
-function parseCardMessage(message, postId, topicId) {
+function parseCardMessage(message, postId, topicId, posted) {
 	const table = getDoc(message).querySelector('table');
 	if (!table) return null;
 
 	const card = {
-		post_id: postId, topic_id: topicId,
-		type: '', name_ru: '', surname_ru: '', nickname_ru: '',
-		name_en: '', surname_en: '', nickname_en: '',
+		post_id: postId, topic_id: topicId, posted: posted || null,
+		type: '', name_ru: '', surname_ru: '',
+		name_en: '', surname_en: '',
 		fc: '', sex: '', birth_raw: '', birth: '', age: null,
-		expire: '', expire_raw: '', isExpired: false,
+		expire: '', expire_raw: '', expireDays: 0, isExpired: false,
 		role: '', canChangeName: false, canChangeFc: false, priority: 0,
 		profile: '', anketa: '', sides: [], extra: [], owner: '', ownerUrl: '',
 		isAms: false, isPlayer: false, isWanted: false, isExist: false,
@@ -1080,7 +1093,6 @@ function parseCardMessage(message, postId, topicId) {
 		}
 	}
 
-	// sides: сортировка по дате + метка actual
 	card.sides = card.sides
 		.map((s, i) => ({ s, i }))
 		.sort((a, b) => {
@@ -1093,17 +1105,21 @@ function parseCardMessage(message, postId, topicId) {
 
 	if (card.birth) card.age = calcAge(card.birth, CONFIG.currentDate);
 
-	// expire — только для топика 18
 	if (topicId === CONFIG.topics.bought) {
+		if (card.expireDays && card.posted) {
+			const base = new Date(card.posted * 1000);
+			const d = new Date(base.getTime() + card.expireDays * 86400000);
+			card.expire = d.toISOString().slice(0, 10);
+		}
 		card.isExpired = !card.expire || card.expire < TODAY;
 	} else {
 		card.expire = '';
 		card.expire_raw = '';
+		card.expireDays = 0;
 		card.isExpired = false;
 	}
 
-	const hasNamePart = !!(card.name_en || card.name_ru || card.surname_en || card.surname_ru
-		|| card.nickname_en || card.nickname_ru || card.fc);
+	const hasNamePart = !!(card.name_en || card.name_ru || card.surname_en || card.surname_ru || card.fc);
 	const looksLikeFullCard = card.sides.length > 0 || card.role || card.birth_raw || card.sex;
 
 	if (card.type === 'reserved') {
@@ -1147,12 +1163,15 @@ function sexClass(card) {
 	return '';
 }
 
-// kind: 'card' | 'name' | 'surname' | 'fc'
 function visible(card, kind) {
 	if (isExpiredCard(card)) return false;
-	if (card.isReserved) return kind !== 'card' && card.reservedKinds.includes(kind);
-	if (card.isExist) return true;
-	return state.showReserved && (card.isAms || card.isPlayer || card.isWanted);
+	if (kind === 'card') {
+		if (card.isReserved) return false;
+		if (card.isExist) return true;
+		return state.showReserved && (card.isAms || card.isPlayer || card.isWanted);
+	}
+	if (card.isReserved) return card.reservedKinds.includes(kind);
+	return card.isExist;
 }
 
 function matchesFaction(card, faction) {
@@ -1196,7 +1215,6 @@ function nameLink(card) {
 function formattedNameEn(card) {
 	const parts = [];
 	if (card.name_en) parts.push(capitalize(card.name_en));
-	if (card.nickname_en) parts.push('"' + card.nickname_en + '"');
 	if (card.surname_en) parts.push(capitalize(card.surname_en));
 	return parts.join(' ');
 }
@@ -1204,7 +1222,6 @@ function formattedNameEn(card) {
 function formattedNameRu(card) {
 	const parts = [];
 	if (card.name_ru) parts.push(capitalize(card.name_ru));
-	if (card.nickname_ru) parts.push('"' + card.nickname_ru + '"');
 	if (card.surname_ru) parts.push(capitalize(card.surname_ru));
 	return parts.join(' ');
 }
@@ -1220,33 +1237,60 @@ function displayRu(card) {
 
 function ownerPartHtml(card) {
 	if (!card.owner) return '';
-	const text = escapeHtml(card.owner);
 	const inner = card.ownerUrl
-		? `<a href="${escapeHtml(card.ownerUrl)}" target="_blank">${text}</a>`
-		: text;
-	return ` <span class="owner-note">(${inner})</span>`;
+		? render('OWNER_LINK_TEMPLATE', { href: card.ownerUrl, text: card.owner })
+		: escapeHtml(card.owner);
+	return render('OWNER_NOTE_TEMPLATE', { inner });
 }
 
 function badgeHtml(card) {
 	if (card.isReserved) return '';
-	if (card.isAms) return '<span class="ams-badge">Заявка от АМС</span>';
-	if (card.isPlayer) return '<span class="player-badge">Заявка от игрока</span>';
-	if (card.isWanted) return '<span class="wanted-badge">Заявка</span>';
+	if (card.isAms) return render('BADGE_TEMPLATE', { cls: 'ams-badge', text: 'Заявка от АМС' });
+	if (card.isPlayer) return render('BADGE_TEMPLATE', { cls: 'player-badge', text: 'Заявка от игрока' });
+	if (card.isWanted) return render('BADGE_TEMPLATE', { cls: 'wanted-badge', text: 'Заявка' });
 	return '';
 }
 
 function changeMarksHtml(card) {
-	if (card.isReserved) return '';
+	if (card.isReserved || card.isExist) return '';
 	const marks = [];
-	if (card.canChangeName) marks.push('<span class="change-icon" title="Можно сменить имя"><span class="material-symbols-outlined">edit</span></span>');
-	if (card.canChangeFc) marks.push('<span class="change-icon" title="Можно сменить внешность"><span class="material-symbols-outlined">theater_comedy</span></span>');
-	return marks.length ? '<span class="change-marks">' + marks.join('') + '</span>' : '';
+	if (card.canChangeName) marks.push(render('CHANGE_MARK_TEMPLATE', { title: 'Можно сменить имя', icon: 'edit' }));
+	if (card.canChangeFc) marks.push(render('CHANGE_MARK_TEMPLATE', { title: 'Можно сменить внешность', icon: 'theater_comedy' }));
+	return marks.length ? render('CHANGE_MARKS_WRAP_TEMPLATE', { marks: marks.join('') }) : '';
 }
 
-// FIX: единый ключ сортировки по имени. «Без имени» → в конец.
+function editLinkHtml(card) {
+	if (!isAdmin()) return '';
+	return render('EDIT_LINK_TEMPLATE', { href: `/edit.php?id=${encodeURIComponent(card.post_id)}` });
+}
+
 function sortKeyByName(card) {
-	const raw = (card.name_en || card.name_ru || '').toLowerCase();
-	return raw || '\uffff';
+	return ((card.name_en || card.name_ru || '').toLowerCase()) || '\uffff';
+}
+
+/* =========================================================
+   DECORATE — обогащение карточки при загрузке
+   ========================================================= */
+function decorate(card) {
+	Object.assign(card, {
+		nameLink: nameLink(card),
+		displayName: displayName(card),
+		displayRu: displayRu(card),
+		age: card.age != null ? card.age : '—',
+		fc: card.fc || '—',
+		role: card.role || '—',
+		sealHtml: sealHtml(actualSide(card)?.faction || ''),
+		badge: badgeHtml(card),
+		changeMarks: changeMarksHtml(card),
+		editLinkHtml: editLinkHtml(card),
+		ownerPart: ownerPartHtml(card),
+		sexClass: sexClass(card),
+		isExistClass: card.isExist ? 'exist' : 'notexist',
+		isReservedClass: card.isReserved ? 'reserved' : '',
+		canChangeNameClass: (!card.isExist && card.canChangeName) ? 'canChangeName' : '',
+		canChangeFcClass: (!card.isExist && card.canChangeFc) ? 'canChangeFc' : '',
+	});
+	return card;
 }
 
 /* =========================================================
@@ -1284,7 +1328,7 @@ async function getPosts(topicId) {
 	let skip = 0;
 	const all = [];
 	while (true) {
-		const url = `/api.php?method=post.get&topic_id=${topicId}&fields=message,id&limit=${CONFIG.postsPerRequest}&skip=${skip}`;
+		const url = `/api.php?method=post.get&topic_id=${topicId}&fields=message,id,posted&limit=${CONFIG.postsPerRequest}&skip=${skip}`;
 		const data = await fetchData(url);
 		if (!data || !data.response) return null;
 		all.push(...data.response);
@@ -1297,40 +1341,31 @@ async function getPosts(topicId) {
 async function processTopic(topicId) {
 	const posts = await getPosts(topicId);
 	if (posts === null) return null;
-	return posts.map(p => parseCardMessage(p.message, p.id, topicId)).filter(Boolean);
+	return posts
+		.map(p => parseCardMessage(p.message, p.id, topicId, p.posted))
+		.filter(Boolean)
+		.map(decorate);
 }
 
 /* =========================================================
-   РЕНДЕР: универсальный
+   РЕНДЕР
    ========================================================= */
-function tpl(id) {
-	return document.getElementById(id).innerHTML;
+function hideAllLists() {
+	document.getElementById('allChars-wrapper').style.display = 'none';
+	document.getElementById('factionContainer').style.display = 'none';
+	const ec = document.getElementById('expiredContainer');
+	if (ec) ec.style.display = 'none';
+	['addonAll', 'addonM', 'addonF'].forEach(id => {
+		const el = document.getElementById(id);
+		el.style.display = 'none';
+		el.innerHTML = '';
+	});
 }
 
-function fillList(templateId, items, buildCtx, target) {
-	const t = tpl(templateId);
-	const html = items.map((item, i) => {
-		const ctx = buildCtx(item, i);
-		return fillTemplate(t, ctx);
-	}).join('');
-	target.insertAdjacentHTML('beforeend', html);
-}
-
-function splitBySex(items, cb) {
-	const f = [], m = [], none = [];
-	for (const it of items) {
-		if (it.card.sex === 'f') f.push(it);
-		else if (it.card.sex === 'm') m.push(it);
-		else none.push(it);
-	}
-	cb(f, m, none);
-}
-
-function renderSexLists(items, templateId, buildCtx) {
+function renderSexLists(items, templateId, letterOf) {
 	const fEl = document.getElementById('addonF');
 	const mEl = document.getElementById('addonM');
-	fEl.style.display = 'block';
-	mEl.style.display = 'block';
+	fEl.style.display = mEl.style.display = 'block';
 	fEl.innerHTML = tpl('SEX_F_TEMPLATE');
 	mEl.innerHTML = tpl('SEX_M_TEMPLATE');
 
@@ -1338,23 +1373,26 @@ function renderSexLists(items, templateId, buildCtx) {
 
 	const renderGroup = (el, list) => {
 		let last = '';
-		for (const it of list) {
-			const ctx = buildCtx(it.card);
-			const letter = (ctx._letter || '?').toUpperCase();
+		for (const c of list) {
+			const letter = letterOf(c).toUpperCase();
 			if (letter !== last) {
 				el.insertAdjacentHTML('beforeend', fillTemplate(letterTpl, { letter }));
 				last = letter;
 			}
-			el.insertAdjacentHTML('beforeend', fillTemplate(tpl(templateId), ctx));
+			el.insertAdjacentHTML('beforeend', render(templateId, c));
 		}
 	};
 
-	splitBySex(items, (f, m, none) => {
-		renderGroup(fEl, f);
-		renderGroup(mEl, m);
-		renderGroup(fEl, none);
-		renderGroup(mEl, none);
-	});
+	const f = [], m = [], none = [];
+	for (const c of items) {
+		if (c.sex === 'f') f.push(c);
+		else if (c.sex === 'm') m.push(c);
+		else none.push(c);
+	}
+	renderGroup(fEl, f);
+	renderGroup(mEl, m);
+	renderGroup(fEl, none);
+	renderGroup(mEl, none);
 }
 
 /* =========================================================
@@ -1368,31 +1406,9 @@ function renderChars() {
 	if (state.currentFaction !== 'all') {
 		cards = cards.filter(c => matchesFaction(c, state.currentFaction));
 	}
-	cards.sort((a, b) => {
-		const ak = sortKeyByName(a);
-		const bk = sortKeyByName(b);
-		return ak < bk ? -1 : ak > bk ? 1 : 0;
-	});
+	cards.sort((a, b) => sortKeyByName(a) < sortKeyByName(b) ? -1 : sortKeyByName(a) > sortKeyByName(b) ? 1 : 0);
 
-	fillList('CHAR_TEMPLATE', cards, c => {
-		const a = actualSide(c);
-		return {
-			idx: state.roleIdx.get(c),
-			nameLink: nameLink(c),
-			displayName: displayName(c),
-			displayRu: displayRu(c),
-			fc: c.fc || '—',
-			age: c.age != null ? c.age : '—',
-			role: c.role || '—',
-			isExist: c.isExist ? 'exist' : 'notexist',
-			isReserved: '',
-			sexClass: sexClass(c),
-			canChangeName: c.canChangeName ? 'canChangeName' : '',
-			canChangeFc: c.canChangeFc ? 'canChangeFc' : '',
-			sealHtml: sealHtml(a ? a.faction : ''),
-			badge: badgeHtml(c),
-		};
-	}, list);
+	list.innerHTML = cards.map(c => render('CHAR_TEMPLATE', Object.assign({}, c, { idx: state.roleIdx.get(c) }))).join('');
 }
 
 /* =========================================================
@@ -1406,18 +1422,10 @@ function renderFactionMode() {
 	const faction = state.currentFaction;
 	const list = state.roles.filter(c => visible(c, 'card') && matchesFaction(c, faction));
 
-	if (normalizeKey(faction) === normalizeKey(CONFIG.soloFaction)) {
-		list.sort((a, b) => {
-			const ak = sortKeyByName(a);
-			const bk = sortKeyByName(b);
-			return ak < bk ? -1 : ak > bk ? 1 : 0;
-		});
-	} else {
-		list.sort((a, b) => compareFactionEntries(a, b, faction));
-	}
+	list.sort((a, b) => compareFactionEntries(a, b, faction));
 
 	const seal = sealHtml(faction);
-	container.insertAdjacentHTML('beforeend', fillTemplate(tpl('GROUP_TEMPLATE'), {
+	container.insertAdjacentHTML('beforeend', render('GROUP_TEMPLATE', {
 		title: faction === 'all' ? 'Все персонажи' : faction,
 		count: list.length,
 		factionClass: factionClass(faction),
@@ -1425,7 +1433,7 @@ function renderFactionMode() {
 		hasSeal: seal ? 'has-seal' : '',
 	}));
 
-	fillList('FACTION_ROW_TEMPLATE', list, c => {
+	container.insertAdjacentHTML('beforeend', list.map(c => {
 		const entry = entrySideForFaction(c, faction);
 		const outdated = isOutdatedInFaction(c, faction);
 		let dateText = '';
@@ -1435,21 +1443,14 @@ function renderFactionMode() {
 				? formatDateShort(entry.date) + ' — ' + formatDateShort(next.date)
 				: 'с ' + formatDateShort(entry.date);
 		}
-		return {
+		return render('FACTION_ROW_TEMPLATE', Object.assign({}, c, {
 			idx: state.roleIdx.get(c),
-			nameLink: nameLink(c),
-			displayName: displayName(c),
-			role: c.role || '—',
 			dateText,
 			sub: entry && entry.sub ? entry.sub : '',
-			isExist: c.isExist ? 'exist' : 'notexist',
-			isReserved: '',
 			outdated: outdated ? 'outdated' : '',
-			changeMarks: changeMarksHtml(c),
 			factionClass: factionClass(faction),
-			badge: badgeHtml(c),
-		};
-	}, container);
+		}));
+	}).join(''));
 }
 
 function compareFactionEntries(a, b, faction) {
@@ -1478,17 +1479,17 @@ function renderExpired() {
 	container.innerHTML = '';
 
 	if (!isAdmin()) {
-		container.innerHTML = '<p>Раздел доступен только администрации.</p>';
+		container.innerHTML = render('EMPTY_MSG_TEMPLATE', { text: 'Раздел доступен только администрации.' });
 		return;
 	}
 
 	const list = state.roles.filter(isExpiredCard);
 	if (!list.length) {
-		container.innerHTML = '<p>Истёкших заявок нет.</p>';
+		container.innerHTML = render('EMPTY_MSG_TEMPLATE', { text: 'Истёкших заявок нет.' });
 		return;
 	}
 
-	container.insertAdjacentHTML('beforeend', fillTemplate(tpl('GROUP_TEMPLATE'), {
+	container.insertAdjacentHTML('beforeend', render('GROUP_TEMPLATE', {
 		title: 'Истёкшие заявки',
 		count: list.length,
 		factionClass: '',
@@ -1496,7 +1497,7 @@ function renderExpired() {
 		hasSeal: '',
 	}));
 
-	fillList('EXPIRED_ROW_TEMPLATE', list, c => {
+	container.insertAdjacentHTML('beforeend', list.map(c => {
 		const types = [];
 		if (c.isReserved) {
 			if (c.reservedKinds.includes('name')) types.push('имя');
@@ -1505,13 +1506,22 @@ function renderExpired() {
 		} else {
 			types.push('карточка');
 		}
-		return {
+		let expireText;
+		if (c.expireDays && c.expire) {
+			expireText = `${c.expireDays} дн. (до ${c.expire})` + (c.isExpired ? ' — истекла' : '');
+		} else if (c.expire) {
+			expireText = 'истекает ' + c.expire;
+		} else if (c.expireDays) {
+			expireText = c.expireDays + ' дн.';
+		} else {
+			expireText = 'срок не указан';
+		}
+		return render('EXPIRED_ROW_TEMPLATE', Object.assign({}, c, {
 			postLink: postLink(c.post_id),
-			displayName: displayName(c),
-			typesHtml: types.map(t => '<span class="expired-type-badge">' + escapeHtml(t) + '</span>').join(' '),
-			expireText: c.expire ? 'истекает ' + c.expire : 'срок не указан',
-		};
-	}, container);
+			typesHtml: types.map(t => render('TYPE_BADGE_TEMPLATE', { text: t })).join(' '),
+			expireText,
+		}));
+	}).join(''));
 }
 
 /* =========================================================
@@ -1521,40 +1531,14 @@ function renderNames() {
 	hideAllLists();
 	const items = state.roles
 		.filter(c => visible(c, 'name'))
-		.map(card => {
-			const hasName = !!(card.name_en || card.name_ru);
-			return {
-				card,
-				sortKey: hasName
-					? (card.name_en || card.name_ru || '').toLowerCase()
-					: '\uffff',
-			};
-		})
-		.sort((a, b) => {
-			const ak = a.sortKey || '\uffff';
-			const bk = b.sortKey || '\uffff';
-			return ak < bk ? -1 : ak > bk ? 1 : 0;
-		});
+		.map(c => Object.assign({}, c, {
+			nameEnFormatted: formattedNameEn(c) || formattedNameRu(c) || c.fc || '',
+			nameRuPart: (c.name_en || c.surname_en) && (c.name_ru || c.surname_ru)
+				? ' (' + formattedNameRu(c) + ')' : '',
+		}))
+		.sort((a, b) => sortKeyByName(a) < sortKeyByName(b) ? -1 : sortKeyByName(a) > sortKeyByName(b) ? 1 : 0);
 
-	renderSexLists(items, 'NAMELIST_TEMPLATE', c => {
-		const nameEnFmt = formattedNameEn(c) || formattedNameRu(c) || c.fc || '';
-
-		const nameRaw = c.name_en || c.name_ru || '';
-		const letter = nameRaw ? nameRaw.charAt(0).toUpperCase() : '?';
-
-		const ru = (c.name_en || c.surname_en || c.nickname_en) && (c.name_ru || c.surname_ru || c.nickname_ru)
-			? ' (' + formattedNameRu(c) + ')' : '';
-
-		return {
-			_letter: letter,
-			nameLink: nameLink(c),
-			nameEnFormatted: nameEnFmt,
-			nameRuPart: ru,
-			ownerPart: ownerPartHtml(c),
-			isExist: c.isExist ? 'exist' : 'notexist',
-			isReserved: c.isReserved ? 'reserved' : '',
-		};
-	});
+	renderSexLists(items, 'NAMELIST_TEMPLATE', c => (c.name_en || c.name_ru || '?').charAt(0));
 }
 
 function renderSurnames() {
@@ -1565,115 +1549,84 @@ function renderSurnames() {
 
 	const items = state.roles
 		.filter(c => visible(c, 'surname'))
-		.map(card => {
-			const hasName = !!(card.name_en || card.name_ru);
-			const sortKey = hasName
-				? (card.surname_en || card.surname_ru || '').toLowerCase()
-				: '\uffff';
-			return { card, sortKey };
-		});
+		.map(c => Object.assign({}, c, {
+			surname_en: c.surname_en || c.surname_ru || '?',
+			name_en: (c.name_en || c.name_ru) ? capitalize(c.name_en || c.name_ru) : '?',
+			fullRuPart: formattedNameRu(c) ? ' (' + formattedNameRu(c) + ')' : '',
+		}))
+		.sort((a, b) => (a.surname_en.toLowerCase() < b.surname_en.toLowerCase() ? -1 : a.surname_en.toLowerCase() > b.surname_en.toLowerCase() ? 1 : 0));
 
-	items.sort((a, b) => {
-		const ak = a.sortKey || '\uffff';
-		const bk = b.sortKey || '\uffff';
-		return ak < bk ? -1 : ak > bk ? 1 : 0;
-	});
-
-	const t = tpl('SURNAMELIST_TEMPLATE');
 	const letterTpl = tpl('FIRSTLETTER_TEMPLATE');
 	let last = '';
 
-	for (const { card: c } of items) {
-		const en = c.surname_en || c.surname_ru || '?';
-
-		const nameRaw = c.name_en || c.name_ru || '';
-		const nameEn = nameRaw ? capitalize(nameRaw) : '';
-
-		const nickRaw = c.nickname_en || c.nickname_ru || '';
-		const nickEn = nickRaw ? `"${nickRaw}"` : '';
-
-		const parts = [nameEn, nickEn].filter(Boolean);
-		const namePart = parts.length ? parts.join(' ') : '?';
-
-		const fullRu = formattedNameRu(c);
-		const letter = (en.charAt(0) || '?').toUpperCase();
-
-		let html = fillTemplate(t, {
-			nameLink: nameLink(c),
-			surname_en: en,
-			name_en: namePart,
-			fullRuPart: fullRu ? ' (' + fullRu + ')' : '',
-			owner_part: ownerPartHtml(c),
-			isExist: c.isExist ? 'exist' : 'notexist',
-			isReserved: c.isReserved ? 'reserved' : '',
-		});
+	for (const c of items) {
+		const letter = c.surname_en.charAt(0).toUpperCase();
 		if (letter !== last) {
-			html = fillTemplate(letterTpl, { letter }) + html;
+			el.insertAdjacentHTML('beforeend', fillTemplate(letterTpl, { letter }));
 			last = letter;
 		}
-		el.insertAdjacentHTML('beforeend', html);
+		el.insertAdjacentHTML('beforeend', render('SURNAMELIST_TEMPLATE', c));
 	}
 }
 
 function renderFaces() {
 	hideAllLists();
 	const items = state.roles
-		.filter(c => visible(c, 'fc') && c.fc)
-		.map(card => ({ card, sortKey: card.fc.toLowerCase() }))
-		.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0);
+		.filter(c => visible(c, 'fc') && c.fc && c.fc !== '—')
+		.map(c => Object.assign({}, c, {
+			nameEnFormatted: formattedNameEn(c) || formattedNameRu(c) || '',
+		}))
+		.sort((a, b) => a.fc.toLowerCase() < b.fc.toLowerCase() ? -1 : a.fc.toLowerCase() > b.fc.toLowerCase() ? 1 : 0);
 
-	renderSexLists(items, 'FACELIST_TEMPLATE', c => {
-		const nameEnFmt = formattedNameEn(c) || formattedNameRu(c) || '';
-		return {
-			_letter: c.fc.charAt(0) || '?',
-			nameLink: nameLink(c),
-			fc: c.fc,
-			nameEnFormatted: nameEnFmt,
-			ownerPart: ownerPartHtml(c),
-			isExist: c.isExist ? 'exist' : 'notexist',
-			isReserved: c.isReserved ? 'reserved' : '',
-		};
-	});
-}
-
-function hideAllLists() {
-	document.getElementById('allChars-wrapper').style.display = 'none';
-	document.getElementById('factionContainer').style.display = 'none';
-	const ec = document.getElementById('expiredContainer');
-	if (ec) ec.style.display = 'none';
-	['addonAll', 'addonM', 'addonF'].forEach(id => {
-		const el = document.getElementById(id);
-		el.style.display = 'none';
-		el.innerHTML = '';
-	});
+	renderSexLists(items, 'FACELIST_TEMPLATE', c => c.fc.charAt(0));
 }
 
 /* =========================================================
-   МОДАЛКА — таблица «поле → как отобразить»
+   МОДАЛКА
    ========================================================= */
 const MODAL_FIELD_RENDERERS = {
 	owner(card) {
 		if (!card.owner) return null;
 		return card.ownerUrl
-			? `<a href="${escapeHtml(card.ownerUrl)}" target="_blank">${escapeHtml(card.owner)}</a>`
+			? render('OWNER_LINK_TEMPLATE', { href: card.ownerUrl, text: card.owner })
 			: escapeHtml(card.owner);
 	},
 	birth(card) {
-		if (!card.birth_raw) return null;
-		return card.birth_raw + (card.age != null ? ` (возраст: ${card.age})` : '');
+		if (card.birth_raw && card.birth) {
+			return card.birth_raw + (card.age != null ? ` (возраст: ${card.age})` : '');
+		}
+		if (card.age != null && /^\d{1,3}$/.test(card.birth_raw || '')) {
+			return 'Возраст: ' + card.age;
+		}
+		if (card.birth_raw) return card.birth_raw;
+		return null;
 	},
 	expire(card) {
 		if (!card.expire_raw && !card.expire) return null;
-		return (card.expire || card.expire_raw || '—') + (card.isExpired ? ' (истекла)' : '');
+		let out = '';
+		if (card.expireDays) out += card.expireDays + ' дн.';
+		if (card.expire) out += (out ? ' (до ' + card.expire + ')' : card.expire);
+		if (!out) out = card.expire_raw || '—';
+		if (card.isExpired) out += ' (истекла)';
+		return out;
 	},
 	type(card) {
 		return card.type || (card.isReserved ? 'reserved' : card.isAms ? 'wanted' : card.isPlayer ? 'reserved' : 'card');
 	},
 	canChange(card) {
+		if (card.isExist) return null;
 		const opts = [];
 		if (card.canChangeName) opts.push('имя');
 		if (card.canChangeFc) opts.push('внешность');
 		return opts.length ? opts.join(', ') : null;
+	},
+	canChangeName(card) {
+		if (card.isExist) return null;
+		return card.canChangeName ? 'да' : null;
+	},
+	canChangeFc(card) {
+		if (card.isExist) return null;
+		return card.canChangeFc ? 'да' : null;
 	},
 	priority(card) {
 		return card.priority || null;
@@ -1682,10 +1635,10 @@ const MODAL_FIELD_RENDERERS = {
 
 function openDetails(card) {
 	try {
-		const modal = document.getElementById('detailsModal');
 		const body = document.getElementById('modalBody');
 		const fieldTpl = tpl('MODAL_FIELD_TEMPLATE');
 		const sideTpl = tpl('MODAL_SIDE_TEMPLATE');
+		const subTpl = tpl('SIDE_SUB_TEMPLATE');
 
 		const fieldsHtml = [];
 		for (const key of FIELD_ORDER) {
@@ -1699,38 +1652,36 @@ function openDetails(card) {
 			}));
 		}
 		for (const ex of card.extra) {
-			fieldsHtml.push(fillTemplate(fieldTpl, {
-				key: ex.key,
-				val: escapeHtml(ex.val),
-			}));
+			fieldsHtml.push(fillTemplate(fieldTpl, { key: ex.key, val: escapeHtml(ex.val) }));
 		}
 
 		let sidesHtml;
 		if (!card.sides.length) {
-			sidesHtml = '<div class="modal-field"><i>нет данных</i></div>';
+			sidesHtml = tpl('MODAL_SIDES_EMPTY_TEMPLATE');
 		} else {
 			sidesHtml = card.sides.map(s => fillTemplate(sideTpl, {
 				actualClass: s.actual ? 'actual' : 'outdated',
 				dateText: formatDateShort(s.date),
 				faction: s.faction || '—',
-				subBlock: s.sub ? `<div class="shi-sub">Подфракция: ${escapeHtml(s.sub)}</div>` : '',
-				noteBlock: s.note ? `<div class="shi-note">${escapeHtml(s.note)}</div>` : '',
-				actualMark: s.actual ? ' <b>(актуально)</b>' : '',
+				subBlock: s.sub ? fillTemplate(subTpl, { cls: 'shi-sub', label: 'Подфракция: ' + escapeHtml(s.sub) }) : '',
+				noteBlock: s.note ? fillTemplate(subTpl, { cls: 'shi-note', label: escapeHtml(s.note) }) : '',
+				actualMark: s.actual ? tpl('SIDE_ACTUAL_TEMPLATE') : '',
 			})).join('');
 		}
 
+		const linkTpl = tpl('MODAL_LINK_TEMPLATE');
 		const a = actualSide(card);
 		body.innerHTML = fillTemplate(tpl('MODAL_TEMPLATE'), {
 			title: displayName(card),
 			fields: fieldsHtml.join(''),
 			sides: sidesHtml,
-			profileLink: card.profile ? `<a href="${escapeHtml(card.profile)}" target="_blank">Профиль →</a>` : '',
-			anketaLink: card.anketa ? `<a href="${escapeHtml(card.anketa)}" target="_blank">Анкета →</a>` : '',
-			postLink: `<a href="${escapeHtml(postLink(card.post_id))}" target="_blank">К сообщению →</a>`,
+			profileLink: card.profile ? fillTemplate(linkTpl, { href: card.profile, label: 'Профиль' }) : '',
+			anketaLink: card.anketa ? fillTemplate(linkTpl, { href: card.anketa, label: 'Анкета' }) : '',
+			postLink: fillTemplate(linkTpl, { href: postLink(card.post_id), label: 'К сообщению' }),
 			sealHtml: sealHtml(a ? a.faction : ''),
 		});
 
-		modal.hidden = false;
+		document.getElementById('detailsModal').hidden = false;
 	} catch (e) {
 		console.error('openDetails error:', e);
 	}
@@ -1815,6 +1766,9 @@ function setView(view) {
 }
 
 function renderCurrentView() {
+	const wrap = document.getElementById('showReservedWrap');
+	if (wrap) wrap.style.display = (state.currentView === 'chars') ? '' : 'none';
+
 	switch (state.currentView) {
 		case 'chars':
 			hideAllLists();
@@ -1836,9 +1790,7 @@ function renderCurrentView() {
    ИНИЦИАЛИЗАЦИЯ
    ========================================================= */
 async function init() {
-	const topicIds = Object.values(CONFIG.topics);
-	const results = await Promise.all(topicIds.map(processTopic));
-
+	const results = await Promise.all(Object.values(CONFIG.topics).map(processTopic));
 	state.roles = results.flatMap(r => r || []);
 	state.loaded.ok = results.filter(r => r).length;
 	state.loaded.failed = results.length - state.loaded.ok;
@@ -1847,7 +1799,6 @@ async function init() {
 	}
 
 	state.roleIdx = new Map(state.roles.map((c, i) => [c, i]));
-
 	renderStats();
 
 	if (isAdmin()) document.getElementById('expiredTab').hidden = false;
