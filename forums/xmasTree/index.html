@@ -1,0 +1,1233 @@
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #0b1020; color: #e8f0ff;
+    font-family: system-ui, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    display: flex; flex-direction: row; justify-content: center;
+    align-items: flex-start; padding: 16px; gap: 16px;
+    min-height: 100vh; box-sizing: border-box;
+  }
+  .sidebar { display: flex; flex-direction: column; gap: 12px; width: 220px; flex-shrink: 0; }
+  .nav-group {
+    display: flex; flex-direction: column; gap: 6px;
+    background: #101930; padding: 10px; border-radius: 12px;
+    border: 1px solid #1e315c;
+  }
+  .nav-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #7b96c4; padding: 2px 6px 4px; font-weight: 600;
+  }
+  .tab-btn {
+    width: 100%; text-align: left; background: transparent; color: #9fb8e0;
+    border: 1px solid transparent; border-radius: 8px; padding: 10px 12px;
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+  }
+  .tab-btn:hover { color: #e8f0ff; background: rgba(47, 74, 128, 0.25); }
+  .tab-btn.active {
+    background: #1b2b55; color: #9fe8c8; border-color: #3a5b99;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  .tab-btn.action-btn {
+    color: #e2c699; background: rgba(68, 49, 32, 0.25);
+    border-color: rgba(145, 108, 62, 0.25);
+  }
+  .tab-btn.action-btn:hover { color: #fff3db; background: rgba(95, 68, 42, 0.45); }
+  .tab-btn.action-btn.active {
+    background: #3d2c1e; color: #ffd37d; border-color: #9c7240;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+  .tab-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .main-area {
+    flex: 1; max-width: 760px; display: flex;
+    justify-content: center; position: relative;
+  }
+  .tab-panel { display: none; width: 100%; justify-content: center; }
+  .tab-panel.active { display: flex; }
+
+  /* Контейнер под ёлку: держит фон + печать фракции */
+  .canvas-wrap {
+    position: relative;
+    isolation: isolate;
+    width: auto; height: calc(100vh - 32px);
+    max-height: 680px;
+    max-width: calc(100vw - 270px);
+    aspect-ratio: 760 / 680;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 40px #1b2b55;
+    background: radial-gradient(circle at 50% 30%, #12203c, #0a0f1e 70%);
+  }
+
+
+
+
+
+.canvas-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -15%;               /* запас, чтобы при наклоне не оголялись углы */
+  z-index: 1;
+  background-repeat: repeat;
+  opacity: 0.08;              /* было 0.16 — стало заметно прозрачнее */
+  pointer-events: none;
+  background-image: var(--snow), var(--snow), var(--snow);
+  background-size: 30% auto, 18% auto, 11% auto;
+  animation:
+    snow-drift 60s linear infinite alternate,
+    snow-tilt  60s linear infinite alternate;
+}
+
+.canvas-wrap.al { --snow: url('https://upforme.ru/uploads/001c/0f/f1/3/830519.png'); }
+.canvas-wrap.sv { --snow: url('https://upforme.ru/uploads/001c/0f/f1/3/759873.png'); }
+.canvas-wrap.mt { --snow: url('https://upforme.ru/uploads/001c/0f/f1/3/794038.png'); }
+
+@keyframes snow-drift {
+  0%   { background-position: 10% 0, 60% 0, 35% 0; }
+  25%  { background-position: 22% 10%, 48% 5%, 55% 3%; }
+  50%  { background-position: 38% 18%, 30% 10%, 75% 6%; }
+  75%  { background-position: 50% 26%, 55% 14%, 45% 7.5%; }
+  100% { background-position: 25% 33.33%, 80% 16.66%, 15% 8.33%; }
+}
+
+@keyframes snow-tilt {
+  0%   { transform: rotate(-2deg); }
+  75%  { transform: rotate(2deg); }
+  100% { transform: rotate(-2deg); }
+}
+
+
+
+
+
+
+
+  .canvas-wrap canvas {
+    position: relative;
+    z-index: 2;
+    width: 100%; height: 100%;
+    display: block;
+    background: transparent;
+    touch-action: none;
+    cursor: grab;
+  }
+  .canvas-wrap canvas.dragging { cursor: grabbing; }
+
+  .card {
+    width: 100%; background: #101930; border: 1px solid #1e315c;
+    border-radius: 16px; padding: 24px; box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  .card h2 { margin: 0 0 18px; font-size: 20px; color: #9fe8c8; font-weight: 600; }
+  .card h3 { margin: 22px 0 10px; font-size: 15px; color: #9fb8e0; font-weight: 600; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; margin-bottom: 6px; font-size: 13px; color: #9fb8e0; }
+  select, input[type="text"], input[type="url"], input[type="number"] {
+    width: 100%; padding: 10px 12px; background: #0b1020;
+    border: 1px solid #2a4275; border-radius: 8px; color: #e8f0ff;
+    font-size: 14px; box-sizing: border-box; outline: none;
+  }
+  select:focus, input:focus { border-color: #5fd0a0; }
+  .money-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .total-box {
+    margin-top: 10px; padding: 10px 12px;
+    background: rgba(95, 208, 160, 0.08);
+    border: 1px dashed rgba(95, 208, 160, 0.35);
+    border-radius: 8px; font-size: 14px; color: #9fe8c8;
+  }
+  .warn-box {
+    margin-top: 10px; padding: 10px 12px;
+    background: rgba(255, 180, 80, 0.08);
+    border: 1px dashed rgba(255, 180, 80, 0.4);
+    border-radius: 8px; font-size: 13px; color: #ffd37d;
+  }
+  .submit-btn {
+    margin-top: 8px; background: #1f5c46; color: #e8fff6;
+    border: 1px solid #358f6e; border-radius: 8px;
+    padding: 11px 20px; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .submit-btn:hover { background: #277358; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ==== Таблицы: читаемые шапки ==== */
+  .stat-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+    border: 1px solid #24396b;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat-table thead th {
+    background: #16234a;
+    color: #b9d2ff;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2a4275;
+    white-space: nowrap;
+  }
+  .stat-table thead tr:first-child th:first-child { border-top-left-radius: 10px; }
+  .stat-table thead tr:first-child th:last-child  { border-top-right-radius: 10px; }
+  .stat-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #172547;
+    color: #e8f0ff;
+  }
+  .stat-table tbody tr:nth-child(even) td { background: rgba(27, 43, 85, 0.18); }
+  .stat-table tbody tr:last-child td { border-bottom: none; }
+  .stat-table tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+  .stat-table tbody tr:last-child td:last-child  { border-bottom-right-radius: 10px; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 6px;
+    font-size: 12px; background: #1b2b55; color: #9fe8c8;
+    font-weight: 600;
+  }
+
+  .radio-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;
+  }
+  .radio-option {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: #0b1020; border: 1px solid #2a4275; border-radius: 8px;
+    color: #9fb8e0; font-size: 14px; cursor: pointer;
+    transition: all 0.2s ease; user-select: none;
+  }
+  .radio-option:hover { border-color: #3a5b99; color: #e8f0ff; background: rgba(27, 43, 85, 0.35); }
+  .radio-option input[type="radio"] {
+    accent-color: #5fd0a0; width: 16px; height: 16px; margin: 0; cursor: pointer; flex-shrink: 0;
+  }
+  .radio-option:has(input[type="radio"]:checked) {
+    background: #1b2b55; border-color: #5fd0a0; color: #9fe8c8;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  #loadingOverlay, #submitOverlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: rgba(11, 16, 32, 0.85);
+    z-index: 100; backdrop-filter: blur(2px);
+  }
+  #submitOverlay { display: none; }
+  #loadingOverlay.hidden { display: none; }
+  .snowflake {
+    font-size: 64px; color: #9fe8c8; line-height: 1;
+    animation: spin 1.6s linear infinite;
+    text-shadow: 0 0 24px #5fd0a0;
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .loading-text { color: #9fb8e0; font-size: 14px; letter-spacing: 0.04em; }
+  .error-msg { color: #ff8f9f; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .ok-msg    { color: #9fe8c8; font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+  @media (max-width: 768px) {
+    #wrap { flex-direction: column; align-items: center; padding: 10px; gap: 12px; min-height: auto; }
+    .sidebar { width: 100%; max-width: 760px; gap: 8px; }
+    .nav-group { padding: 8px; }
+    .nav-buttons-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tab-btn { flex: 1 1 auto; width: auto; text-align: center; padding: 9px 10px; font-size: 13px; }
+    .main-area { width: 100%; }
+    .canvas-wrap { width: 100%; height: auto; max-width: 760px; max-height: none; }
+    .canvas-wrap canvas { width: 100%; height: auto; }
+    .radio-grid, .money-row { grid-template-columns: 1fr; }
+    .stat-table thead th { font-size: 11px; padding: 10px; }
+    .stat-table tbody td { padding: 8px 10px; }
+  }
+</style>
+
+
+<div id="wrap">
+  <div class="sidebar">
+    <div class="nav-group">
+      <div class="nav-title">Ёлки фракций</div>
+      <div class="nav-buttons-wrap">
+        <button id="al" class="tab-btn active" data-tab="al">Альянс</button>
+        <button id="sv" class="tab-btn" data-tab="sv">Свора</button>
+        <button id="mt" class="tab-btn" data-tab="mt">Миротворцы</button>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-title">Прочее</div>
+      <div class="nav-buttons-wrap">
+        <button id="btn-grow" class="tab-btn action-btn" data-tab="grow">Вырастить</button>
+        <button id="btn-toy" class="tab-btn action-btn" data-tab="toy">Повесить игрушку</button>
+        <button id="btn-stats" class="tab-btn action-btn" data-tab="stats">Статистика</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div id="tab-al" class="tab-panel active">
+  <div class="canvas-wrap al">
+    <canvas id="canvas-al" width="760" height="680"></canvas>
+  </div>
+</div>
+
+<div id="tab-sv" class="tab-panel">
+  <div class="canvas-wrap sv">
+    <canvas id="canvas-sv" width="760" height="680"></canvas>
+  </div>
+</div>
+
+<div id="tab-mt" class="tab-panel">
+  <div class="canvas-wrap mt">
+    <canvas id="canvas-mt" width="760" height="680"></canvas>
+  </div>
+</div>
+
+
+    <div id="tab-grow" class="tab-panel">
+      <div class="card">
+        <h2>Вырастить ёлку</h2>
+        <form id="form-grow">
+          <div class="form-group">
+            <span class="form-label">Фракция</span>
+            <div class="radio-grid">
+              <label class="radio-option"><input type="radio" name="grow-faction" value="al" checked /><span>Альянс</span></label>
+              <label class="radio-option"><input type="radio" name="grow-faction" value="sv" /><span>Свора</span></label>
+              <label class="radio-option"><input type="radio" name="grow-faction" value="mt" /><span>Миротворцы</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <span class="form-label">За что выращиваем</span>
+            <div class="radio-grid">
+              <label class="radio-option"><input type="radio" name="grow-reason" value="post" checked /><span>Пост</span></label>
+              <label class="radio-option"><input type="radio" name="grow-reason" value="money" /><span>Деньги</span></label>
+              <label class="radio-option"><input type="radio" name="grow-reason" value="reward" /><span>Подарок</span></label>
+            </div>
+          </div>
+          <div id="grow-post-block" class="form-group">
+            <label class="form-label" for="grow-post-url">Ссылка на пост</label>
+            <input type="url" id="grow-post-url" placeholder="https://.../#p123456" />
+          </div>
+          <div id="grow-money-block" class="form-group" style="display:none">
+            <div class="money-row">
+              <div>
+                <label class="form-label" for="grow-qty">Количество очков роста</label>
+                <input type="number" id="grow-qty" min="1" value="1" />
+              </div>
+            </div>
+            <div class="total-box">Итого к списанию: <strong id="grow-total">1 000</strong></div>
+            <div id="grow-balance-warn" class="warn-box" style="display:none"></div>
+          </div>
+          <div id="grow-reward-block" class="form-group" style="display:none">
+            <div class="money-row">
+              <div>
+                <label class="form-label" for="grow-reward-url">Ссылка-основание для подарка</label>
+                <input type="url" id="grow-reward-url" placeholder="https://..." />
+              </div>
+              <div>
+                <label class="form-label" for="grow-reward-qty">Количество очков роста</label>
+                <input type="number" id="grow-reward-qty" min="1" value="1" />
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="submit-btn">Начислить</button>
+          <div id="grow-msg" class="error-msg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-toy" class="tab-panel">
+      <div class="card">
+        <h2>Повесить игрушку</h2>
+        <form id="form-toy">
+          <div class="form-group">
+            <span class="form-label">Фракция</span>
+            <div class="radio-grid">
+              <label class="radio-option"><input type="radio" name="toy-faction" value="al" checked /><span>Альянс</span></label>
+              <label class="radio-option"><input type="radio" name="toy-faction" value="sv" /><span>Свора</span></label>
+              <label class="radio-option"><input type="radio" name="toy-faction" value="mt" /><span>Миротворцы</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <span class="form-label">Основание для игрушки</span>
+            <div class="radio-grid">
+              <label class="radio-option"><input type="radio" name="toy-reason" value="ep-create" checked /><span>Создание эпизода</span></label>
+              <label class="radio-option"><input type="radio" name="toy-reason" value="ep-close" /><span>Закрытие эпизода</span></label>
+              <label class="radio-option"><input type="radio" name="toy-reason" value="money" /><span>Деньги</span></label>
+              <label class="radio-option"><input type="radio" name="toy-reason" value="reward" /><span>Подарок</span></label>
+            </div>
+          </div>
+          <div id="toy-url-block" class="form-group">
+            <label class="form-label" id="toy-url-label" for="toy-url">Ссылка на созданный эпизод</label>
+            <input type="url" id="toy-url" placeholder="https://.../viewtopic.php?id=2520" />
+          </div>
+          <div id="toy-money-block" class="form-group" style="display:none">
+            <div class="money-row">
+              <div>
+                <label class="form-label" for="toy-qty">Количество игрушек</label>
+                <input type="number" id="toy-qty" min="1" value="1" />
+              </div>
+            </div>
+            <div class="total-box">Итого к списанию: <strong id="toy-total">5 000</strong></div>
+            <div id="toy-balance-warn" class="warn-box" style="display:none"></div>
+          </div>
+          <div id="toy-reward-block" class="form-group" style="display:none">
+            <div class="money-row">
+              <div>
+                <label class="form-label" for="toy-reward-url">Ссылка-основание для подарка</label>
+                <input type="url" id="toy-reward-url" placeholder="https://..." />
+              </div>
+              <div>
+                <label class="form-label" for="toy-reward-qty">Количество игрушек</label>
+                <input type="number" id="toy-reward-qty" min="1" value="1" />
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="submit-btn">Повесить</button>
+          <div id="toy-msg" class="error-msg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-stats" class="tab-panel">
+      <div class="card">
+        <h2>Статистика</h2>
+        <h3>По фракциям</h3>
+        <table class="stat-table">
+          <thead>
+            <tr><th>Фракция</th><th>Рост ёлки</th><th>Игрушек</th></tr>
+          </thead>
+          <tbody id="stats-factions-body">
+            <tr><td colspan="3" style="color:#7b96c4">Загрузка…</td></tr>
+          </tbody>
+        </table>
+        <h3>По игрокам</h3>
+        <table class="stat-table">
+          <thead>
+            <tr><th>ID</th><th>Игрок</th><th>Альянс</th><th>Свора</th><th>Миротворцы</th><th>Рост</th><th>Игрушек</th></tr>
+          </thead>
+          <tbody id="stats-players-body">
+            <tr><td colspan="7" style="color:#7b96c4">Загрузка…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loadingOverlay">
+  <div class="snowflake">❄</div>
+  <div class="loading-text" id="loadingText">Загружаем ёлки…</div>
+</div>
+
+<div id="submitOverlay">
+  <div class="snowflake">❄</div>
+  <div class="loading-text" id="submitText">Отправляем заявку…</div>
+</div>
+
+<script src="https://forumstatic.ru/files/001c/02/df/17998.js?v=4"></script>
+<script>
+/* =========================================================================
+   КОНФИГ
+   ========================================================================= */
+const CONFIG = {
+  GAME_FORUM_IDS:   [11, 12, 14, 22, 23, 1], // 1 - админский, убрать
+  RECORD_TOPIC_IDS: [2899],
+  CUTOFF_DATE: '2026-11-19',
+  CHARS_PER_POINT:  2000,
+  GROW_UNIT_PRICE:  1000,
+  TOY_UNIT_PRICE:   5000,
+  POSTS_PER_REQUEST: 200,
+  MAX_SKIP:          2001,
+  POLL_INTERVAL_MS:  5000,
+  POLL_TIMEOUT_MS:   60000,
+FACTIONS: {
+    al: { title: 'Альянс',     colors: ['#2a63e0','#6fe0ff','#3fd6b8','#8f7dff','#a8e4ff'] },
+    sv: { title: 'Свора',      colors: ['#8e0d3e','#ff8fa3','#ff2d55','#c9184a','#ff754f'] },
+    mt: { title: 'Миротворцы', colors: ['#ffb700','#ffcf5c','#f5932d','#ffe28a','#ff7a2f'] },
+  },
+
+
+};
+const CUTOFF_UNIX = Math.floor(new Date(CONFIG.CUTOFF_DATE + 'T00:00:00').getTime() / 1000);
+
+/* =========================================================================
+   УТИЛИТЫ
+   ========================================================================= */
+function apiCall(method, params) {
+  const usp = new URLSearchParams(Object.assign({ method }, params || {}));
+  return fetch('/api.php?' + usp.toString(), { method: 'POST' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+}
+function responseArray(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.response)) return data.response;
+  return [];
+}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'\'');
+}
+function decodeHtmlEntities(str) {
+  if (!str) return '';
+  const ta = document.createElement('textarea');
+  ta.innerHTML = str;
+  return ta.value;
+}
+function htmlToText(html) {
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = decodeHtmlEntities(html);
+  tmp.querySelectorAll('script, style').forEach(n => n.remove());
+  return (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
+}
+function parsePidFromLink(link) {
+  const s = String(link || '');
+  let m = s.match(/#p(\d+)/); if (m) return m[1];
+  m = s.match(/[?&]pid=(\d+)/); if (m) return m[1];
+  m = s.match(/\/post\/(\d+)/); if (m) return m[1];
+  return null;
+}
+function parseTopicIdFromLink(link) {
+  const s = String(link || '');
+  let m = s.match(/[?&]id=(\d+)/); if (m) return m[1];
+  m = s.match(/\/topic\/(\d+)/); if (m) return m[1];
+  return null;
+}
+function extractUrls(text) {
+  const out = [];
+  if (!text) return out;
+  const re = /(https?:\/\/[^\s\]]+)/gi;
+  let m;
+  while ((m = re.exec(text)) !== null) out.push(m[1].replace(/[.,;)\]]+$/,''));
+  return out;
+}
+function fmtNum(n) { return Number(n).toLocaleString('ru-RU'); }
+function nowTs() { return Math.floor(Date.now()/1000); }
+
+/* =========================================================================
+   СОСТОЯНИЕ
+   ========================================================================= */
+const state = {
+  records: [],
+  factionStats: {
+    al: { grow:0, toys:0 },
+    sv: { grow:0, toys:0 },
+    mt: { grow:0, toys:0 },
+  },
+  playerStats: new Map(),
+  trees: {},
+  usedPostIds: new Set(),
+  usedEpisodeKeys: new Set(),   // "<topicId>:opening" | "<topicId>:closing"
+  usedGiftUrls: new Set(),
+};
+
+/* =========================================================================
+   ПАРСИНГ СООБЩЕНИЯ-НАЧИСЛЕНИЯ
+   ========================================================================= */
+function parseRecordMessage(html) {
+  const doc = new DOMParser().parseFromString(decodeHtmlEntities(html || ''), 'text/html');
+  const table = doc.querySelector('table');
+  if (!table) return null;
+
+  const result = { faction:'', type:'', qty:0, reason:'', cost:0 };
+  table.querySelectorAll('tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td, th');
+    if (cells.length < 2) return;
+    const key = (cells[0].textContent || '').trim().toLowerCase();
+    const val = (cells[1].textContent || '').trim();
+    if (key === 'фракция') result.faction = val;
+    else if (key === 'тип') result.type = val;
+    else if (key === 'количество') result.qty = parseInt(val.replace(/\D+/g,''),10) || 0;
+    else if (key === 'за что') result.reason = val;
+    else if (key === 'стоимость') result.cost = parseInt(val.replace(/\D+/g,''),10) || 0;
+  });
+  const facMap = { 'альянс':'al', 'свора':'sv', 'миротворцы':'mt' };
+  result.factionKey = facMap[result.faction.toLowerCase()] || null;
+  const typeNorm = result.type.toLowerCase().replace(/ё/g,'е');
+  if (typeNorm === 'рост') result.typeKey = 'grow';
+  else if (typeNorm === 'игрушка' || typeNorm === 'шарик') result.typeKey = 'toy';
+  else result.typeKey = null;
+  if (!result.factionKey || !result.typeKey || !(result.qty > 0)) return null;
+  return result;
+}
+
+/* Извлекаем из reason ключи, чтобы не давать дубли */
+function registerReason(rec) {
+  const r = rec.reason || '';
+
+  const pid = parsePidFromLink(r);
+  if (pid) state.usedPostIds.add(String(pid));
+
+  const tid = parseTopicIdFromLink(r);
+  if (tid) {
+    if (/\(открытие\)/i.test(r)) state.usedEpisodeKeys.add(tid + ':opening');
+    if (/\(закрытие\)/i.test(r)) state.usedEpisodeKeys.add(tid + ':closing');
+  }
+
+  if (!/получение за деньги/i.test(r)) {
+    for (const u of extractUrls(r)) {
+      state.usedGiftUrls.add(u);
+    }
+  }
+}
+
+/* =========================================================================
+   ЗАГРУЗКА НАЧИСЛЕНИЙ
+   ========================================================================= */
+async function loadRecords() {
+  const records = [];
+  for (const topicId of CONFIG.RECORD_TOPIC_IDS) {
+    let skip = 0;
+    while (skip <= CONFIG.MAX_SKIP) {
+      let data;
+      try {
+        data = await apiCall('post.get', {
+          topic_id: topicId,
+          fields: 'id,user_id,username,posted,message',
+          limit: CONFIG.POSTS_PER_REQUEST,
+          skip: skip,
+        });
+      } catch (e) { console.error('[tree] post.get failed', topicId, e); break; }
+      const posts = responseArray(data);
+      if (!posts.length) break;
+      for (const p of posts) {
+        const rec = parseRecordMessage(p.message);
+        if (!rec) continue;
+        const record = {
+          post_id: String(p.id),
+          user_id: String(p.user_id),
+          username: p.username || '—',
+          posted: Number(p.posted),
+          faction: rec.factionKey,
+          type: rec.typeKey,
+          qty: rec.qty,
+          reason: rec.reason,
+          cost: rec.cost,
+        };
+        records.push(record);
+        registerReason(record);
+      }
+      if (posts.length < CONFIG.POSTS_PER_REQUEST) break;
+      skip += CONFIG.POSTS_PER_REQUEST;
+    }
+  }
+  records.sort((a,b) => a.posted - b.posted);
+  return records;
+}
+
+/* =========================================================================
+   АГРЕГАЦИЯ
+   ========================================================================= */
+function aggregate(records) {
+  const factionStats = {
+    al: { grow:0, toys:0 },
+    sv: { grow:0, toys:0 },
+    mt: { grow:0, toys:0 },
+  };
+  const playerStats = new Map();
+
+  for (const r of records) {
+    if (!factionStats[r.faction]) continue;
+    if (r.type === 'grow') factionStats[r.faction].grow += r.qty;
+    else if (r.type === 'toy') factionStats[r.faction].toys += r.qty;
+
+    if (!playerStats.has(r.user_id)) {
+      playerStats.set(r.user_id, {
+        id: r.user_id,
+        username: r.username,
+        byFaction: { al:0, sv:0, mt:0 },
+        grow: 0, toys: 0,
+      });
+    }
+    const ps = playerStats.get(r.user_id);
+    ps.username = r.username || ps.username;
+    if (r.type === 'grow') { ps.grow += r.qty; ps.byFaction[r.faction] += r.qty; }
+    else if (r.type === 'toy') { ps.toys += r.qty; ps.byFaction[r.faction] += r.qty; }
+  }
+  return { factionStats, playerStats };
+}
+
+/* =========================================================================
+   ЁЛКИ
+   ========================================================================= */
+function buildTrees() {
+  const s = state.factionStats;
+  state.trees = {
+    al: new ChristmasTree('#canvas-al', s.al.grow, s.al.toys, CONFIG.FACTIONS.al.colors),
+    sv: new ChristmasTree('#canvas-sv', s.sv.grow, s.sv.toys, CONFIG.FACTIONS.sv.colors),
+    mt: new ChristmasTree('#canvas-mt', s.mt.grow, s.mt.toys, CONFIG.FACTIONS.mt.colors),
+  };
+}
+
+function invalidateTreeCache(t) {
+  t.cachedG = -1;
+  t.cachedSortG = -1;
+  t.cached = null;
+  t.cachedOrder = [];
+}
+
+function refreshTrees() {
+  const s = state.factionStats;
+  for (const key of ['al','sv','mt']) {
+    const t = state.trees[key];
+    if (!t) continue;
+    if (typeof t.setGrowth === 'function') t.setGrowth(s[key].grow);
+    else t.growth = s[key].grow;
+
+    if (typeof t.setOrnament === 'function') t.setOrnament(s[key].toys);
+    else if (typeof t.setOrnaments === 'function') t.setOrnaments(s[key].toys);
+    else t.ornamentCount = s[key].toys;
+
+    invalidateTreeCache(t);
+    if (typeof t.requestRender === 'function') t.requestRender();
+  }
+}
+
+/* =========================================================================
+   СТАТИСТИКА (UI)
+   ========================================================================= */
+function renderStats() {
+  const facBody = document.getElementById('stats-factions-body');
+  facBody.innerHTML = '';
+  for (const key of ['al','sv','mt']) {
+    const f = CONFIG.FACTIONS[key];
+    const st = state.factionStats[key];
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + escapeHtml(f.title) + '</td>' +
+      '<td><span class="badge">' + fmtNum(st.grow) + '</span></td>' +
+      '<td>' + fmtNum(st.toys) + '</td>';
+    facBody.appendChild(tr);
+  }
+
+  const plBody = document.getElementById('stats-players-body');
+  plBody.innerHTML = '';
+  const players = Array.from(state.playerStats.values())
+    .sort((a,b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+
+  if (!players.length) {
+    plBody.innerHTML = '<tr><td colspan="7" style="color:#7b96c4">Пока нет данных</td></tr>';
+    return;
+  }
+  for (const p of players) {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + escapeHtml(p.id) + '</td>' +
+      '<td>' + escapeHtml(p.username) + '</td>' +
+      '<td>' + fmtNum(p.byFaction.al) + '</td>' +
+      '<td>' + fmtNum(p.byFaction.sv) + '</td>' +
+      '<td>' + fmtNum(p.byFaction.mt) + '</td>' +
+      '<td>+' + fmtNum(p.grow) + '</td>' +
+      '<td>' + fmtNum(p.toys) + '</td>';
+    plBody.appendChild(tr);
+  }
+}
+
+/* =========================================================================
+   IFRAME-SUBMIT
+   ========================================================================= */
+function buildRecordMessage({ faction, type, qty, reason, cost }) {
+  const typeLabel = (type === 'grow') ? 'рост' : (type === 'toy' ? 'игрушка' : type);
+  const facLabel = CONFIG.FACTIONS[faction] ? CONFIG.FACTIONS[faction].title : faction;
+  return '[table layout=auto width=auto]\n' +
+    '[tr][td][b]Фракция[/b][/td][td]' + facLabel + '[/td][/tr]\n' +
+    '[tr][td][b]Тип[/b][/td][td]' + typeLabel + '[/td][/tr]\n' +
+    '[tr][td][b]Количество[/b][/td][td]' + qty + '[/td][/tr]\n' +
+    '[tr][td][b]За что[/b][/td][td]' + reason + '[/td][/tr]\n' +
+    '[tr][td][b]Стоимость[/b][/td][td]' + cost + '[/td][/tr]\n' +
+    '[/table]';
+}
+
+function submitViaIframe(url, formSelector, fields, opts) {
+  opts = opts || {};
+  const loadTimeout = opts.loadTimeout || 25000;
+  const submitTimeout = opts.submitTimeout || 10000;
+
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1024px;height:768px;border:0';
+    iframe.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(iframe);
+
+    let stage = 0;
+    let finished = false;
+    let loadTimer = null;
+    let submitTimer = null;
+
+    const cleanup = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(loadTimer);
+      clearTimeout(submitTimer);
+      try { iframe.remove(); } catch (e) {}
+    };
+    const ok = () => { cleanup(); resolve(true); };
+    const fail = (m) => { cleanup(); reject(new Error(m)); };
+
+    const armLoadTimeout = () => {
+      clearTimeout(loadTimer);
+      loadTimer = setTimeout(() => fail('Таймаут загрузки формы (' + loadTimeout + ' мс)'), loadTimeout);
+    };
+
+    iframe.addEventListener('load', () => {
+      if (finished) return;
+
+      if (stage === 0) {
+        let doc;
+        try { doc = iframe.contentDocument || iframe.contentWindow.document; }
+        catch (e) { fail('Нет доступа к iframe: ' + e.message); return; }
+        if (!doc) { fail('iframe document недоступен'); return; }
+
+        const form = doc.querySelector(formSelector);
+        if (!form) { fail('Форма не найдена: ' + formSelector); return; }
+
+        for (const name in fields) {
+          const el = form.querySelector('[name="' + name + '"]');
+          if (el) el.value = fields[name];
+        }
+
+        const submitBtn =
+          form.querySelector('input[type="submit"][name="submit"]') ||
+          form.querySelector('input[type="submit"]') ||
+          form.querySelector('button[type="submit"]') ||
+          form.querySelector('input[name="submit"]');
+        if (!submitBtn) { fail('Кнопка submit не найдена'); return; }
+
+        stage = 1;
+        clearTimeout(loadTimer);
+
+        // Страховка: если второй load не придёт, считаем отправку успешной
+        submitTimer = setTimeout(() => { if (!finished) ok(); }, submitTimeout);
+
+        setTimeout(() => {
+          try { submitBtn.click(); }
+          catch (e) { fail('submit: ' + e.message); }
+        }, 50);
+
+      } else if (stage === 1) {
+        ok();
+      }
+    });
+
+    armLoadTimeout();
+    iframe.src = url;
+  });
+}
+
+async function detectMessageFieldName(url, formSelector) {
+  console.log('[detect] loading', url);
+  const html = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = () => {
+      console.log('[detect] status =', xhr.status, ', length =', xhr.responseText.length);
+      resolve(xhr.responseText);
+    };
+    xhr.onerror = () => reject(new Error('Не удалось загрузить форму'));
+    xhr.send();
+  });
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const form = doc.querySelector(formSelector);
+  if (!form) {
+    console.error('[detect] form NOT found:', formSelector);
+    console.log('[detect] forms available:', [...doc.querySelectorAll('form')].map(f => ({ action: f.action, id: f.id, cls: f.className })));
+    throw new Error('Форма не найдена: ' + formSelector);
+  }
+  const names = Array.from(form.querySelectorAll('[name]')).map(el => el.name);
+  console.log('[detect] form fields:', names);
+  if (names.includes('req_message')) { console.log('[detect] field = req_message'); return 'req_message'; }
+  const msgName = names.find(n => /message/i.test(n));
+  if (msgName) { console.log('[detect] field =', msgName); return msgName; }
+  throw new Error('Поле сообщения не найдено');
+}
+
+async function postRecordToForum(messageText) {
+  console.log('[post] message text:\n' + messageText);
+  const topicId = CONFIG.RECORD_TOPIC_IDS[0];
+  const url = '/viewtopic.php?id=' + topicId;
+  const formSelector = '#post, form[action*="posting.php"]';
+  const fieldName = await detectMessageFieldName(url, formSelector);
+  const fields = {}; fields[fieldName] = messageText;
+  await submitViaIframe(url, formSelector, fields, { loadTimeout: 25000, submitTimeout: 6000 });
+}
+
+/* =========================================================================
+   ПОЛЛИНГ НАЧИСЛЕНИЯ
+   ========================================================================= */
+async function waitForNewRecordSince(tsBefore, timeoutMs) {
+  timeoutMs = timeoutMs || CONFIG.POLL_TIMEOUT_MS;
+  const started = Date.now();
+  const seenIds = new Set(state.records.map(r => r.post_id));
+
+  while (Date.now() - started < timeoutMs) {
+    let found = null;
+    for (const tid of CONFIG.RECORD_TOPIC_IDS) {
+      try {
+        const data = await apiCall('post.get', {
+          topic_id: tid,
+          user_id: UserID,
+          sort_by: 'posted',
+          sort_dir: 'desc',
+          limit: 5,
+          fields: 'id,user_id,username,posted,message',
+        });
+        const posts = responseArray(data);
+        for (const p of posts) {
+          if (String(p.user_id) !== String(UserID)) continue;
+          if (Number(p.posted) < tsBefore) continue;
+          if (seenIds.has(String(p.id))) continue;
+          const rec = parseRecordMessage(p.message);
+          if (!rec) continue;
+          found = {
+            post_id: String(p.id),
+            user_id: String(p.user_id),
+            username: p.username || '—',
+            posted: Number(p.posted),
+            faction: rec.factionKey,
+            type: rec.typeKey,
+            qty: rec.qty,
+            reason: rec.reason,
+            cost: rec.cost,
+          };
+          break;
+        }
+      } catch (e) {
+        console.warn('[tree] poll post.get failed', tid, e);
+      }
+      if (found) break;
+    }
+
+    if (found) {
+      state.records.push(found);
+      registerReason(found);
+      const agg = aggregate(state.records);
+      state.factionStats = agg.factionStats;
+      state.playerStats = agg.playerStats;
+      buildTrees();
+      renderStats();
+      return found;
+    }
+
+    await delay(CONFIG.POLL_INTERVAL_MS);
+  }
+  return null;
+}
+
+/* =========================================================================
+   ВАЛИДАЦИЯ ССЫЛОК
+   ========================================================================= */
+async function validatePostLink(link) {
+  const pid = parsePidFromLink(link);
+  if (!pid) return { ok:false, err:'Не удалось извлечь ID поста из ссылки' };
+  if (state.usedPostIds.has(String(pid))) {
+    return { ok:false, err:'Этот пост уже был использован для начисления роста' };
+  }
+  let data;
+  try {
+    data = await apiCall('post.get', { post_id: pid, fields:'id,user_id,posted,forum_id,subject,message', limit:1 });
+  } catch (e) { return { ok:false, err:'Ошибка запроса: ' + e.message }; }
+  const p = responseArray(data)[0];
+  if (!p) return { ok:false, err:'Пост не найден' };
+  if (String(p.user_id) !== String(UserID)) return { ok:false, err:'Это не ваш пост' };
+  if (Number(p.posted) < CUTOFF_UNIX) return { ok:false, err:'Пост опубликован до начала выращивания (' + CONFIG.CUTOFF_DATE + ')' };
+  if (!CONFIG.GAME_FORUM_IDS.includes(Number(p.forum_id))) return { ok:false, err:'Пост не в разрешённом форуме' };
+  const chars = htmlToText(p.message).length;
+  const points = Math.floor(chars / CONFIG.CHARS_PER_POINT);
+  if (points <= 0) return { ok:false, err:'Пост слишком короткий: ' + chars + ' симв. (нужно ≥ ' + CONFIG.CHARS_PER_POINT + ')' };
+  return { ok:true, post:p, chars, points };
+}
+
+async function validateEpisodeLink(link, mode) {
+  const tid = parseTopicIdFromLink(link);
+  if (!tid) return { ok:false, err:'Не удалось извлечь ID эпизода из ссылки' };
+  const kind = (mode === 'ep-create') ? 'opening' : 'closing';
+  if (state.usedEpisodeKeys.has(tid + ':' + kind)) {
+    return { ok:false, err:'Этот эпизод уже был использован для начисления за ' + (kind === 'opening' ? 'открытие' : 'закрытие') };
+  }
+  let data;
+  try {
+    data = await apiCall('topic.get', { topic_id: tid, fields:'id,first_post,last_post_id,last_post_date,last_user_id,subject,forum_id', limit:1 });
+  } catch (e) { return { ok:false, err:'Ошибка запроса: ' + e.message }; }
+  const t = responseArray(data)[0];
+  if (!t) return { ok:false, err:'Эпизод не найден' };
+  if (mode === 'ep-create') {
+    let pd;
+    try { pd = await apiCall('post.get', { post_id: t.first_post, fields:'id,user_id,posted', limit:1 }); }
+    catch (e) { return { ok:false, err:'Ошибка запроса: ' + e.message }; }
+    const first = responseArray(pd)[0];
+    if (!first) return { ok:false, err:'Первый пост эпизода не найден' };
+    if (String(first.user_id) !== String(UserID)) return { ok:false, err:'Эпизод открыт не вами' };
+    if (Number(first.posted) < CUTOFF_UNIX) return { ok:false, err:'Эпизод открыт до даты отсечки' };
+  } else {
+    if (String(t.last_user_id) !== String(UserID)) return { ok:false, err:'Последний пост в эпизоде — не ваш' };
+    if (Number(t.last_post_date) < CUTOFF_UNIX) return { ok:false, err:'Закрытие эпизода до даты отсечки' };
+  }
+  return { ok:true, topic:t };
+}
+
+/* =========================================================================
+   UI: БЛОКИРОВКА
+   ========================================================================= */
+function setBusy(busy, text) {
+  document.querySelectorAll('.tab-btn').forEach(b => { b.disabled = !!busy; });
+  document.querySelectorAll('.submit-btn').forEach(b => { b.disabled = !!busy; });
+  const ov = document.getElementById('submitOverlay');
+  if (busy) {
+    document.getElementById('submitText').textContent = text || 'Отправляем заявку…';
+    ov.style.display = 'flex';
+  } else {
+    ov.style.display = 'none';
+  }
+}
+
+/* =========================================================================
+   UI: ВКЛАДКИ
+   ========================================================================= */
+function setupTabs() {
+  const buttons = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      const key = btn.dataset.tab;
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      panels.forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById('tab-' + key);
+      if (panel) panel.classList.add('active');
+      const tree = state.trees[key];
+      if (tree) tree.requestRender();
+      if (key === 'grow' || key === 'toy') updateBalanceWarn();
+    });
+  });
+}
+
+function currentBalance() {
+  const v = parseInt(String(window.UserFld4 || '0').replace(/\D+/g,''), 10);
+  return isNaN(v) ? 0 : v;
+}
+
+function updateBalanceWarn() {
+  const bal = currentBalance();
+  const balText = 'Баланс на момент загрузки страницы: ' + fmtNum(bal) +
+    '. Если к моменту обработки заявки баланс окажется меньше — пост с запросом будет удалён.';
+  const growWarn = document.getElementById('grow-balance-warn');
+  const toyWarn  = document.getElementById('toy-balance-warn');
+  const growMoney = document.querySelector('input[name="grow-reason"][value="money"]');
+  const toyMoney  = document.querySelector('input[name="toy-reason"][value="money"]');
+  growWarn.textContent = balText;
+  growWarn.style.display = (growMoney && growMoney.checked) ? 'block' : 'none';
+  toyWarn.textContent = balText;
+  toyWarn.style.display = (toyMoney && toyMoney.checked) ? 'block' : 'none';
+}
+
+/* =========================================================================
+   UI: ФОРМА «ВЫРАСТИТЬ»
+   ========================================================================= */
+function setupGrowForm() {
+  const radios = document.querySelectorAll('input[name="grow-reason"]');
+  const postBlock   = document.getElementById('grow-post-block');
+  const moneyBlock  = document.getElementById('grow-money-block');
+  const rewardBlock = document.getElementById('grow-reward-block');
+  const qtyInput = document.getElementById('grow-qty');
+  const totalSpan = document.getElementById('grow-total');
+  const msgBox = document.getElementById('grow-msg');
+  const form = document.getElementById('form-grow');
+
+  const setMsg = (text, isErr) => { msgBox.textContent = text || ''; msgBox.className = isErr ? 'error-msg' : 'ok-msg'; };
+  const updateTotal = () => {
+    const qty = Math.max(0, Number(qtyInput.value) || 0);
+    totalSpan.textContent = fmtNum(qty * CONFIG.GROW_UNIT_PRICE);
+  };
+
+  radios.forEach(r => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    postBlock.style.display   = r.value === 'post'   ? 'block' : 'none';
+    moneyBlock.style.display  = r.value === 'money'  ? 'block' : 'none';
+    rewardBlock.style.display = r.value === 'reward' ? 'block' : 'none';
+    if (r.value === 'money') updateTotal();
+    updateBalanceWarn();
+    setMsg('');
+  }));
+  qtyInput.addEventListener('input', updateTotal);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setMsg('');
+
+    const faction = form.querySelector('input[name="grow-faction"]:checked').value;
+    const reasonType = form.querySelector('input[name="grow-reason"]:checked').value;
+
+    setBusy(true, 'Проверяем и отправляем…');
+    try {
+      let payload;
+      if (reasonType === 'post') {
+        const link = document.getElementById('grow-post-url').value.trim();
+        if (!link) { setMsg('Укажите ссылку на пост', true); return; }
+        const v = await validatePostLink(link);
+        if (!v.ok) { setMsg(v.err, true); return; }
+        const subject = (v.post.subject || 'пост') + ' #' + v.post.id;
+        const reason = '[url=' + link + ']' + subject + '[/url] (' + v.chars + ' символов)';
+        payload = { faction, type:'grow', qty:v.points, reason, cost:0 };
+      } else if (reasonType === 'money') {
+        const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+        const cost = qty * CONFIG.GROW_UNIT_PRICE;
+        if (currentBalance() < cost) { setMsg('Недостаточно средств на балансе (на момент загрузки).', true); return; }
+        payload = { faction, type:'grow', qty, reason:'Получение за деньги', cost };
+      } else {
+        const link = document.getElementById('grow-reward-url').value.trim();
+        const qty = Math.max(1, parseInt(document.getElementById('grow-reward-qty').value, 10) || 1);
+        if (!link) { setMsg('Укажите ссылку-основание для подарка', true); return; }
+        if (state.usedGiftUrls.has(link)) { setMsg('Эта ссылка уже использовалась для подарка', true); return; }
+        payload = { faction, type:'grow', qty, reason: link, cost: 0 };
+      }
+
+      const tsBefore = nowTs() - 5;
+      await postRecordToForum(buildRecordMessage(payload));
+      setBusy(true, 'Проверяем начисление…');
+
+      const found = await waitForNewRecordSince(tsBefore, CONFIG.POLL_TIMEOUT_MS);
+      if (!found) {
+        setMsg('Заявка отправлена, но начисление пока не найдено. Обновите страницу через минуту.', true);
+        return;
+      }
+      setMsg('Готово: +' + found.qty + ' ' + (found.type === 'grow' ? 'роста' : 'игрушек') + ' для ' + CONFIG.FACTIONS[found.faction].title, false);
+    } catch (err) {
+      console.error('[tree] grow submit failed', err);
+      setMsg('Ошибка отправки: ' + err.message, true);
+    } finally {
+      setBusy(false);
+    }
+  });
+}
+
+/* =========================================================================
+   UI: ФОРМА «ПОВЕСИТЬ ИГРУШКУ»
+   ========================================================================= */
+function setupToyForm() {
+  const radios = document.querySelectorAll('input[name="toy-reason"]');
+  const urlBlock    = document.getElementById('toy-url-block');
+  const urlLabel    = document.getElementById('toy-url-label');
+  const moneyBlock  = document.getElementById('toy-money-block');
+  const rewardBlock = document.getElementById('toy-reward-block');
+  const qtyInput = document.getElementById('toy-qty');
+  const totalSpan = document.getElementById('toy-total');
+  const msgBox = document.getElementById('toy-msg');
+  const form = document.getElementById('form-toy');
+  const urlInput = document.getElementById('toy-url');
+
+  const labels = {
+    'ep-create': 'Ссылка на созданный эпизод',
+    'ep-close':  'Ссылка на закрытый эпизод',
+  };
+
+  const setMsg = (text, isErr) => { msgBox.textContent = text || ''; msgBox.className = isErr ? 'error-msg' : 'ok-msg'; };
+  const updateTotal = () => {
+    const qty = Math.max(0, Number(qtyInput.value) || 0);
+    totalSpan.textContent = fmtNum(qty * CONFIG.TOY_UNIT_PRICE);
+  };
+
+  radios.forEach(r => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    urlBlock.style.display    = (r.value === 'ep-create' || r.value === 'ep-close') ? 'block' : 'none';
+    moneyBlock.style.display  = (r.value === 'money')  ? 'block' : 'none';
+    rewardBlock.style.display = (r.value === 'reward') ? 'block' : 'none';
+    if (r.value === 'money') updateTotal();
+    if (labels[r.value]) urlLabel.textContent = labels[r.value];
+    updateBalanceWarn();
+    setMsg('');
+  }));
+  qtyInput.addEventListener('input', updateTotal);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setMsg('');
+
+    const faction = form.querySelector('input[name="toy-faction"]:checked').value;
+    const reasonType = form.querySelector('input[name="toy-reason"]:checked').value;
+
+    setBusy(true, 'Проверяем и отправляем…');
+    try {
+      let payload;
+      if (reasonType === 'ep-create' || reasonType === 'ep-close') {
+        const link = urlInput.value.trim();
+        if (!link) { setMsg('Укажите ссылку на эпизод', true); return; }
+        const v = await validateEpisodeLink(link, reasonType);
+        if (!v.ok) { setMsg(v.err, true); return; }
+        const subj = (v.topic.subject || 'эпизод') + ' #' + v.topic.id;
+        const kind = reasonType === 'ep-create' ? 'открытие' : 'закрытие';
+        const reason = '[url=' + link + ']' + subj + '[/url] (' + kind + ')';
+        payload = { faction, type:'toy', qty:1, reason, cost:0 };
+      } else if (reasonType === 'money') {
+        const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+        const cost = qty * CONFIG.TOY_UNIT_PRICE;
+        if (currentBalance() < cost) { setMsg('Недостаточно средств на балансе (на момент загрузки).', true); return; }
+        payload = { faction, type:'toy', qty, reason:'Получение за деньги', cost };
+      } else {
+        const link = document.getElementById('toy-reward-url').value.trim();
+        const qty = Math.max(1, parseInt(document.getElementById('toy-reward-qty').value, 10) || 1);
+        if (!link) { setMsg('Укажите ссылку-основание для подарка', true); return; }
+        if (state.usedGiftUrls.has(link)) { setMsg('Эта ссылка уже использовалась для подарка', true); return; }
+        payload = { faction, type:'toy', qty, reason: link, cost: 0 };
+      }
+
+      const tsBefore = nowTs() - 5;
+      await postRecordToForum(buildRecordMessage(payload));
+      setBusy(true, 'Проверяем начисление…');
+
+      const found = await waitForNewRecordSince(tsBefore, CONFIG.POLL_TIMEOUT_MS);
+      if (!found) {
+        setMsg('Заявка отправлена, но начисление пока не найдено. Обновите страницу через минуту.', true);
+        return;
+      }
+      setMsg('Готово: +' + found.qty + ' игрушек для ' + CONFIG.FACTIONS[found.faction].title, false);
+    } catch (err) {
+      console.error('[tree] toy submit failed', err);
+      setMsg('Ошибка отправки: ' + err.message, true);
+    } finally {
+      setBusy(false);
+    }
+  });
+}
+
+/* =========================================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================================= */
+async function init() {
+  setupTabs();
+  setupGrowForm();
+  setupToyForm();
+  updateBalanceWarn();
+
+  if (typeof UserID === 'undefined' || !UserID) {
+    document.getElementById('loadingText').innerHTML =
+      '<span style="color:#ff8f9f">Не удалось определить пользователя (UserID)</span>';
+    return;
+  }
+
+  try {
+    const records = await loadRecords();
+    state.records = records;
+    const agg = aggregate(records);
+    state.factionStats = agg.factionStats;
+    state.playerStats = agg.playerStats;
+
+    buildTrees();
+    renderStats();
+  } catch (e) {
+    console.error('[tree] init failed', e);
+    document.getElementById('loadingText').innerHTML =
+      '<span style="color:#ff8f9f">Ошибка загрузки: ' + escapeHtml(e.message) + '</span>';
+    return;
+  } finally {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    state.loading = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
